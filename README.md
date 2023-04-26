@@ -5,3 +5,4 @@ ComposeLecture2: Box Layout (FrameLayout)<br/>
 ComposeLecture3: Button, TextButton, OutlinedButton, IconButton<br/>
 ComposeLecture4: SnackBar<br/>
 ComposeLecture5: ScrollableColumn(ListView), LazyColumn(RecyclerView)<br/>
+ComposeLecture6: remember, rememberSaveable, MutableState, State hoisting, Flow<br/>
