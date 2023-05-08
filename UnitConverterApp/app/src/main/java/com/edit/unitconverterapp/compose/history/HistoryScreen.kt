@@ -45,11 +45,10 @@ fun HistoryScreen(
                 }
             }
         }
+        HistoryList(
+            list = list,
+            onCloseTask = {
+                onCloseTask(it)
+            })
     }
-
-    HistoryList(
-        list = list,
-        onCloseTask = {
-            onCloseTask(it)
-        })
 }

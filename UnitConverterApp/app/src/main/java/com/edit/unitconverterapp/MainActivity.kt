@@ -14,14 +14,22 @@ import com.edit.unitconverterapp.compose.BaseScreen
 import com.edit.unitconverterapp.data.ConverterDatabase
 import com.edit.unitconverterapp.data.ConverterRepositoryImpl
 import com.edit.unitconverterapp.ui.theme.UnitConverterAppTheme
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var factory : ConverterViewModelFactory
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val dao = ConverterDatabase.getInstance(application).converterDAO
-        val repository = ConverterRepositoryImpl(dao)
-        val factory = ConverterViewModelFactory(repository)
+        // Hilt 사용으로 더 이상 필요 없음
+//        val dao = ConverterDatabase.getInstance(application).converterDAO
+//        val repository = ConverterRepositoryImpl(dao)
+//        val factory = ConverterViewModelFactory(repository)
 
         setContent {
             UnitConverterAppTheme {

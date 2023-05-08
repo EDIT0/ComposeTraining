@@ -10,22 +10,23 @@ abstract class ConverterDatabase: RoomDatabase() {
 
     abstract val converterDAO: ConverterDAO
 
-    companion object {
-        @Volatile
-        private var INSTANCE : ConverterDatabase? = null
-        fun getInstance(context: Context): ConverterDatabase {
-            synchronized(this) {
-                var instance = INSTANCE
-                if(instance == null) {
-                    instance = Room.databaseBuilder(
-                        context.applicationContext,
-                        ConverterDatabase::class.java,
-                        "converter_data_database"
-                    ).build()
-                }
-
-                return instance
-            }
-        }
-    }
+    // Hilt 사용으로 더 이상 필요 없음
+//    companion object {
+//        @Volatile
+//        private var INSTANCE : ConverterDatabase? = null
+//        fun getInstance(context: Context): ConverterDatabase {
+//            synchronized(this) {
+//                var instance = INSTANCE
+//                if(instance == null) {
+//                    instance = Room.databaseBuilder(
+//                        context.applicationContext,
+//                        ConverterDatabase::class.java,
+//                        "converter_data_database"
+//                    ).build()
+//                }
+//
+//                return instance
+//            }
+//        }
+//    }
 }

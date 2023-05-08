@@ -1,8 +1,9 @@
 package com.edit.unitconverterapp.data
 
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-class ConverterRepositoryImpl(
+class ConverterRepositoryImpl @Inject constructor(
     private val dao: ConverterDAO
 ) : ConverterRepository{
     override suspend fun insertResult(result: ConversionResult) {
