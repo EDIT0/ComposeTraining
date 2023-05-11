@@ -48,6 +48,7 @@ import kotlinx.coroutines.launch
  * rememberUpdatedState
  * DisposableEffect
  * SideEffect
+ * 아래 세개는 정리 x
  * produceState
  * derivedStateOf
  * snapshotFlow
