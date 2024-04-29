@@ -13,10 +13,6 @@ data class Movie(
     val rating: String
 )
 
-fun get() {
-    
-}
-
 fun getMovies(): List<Movie> {
     return listOf(
         Movie(id = "tt0499549",
