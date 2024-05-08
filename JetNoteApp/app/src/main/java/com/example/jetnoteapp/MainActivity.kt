@@ -13,9 +13,11 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.jetnoteapp.data.NoteDataSource
 import com.example.jetnoteapp.model.Note
 import com.example.jetnoteapp.screen.NoteScreen
+import com.example.jetnoteapp.screen.NoteViewModel
 import com.example.jetnoteapp.ui.theme.JetNoteAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -42,19 +44,23 @@ fun TotalUI() {
     Surface(
         modifier = Modifier.fillMaxSize()
     ) {
-        val notes = remember {
-            mutableStateListOf<Note>()
-        }
-        NoteScreen(
-            notes = notes,
-            onAddNote = {
-                Log.d("MYTAG", "onAddNote ${it}")
-                notes.add(it)
-            },
-            onRemoveNote = {
-                Log.d("MYTAG", "onRemoveNote ${it}")
-                notes.remove(it)
-            }
-        )
+        val noteViewModel: NoteViewModel = viewModel<NoteViewModel>()
+        NoteApp(noteViewModel)
     }
+}
+
+@Composable
+fun NoteApp(noteViewModel: NoteViewModel = viewModel()) {
+    val notesList = noteViewModel.getAllNotes()
+    NoteScreen(
+        notes = notesList,
+        onAddNote = {
+            Log.d("MYTAG", "onAddNote ${it}")
+            noteViewModel.addNote(it)
+        },
+        onRemoveNote = {
+            Log.d("MYTAG", "onRemoveNote ${it}")
+            noteViewModel.removeNote(it)
+        }
+    )
 }

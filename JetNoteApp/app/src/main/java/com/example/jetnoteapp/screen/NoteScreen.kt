@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.jetnoteapp.R
 import com.example.jetnoteapp.components.NoteButton
 import com.example.jetnoteapp.components.NoteInputText
@@ -55,13 +56,15 @@ fun NoteScreen(
 
     val context = LocalContext.current
 
-    val title = remember {
-        mutableStateOf("")
-    }
+    val noteScreenViewModel: NoteScreenViewModel = viewModel<NoteScreenViewModel>()
 
-    val description = remember {
-        mutableStateOf("")
-    }
+//    val title = remember {
+//        mutableStateOf("")
+//    }
+
+//    val description = remember {
+//        mutableStateOf("")
+//    }
 
     Column(
         modifier = Modifier
@@ -91,15 +94,15 @@ fun NoteScreen(
                         top = 9.dp,
                         bottom = 8.dp
                     ),
-                text = title.value,
+                text = noteScreenViewModel.title.value,
                 label = "Title",
                 onTextChange = {
                     if (it.all {
                             it.isLetter() || it.isWhitespace()
                         }) {
-                        title.value = it
+                        noteScreenViewModel.title.value = it
                     }
-                    Log.d("MYTAG", "${title.value}")
+                    Log.d("MYTAG", "${noteScreenViewModel.title.value}")
                 }
             )
 
@@ -109,15 +112,15 @@ fun NoteScreen(
                         top = 9.dp,
                         bottom = 8.dp
                     ),
-                text = description.value,
+                text = noteScreenViewModel.description.value,
                 label = "Add a note",
                 onTextChange = {
                     if (it.all {
                             it.isLetter() || it.isWhitespace()
                         }) {
-                        description.value = it
+                        noteScreenViewModel.description.value = it
                     }
-                    Log.d("MYTAG", "${description.value}")
+                    Log.d("MYTAG", "${noteScreenViewModel.description.value}")
                 }
             )
 
@@ -125,8 +128,8 @@ fun NoteScreen(
                 text = "Save",
                 onClick = {
                     Log.d("MYTAG", "NoteButton Clicked")
-                    if (title.value.isNotEmpty() && description.value.isNotEmpty()) {
-                        onAddNote(Note(title = title.value, description = description.value))
+                    if (noteScreenViewModel.title.value.isNotEmpty() && noteScreenViewModel.description.value.isNotEmpty()) {
+                        onAddNote(Note(title = noteScreenViewModel.title.value, description = noteScreenViewModel.description.value))
                         Toast.makeText(context, "Note Added", Toast.LENGTH_SHORT).show()
                     }
                 }
