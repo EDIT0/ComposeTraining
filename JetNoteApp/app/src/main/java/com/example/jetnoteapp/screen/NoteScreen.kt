@@ -2,7 +2,9 @@ package com.example.jetnoteapp.screen
 
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,8 +22,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,15 +35,18 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.jetnoteapp.R
 import com.example.jetnoteapp.components.NoteButton
 import com.example.jetnoteapp.components.NoteInputText
+import com.example.jetnoteapp.components.NoteUpdateButton
 import com.example.jetnoteapp.data.NoteDataSource
 import com.example.jetnoteapp.model.Note
-import java.time.format.DateTimeFormatter
+import com.example.jetnoteapp.util.formatDate
+import java.time.Instant
+import java.util.Date
 
 
 @Preview(showBackground = true)
 @Composable
 fun PreviewNoteScreen() {
-    NoteScreen(NoteDataSource().loadNotes(), {}, {})
+    NoteScreen(NoteDataSource().loadNotes(), {}, {}, {})
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,7 +54,8 @@ fun PreviewNoteScreen() {
 fun NoteScreen(
     notes: List<Note>,
     onAddNote: (Note) -> Unit,
-    onRemoveNote: (Note) -> Unit
+    onRemoveNote: (Note) -> Unit,
+    onUpdateNote: (Note) -> Unit
 ) {
 
     val context = LocalContext.current
@@ -126,12 +130,36 @@ fun NoteScreen(
 
             NoteButton(
                 text = "Save",
+                enable = !noteScreenViewModel.isCanUpdate.value,
                 onClick = {
                     Log.d("MYTAG", "NoteButton Clicked")
                     if (noteScreenViewModel.title.value.isNotEmpty() && noteScreenViewModel.description.value.isNotEmpty()) {
                         onAddNote(Note(title = noteScreenViewModel.title.value, description = noteScreenViewModel.description.value))
+                        initTitleAndDescription(noteScreenViewModel)
                         Toast.makeText(context, "Note Added", Toast.LENGTH_SHORT).show()
                     }
+                }
+            )
+
+            NoteUpdateButton(
+                enable = noteScreenViewModel.isCanUpdate.value,
+                onUpdateClick = {
+                    Log.d("MYTAG", "NoteUpdateButton onUpdateClick")
+                    noteScreenViewModel.isCanUpdate.value = false
+                    if (noteScreenViewModel.currentUpdateNote.value!!.title.isNotEmpty() && noteScreenViewModel.currentUpdateNote.value!!.description.isNotEmpty()) {
+                        // Update 값 넣어주기
+                        noteScreenViewModel.currentUpdateNote.value!!.title = noteScreenViewModel.title.value
+                        noteScreenViewModel.currentUpdateNote.value!!.description = noteScreenViewModel.description.value
+                        noteScreenViewModel.currentUpdateNote.value!!.entryDate = Date.from(Instant.now())
+                        onUpdateNote(noteScreenViewModel.currentUpdateNote.value!!)
+                        initTitleAndDescription(noteScreenViewModel)
+                        Toast.makeText(context, "Note Updated", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                onCancelClick = {
+                    Log.d("MYTAG", "NoteUpdateButton onCancelClick")
+                    noteScreenViewModel.isCanUpdate.value = false
+                    initTitleAndDescription(noteScreenViewModel)
                 }
             )
         }
@@ -148,7 +176,20 @@ fun NoteScreen(
                     note = note,
                     onNoteClicked = {
                         Log.d("MYTAG", "LazyColumn Clicked ${it}")
-                        onRemoveNote(note)
+                        if(!noteScreenViewModel.isCanUpdate.value) {
+                            onRemoveNote(note)
+                        } else {
+                            Toast.makeText(context, "Can not remove\nCurrent mode is update mode", Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    onNoteLongClicked = {
+                        Log.d("MYTAG", "LazyColumn Long Clicked ${it}")
+                        noteScreenViewModel.isCanUpdate.value = true
+                        noteScreenViewModel.currentUpdateNote.value = it
+                        noteScreenViewModel.apply {
+                            title.value = currentUpdateNote.value!!.title
+                            description.value = currentUpdateNote.value!!.description
+                        }
                     }
                 )
             }
@@ -156,11 +197,13 @@ fun NoteScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NoteRow(
     modifier: Modifier = Modifier,
     note: Note,
-    onNoteClicked: (Note) -> Unit
+    onNoteClicked: (Note) -> Unit,
+    onNoteLongClicked: (Note) -> Unit
 ) {
     Surface(
         modifier = modifier
@@ -175,9 +218,14 @@ fun NoteRow(
         Column(
             modifier = modifier
                 .padding(horizontal = 14.dp, vertical = 6.dp)
-                .clickable {
-                    onNoteClicked(note)
-                },
+                .combinedClickable(
+                    onClick = {
+                        onNoteClicked(note)
+                    },
+                    onLongClick = {
+                        onNoteLongClicked(note)
+                    }
+                ),
             horizontalAlignment = Alignment.Start
         ) {
             Text(
@@ -189,9 +237,15 @@ fun NoteRow(
                 style = MaterialTheme.typography.titleMedium
             )
             Text(
-                text = note.entryDate.format(DateTimeFormatter.ofPattern("EEE, d MMM")),
+//                text = note.entryDate.format(DateTimeFormatter.ofPattern("EEE, d MMM")),
+                text = formatDate(note.entryDate.time),
                 style = MaterialTheme.typography.titleSmall
             )
         }
     }
+}
+
+fun initTitleAndDescription(noteScreenViewModel: NoteScreenViewModel) {
+    noteScreenViewModel.title.value = ""
+    noteScreenViewModel.description.value = ""
 }

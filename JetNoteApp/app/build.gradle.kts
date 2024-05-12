@@ -80,6 +80,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1-Beta")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1-Beta")
 
+    val lifecycle_version = "2.7.0"
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:$lifecycle_version")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

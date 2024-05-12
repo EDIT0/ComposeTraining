@@ -9,10 +9,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.jetnoteapp.data.NoteDataSource
 import com.example.jetnoteapp.model.Note
@@ -47,13 +49,14 @@ fun TotalUI() {
         modifier = Modifier.fillMaxSize()
     ) {
         val noteViewModel: NoteViewModel = viewModel<NoteViewModel>()
+
         NoteApp(noteViewModel)
     }
 }
 
 @Composable
-fun NoteApp(noteViewModel: NoteViewModel = viewModel()) {
-    val notesList = noteViewModel.getAllNotes()
+fun NoteApp(noteViewModel: NoteViewModel) {
+    val notesList = noteViewModel.noteList.collectAsStateWithLifecycle().value
     NoteScreen(
         notes = notesList,
         onAddNote = {
@@ -63,6 +66,10 @@ fun NoteApp(noteViewModel: NoteViewModel = viewModel()) {
         onRemoveNote = {
             Log.d("MYTAG", "onRemoveNote ${it}")
             noteViewModel.removeNote(it)
+        },
+        onUpdateNote = {
+            Log.d("MYTAG", "onUpdateNote ${it}")
+            noteViewModel.updateNote(it)
         }
     )
 }

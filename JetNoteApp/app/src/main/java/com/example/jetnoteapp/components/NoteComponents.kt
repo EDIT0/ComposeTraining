@@ -1,5 +1,7 @@
 package com.example.jetnoteapp.components
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -64,16 +66,49 @@ fun NoteButton(
     onClick: () -> Unit,
     enable: Boolean = true
 ) {
-    Button(
-        onClick = {
-            onClick.invoke()
-        },
-        shape = CircleShape,
-        enabled = enable,
-        modifier = modifier
-    ) {
-        Text(
-            text = text
-        )
+    if(enable) {
+        Button(
+            onClick = {
+                onClick.invoke()
+            },
+            shape = CircleShape,
+            enabled = enable,
+            modifier = modifier
+        ) {
+            Text(
+                text = text
+            )
+        }
+    }
+}
+
+@Composable
+fun NoteUpdateButton(
+    modifier: Modifier = Modifier,
+    onUpdateClick: () -> Unit,
+    onCancelClick: () -> Unit,
+    enable: Boolean = true
+) {
+    Row {
+        if(enable) {
+            Button(
+                onClick = {
+                    onUpdateClick.invoke()
+                },
+                enabled = enable,
+                modifier = modifier
+            ) {
+                Text(text = "Update")
+            }
+            Button(
+                onClick = {
+                    onCancelClick.invoke()
+                },
+                enabled = enable,
+                modifier = modifier
+            ) {
+                Text(text = "Cancel")
+            }
+        }
     }
 }
