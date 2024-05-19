@@ -1,6 +1,5 @@
 package com.example.jettriviaapp.screens
 
-import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -9,7 +8,6 @@ import com.example.jettriviaapp.data.DataOrException
 import com.example.jettriviaapp.model.QuestionItem
 import com.example.jettriviaapp.repository.QuestionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
