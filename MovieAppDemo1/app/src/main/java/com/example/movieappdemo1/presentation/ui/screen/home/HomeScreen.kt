@@ -10,9 +10,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
-import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -25,7 +23,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.movieappdemo1.common.log.LogUtil
 import com.example.movieappdemo1.presentation.ui.navigation.MainBottomNavigation
-import com.example.movieappdemo1.presentation.ui.navigation.NavScreen
+import com.example.movieappdemo1.ui.theme.DeepBlue
+import com.example.movieappdemo1.ui.theme.LightGray
+import com.example.movieappdemo1.ui.theme.White
 
 @Preview
 @Composable
@@ -50,7 +50,7 @@ fun HomeScreen(
             BottomNavigation(navController = navHostController)
         }
     ) {
-        Box(Modifier.padding(it)){
+        Box(Modifier.padding(it)) {
             MainBottomNavigation(navHostController)
         }
     }
@@ -60,7 +60,10 @@ fun HomeScreen(
 fun BottomNavigation(
     navController: NavController
 ) {
-    BottomNavigation {
+    BottomNavigation(
+        backgroundColor = White,
+        elevation = 10.dp
+    ) {
         val navBackStackEntry = navController.currentBackStackEntryAsState()
         val currentDestination = navBackStackEntry.value?.destination
         val currentRoute = currentDestination?.route
@@ -83,10 +86,10 @@ fun BottomNavigation(
                     )
                 },
                 label = { Text(stringResource(id = item.title), fontSize = 9.sp) },
-                selectedContentColor = MaterialTheme.colors.primary,
-                unselectedContentColor = Color.Gray,
+                selectedContentColor = DeepBlue,
+                unselectedContentColor = LightGray,
                 selected = currentRoute == item.screenRoute,
-                alwaysShowLabel = false,
+                alwaysShowLabel = true,
                 onClick = {
 //                    navController.navigate(item.screenRoute) {
 //                        navController.graph.startDestinationRoute?.let {
@@ -107,4 +110,3 @@ fun BottomNavigation(
         }
     }
 }
-

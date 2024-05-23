@@ -8,16 +8,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 
 @Preview
 @Composable
 fun SavedMovieScreenPreview() {
-    SavedMovieScreen()
+    val navController = rememberNavController()
+    SavedMovieScreen(navController, hiltViewModel())
 }
 
 @Composable
 fun SavedMovieScreen(
-
+    navController: NavController,
+    savedMovieScreen: SavedMovieScreenViewModel
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -25,7 +30,7 @@ fun SavedMovieScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "SavedMovieScreen ${(1..100).random()}",
+            text = "SavedMovieScreen ${this.hashCode()} ${(1..100).random()}",
         )
     }
 }

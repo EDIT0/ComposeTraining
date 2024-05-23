@@ -32,6 +32,16 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        LogUtil.i_dev("onResume()")
+    }
+
+    override fun onPause() {
+        super.onPause()
+        LogUtil.i_dev("onPause()")
+    }
 }
 
 @Composable

@@ -1,6 +1,6 @@
 package com.example.movieappdemo1.presentation.ui.navigation
 
-enum class NavScreen {
+enum class AppNavigationScreen {
     IntroScreen,
     HomeScreen;
 
