@@ -1,16 +1,20 @@
 package com.example.movieappdemo1.presentation.ui.screen.home
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -22,6 +26,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.movieappdemo1.common.log.LogUtil
+import com.example.movieappdemo1.domain.model.MovieModelResult
+import com.example.movieappdemo1.presentation.ui.navigation.AppNavigationScreen
 import com.example.movieappdemo1.presentation.ui.navigation.MainBottomNavigation
 import com.example.movieappdemo1.ui.theme.DeepBlue
 import com.example.movieappdemo1.ui.theme.LightGray
@@ -35,6 +41,8 @@ fun HomeScreenPreview() {
     HomeScreen(navController, homeScreenViewModel, "")
 }
 
+lateinit var mHomeScreenViewModel: HomeScreenViewModel
+
 @Composable
 fun HomeScreen(
     navController: NavController,
@@ -42,6 +50,7 @@ fun HomeScreen(
     intro: String?
 ) {
     val navHostController = rememberNavController()
+    mHomeScreenViewModel = homeScreenViewModel
 
     LogUtil.d_dev("HomeScreen ${intro}")
 
@@ -51,9 +60,10 @@ fun HomeScreen(
         }
     ) {
         Box(Modifier.padding(it)) {
-            MainBottomNavigation(navHostController)
+            MainBottomNavigation(navHostController, navController)
         }
     }
+    IsLoading(homeScreenViewModel.isLoading.value)
 }
 
 @Composable
@@ -102,11 +112,39 @@ fun BottomNavigation(
                         launchSingleTop = true
                         restoreState = true
                         navController.graph.startDestinationRoute?.let {
-                            popUpTo(it) { saveState = true }
+                            popUpTo(it) {
+                                saveState = true
+                                inclusive = false
+                            }
                         }
                     }
                 }
             )
         }
     }
+}
+
+@Composable
+fun IsLoading(isLoading: Boolean) {
+    if(isLoading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(color = Color(0x80000000))
+                .clickable {
+
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+    }
+}
+
+fun setLoading(isLoading: Boolean) {
+    mHomeScreenViewModel.isLoading.value = isLoading
+}
+
+fun moveToMovieInfo(navController: NavController, movieModelResult: MovieModelResult) {
+    navController.navigate(route = AppNavigationScreen.MovieInfoScreen.name)
 }

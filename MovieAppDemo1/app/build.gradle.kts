@@ -86,6 +86,9 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
     implementation("com.google.code.gson:gson:2.10.1")
 
+    /* Okhttp Interceptor */
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
     /* Navigation */
     val nav_version = "2.7.7"
     implementation("androidx.navigation:navigation-compose:$nav_version")

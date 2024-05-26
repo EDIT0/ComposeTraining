@@ -15,13 +15,13 @@ import androidx.navigation.compose.rememberNavController
 @Preview
 @Composable
 fun SearchMovieScreenPreview() {
-    val navController = rememberNavController()
-    SearchMovieScreen(navController, hiltViewModel())
+    val bottomNavController = rememberNavController()
+    SearchMovieScreen(bottomNavController, hiltViewModel())
 }
 
 @Composable
 fun SearchMovieScreen(
-    navController: NavController,
+    bottomNavController: NavController,
     searchMovieScreenViewModel: SearchMovieScreenViewModel
 ) {
     Column(

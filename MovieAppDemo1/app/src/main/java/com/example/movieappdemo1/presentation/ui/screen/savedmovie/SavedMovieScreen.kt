@@ -15,13 +15,13 @@ import androidx.navigation.compose.rememberNavController
 @Preview
 @Composable
 fun SavedMovieScreenPreview() {
-    val navController = rememberNavController()
-    SavedMovieScreen(navController, hiltViewModel())
+    val bottomNavController = rememberNavController()
+    SavedMovieScreen(bottomNavController, hiltViewModel())
 }
 
 @Composable
 fun SavedMovieScreen(
-    navController: NavController,
+    bottomNavController: NavController,
     savedMovieScreen: SavedMovieScreenViewModel
 ) {
     Column(

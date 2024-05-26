@@ -2,6 +2,7 @@ package com.example.movieappdemo1.presentation.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -12,22 +13,23 @@ import com.example.movieappdemo1.presentation.ui.screen.searchmovie.SearchMovieS
 
 @Composable
 fun MainBottomNavigation(
-    navHostController: NavHostController
+    bottomNavHostController: NavHostController,
+    navController: NavController
 ) {
-    NavHost(navController = navHostController, startDestination = BottomNavItem.MovieList.screenRoute) {
+    NavHost(navController = bottomNavHostController, startDestination = BottomNavItem.MovieList.screenRoute) {
         /* MovieListScreen */
         composable(BottomNavItem.MovieList.screenRoute) {
-            MovieListScreen(navHostController, hiltViewModel())
+            MovieListScreen(bottomNavHostController, navController, hiltViewModel())
         }
 
         /* SearchMovieScreen */
         composable(BottomNavItem.SearchMovie.screenRoute) {
-            SearchMovieScreen(navHostController, hiltViewModel())
+            SearchMovieScreen(bottomNavHostController, hiltViewModel())
         }
 
         /* SavedMovieScreen */
         composable(BottomNavItem.SavedMovie.screenRoute) {
-            SavedMovieScreen(navHostController, hiltViewModel())
+            SavedMovieScreen(bottomNavHostController, hiltViewModel())
         }
     }
 }

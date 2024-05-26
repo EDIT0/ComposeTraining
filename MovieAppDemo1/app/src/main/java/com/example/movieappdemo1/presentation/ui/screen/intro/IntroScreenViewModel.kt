@@ -16,7 +16,7 @@ class IntroScreenViewModel @Inject constructor(
 
 ) : ViewModel() {
 
-    private val introSecondsTime = mutableIntStateOf(3)
+    private val introSecondsTime = mutableIntStateOf(1)
     val timerFinish = mutableStateOf(false)
     val introData = "IntroData ${(1..100).random()}"
 

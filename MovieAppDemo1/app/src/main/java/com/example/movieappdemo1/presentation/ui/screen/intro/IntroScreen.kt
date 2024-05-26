@@ -16,7 +16,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.movieappdemo1.common.log.LogUtil
+import com.example.movieappdemo1.presentation.ui.navigation.AppNavigation
 import com.example.movieappdemo1.presentation.ui.navigation.AppNavigationScreen
+import com.example.movieappdemo1.presentation.ui.navigation.intro
 import com.example.movieappdemo1.ui.theme.DeepBlue
 import com.example.movieappdemo1.ui.theme.LightGray
 
@@ -70,7 +72,11 @@ fun moveToMain(
 ) {
     if(introScreenViewModel.timerFinish.value) {
         LogUtil.d_dev("IntroScreen True")
-        navController.navigate(route = AppNavigationScreen.HomeScreen.name + "/${introScreenViewModel.introData}")
+        navController.navigate(route = AppNavigationScreen.HomeScreen.name + "/${introScreenViewModel.introData}") {
+            popUpTo(AppNavigationScreen.IntroScreen.name) {
+                inclusive = true
+            }
+        }
         introScreenViewModel.setTimerFinish(false)
     } else {
         LogUtil.d_dev("IntroScreen False")
