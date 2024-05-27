@@ -29,9 +29,11 @@ import com.example.movieappdemo1.common.log.LogUtil
 import com.example.movieappdemo1.domain.model.MovieModelResult
 import com.example.movieappdemo1.presentation.ui.navigation.AppNavigationScreen
 import com.example.movieappdemo1.presentation.ui.navigation.MainBottomNavigation
+import com.example.movieappdemo1.presentation.util.ConvertUtil
 import com.example.movieappdemo1.ui.theme.DeepBlue
 import com.example.movieappdemo1.ui.theme.LightGray
 import com.example.movieappdemo1.ui.theme.White
+import com.google.gson.Gson
 
 @Preview
 @Composable
@@ -146,5 +148,9 @@ fun setLoading(isLoading: Boolean) {
 }
 
 fun moveToMovieInfo(navController: NavController, movieModelResult: MovieModelResult) {
-    navController.navigate(route = AppNavigationScreen.MovieInfoScreen.name)
+    val gson = Gson()
+    val movieModelResultJson: String = gson.toJson(movieModelResult)
+    val encodedJson = ConvertUtil.urlEncode(movieModelResultJson)
+    LogUtil.i_dev("encodedJson: ${encodedJson}")
+    navController.navigate(route = AppNavigationScreen.MovieInfoScreen.name + "/${encodedJson}")
 }

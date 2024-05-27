@@ -87,14 +87,14 @@ fun MovieList(
     val cantScrollForward = !scrollState.canScrollForward
     val cantScrollBackward = !scrollState.canScrollBackward
 
-    LogUtil.i_dev("MYTAG cantScrollForward: ${cantScrollForward}")
-    LogUtil.i_dev("MYTAG cantScrollBackward: ${cantScrollBackward}")
+//    LogUtil.i_dev("MYTAG cantScrollForward: ${cantScrollForward}")
+//    LogUtil.i_dev("MYTAG cantScrollBackward: ${cantScrollBackward}")
 
     LazyColumn (
         state = scrollState
     ){
         itemsIndexed(movieListScreenViewModel.allMovieList) {index, item ->
-            LogUtil.d_dev("NavController: ${navController.currentDestination}\nindex: ${index} / item: ${item?.title}")
+//            LogUtil.d_dev("NavController: ${navController.currentDestination}\nindex: ${index} / item: ${item?.title}")
             movieListScreenViewModel.currentPosition.value = index
             MovieItem(index, item) {
                 moveToMovieInfo(navController, it)

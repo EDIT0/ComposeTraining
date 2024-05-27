@@ -7,7 +7,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.movieappdemo1.domain.model.MovieModelResult
 import com.example.movieappdemo1.presentation.ui.screen.home.HomeScreen
 import com.example.movieappdemo1.presentation.ui.screen.intro.IntroScreen
 import com.example.movieappdemo1.presentation.ui.screen.movieinfo.MovieInfoScreen
@@ -44,13 +43,13 @@ fun AppNavigation() {
 
         /* MovieInfoScreen */
         composable(
-            AppNavigationScreen.MovieInfoScreen.name,
-//            arguments = listOf(
-//                navArgument(name = movie_info) {type = NavType.StringType}
-//            )
+            AppNavigationScreen.MovieInfoScreen.name + "/{${movie_info}}",
+            arguments = listOf(
+                navArgument(name = movie_info) {type = NavType.StringType}
+            )
         ) {backStackEntry ->
-//            val movieModelResult = it.arguments?.getSerializable(movie_info) as MovieModelResult
-            MovieInfoScreen(navController = navController, movieInfoScreenViewModel = hiltViewModel())
+            val movieModelResultJson = backStackEntry.arguments?.getString(movie_info)
+            MovieInfoScreen(navController = navController, movieInfoScreenViewModel = hiltViewModel(), movieModelResultJson?:"")
         }
     }
 }
