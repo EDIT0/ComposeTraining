@@ -14,6 +14,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -31,6 +34,8 @@ import com.example.movieappdemo1.common.log.LogUtil
 import com.example.movieappdemo1.domain.model.MovieModelResult
 import com.example.movieappdemo1.presentation.util.ConvertUtil
 import com.google.gson.Gson
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Preview
 @Composable
@@ -77,6 +82,9 @@ fun ActionBar(
     navController: NavController,
     title: String
 ) {
+    var duplicated = remember { mutableStateOf(false) }
+    val timer = rememberCoroutineScope()
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -86,8 +94,18 @@ fun ActionBar(
             modifier = Modifier
                 .fillMaxHeight()
                 .padding(10.dp)
-                .clickable {
+                .clickable(
+                    enabled = !duplicated.value
+                ) {
+                    duplicated.value = true
+
                     navController.popBackStack()
+
+//                    timer.launch {
+//                        delay(500)
+//                        duplicated.value  = false
+//                    }
+
                 },
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
