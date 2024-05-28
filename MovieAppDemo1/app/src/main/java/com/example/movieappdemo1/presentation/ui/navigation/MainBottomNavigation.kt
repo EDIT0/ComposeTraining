@@ -29,7 +29,7 @@ fun MainBottomNavigation(
 
         /* SavedMovieScreen */
         composable(BottomNavItem.SavedMovie.screenRoute) {
-            SavedMovieScreen(bottomNavHostController, hiltViewModel())
+            SavedMovieScreen(bottomNavHostController, navController, hiltViewModel())
         }
     }
 }

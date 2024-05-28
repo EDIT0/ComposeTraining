@@ -2,6 +2,7 @@ package com.example.movieappdemo1.presentation.ui.screen.movieinfo
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,7 +12,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -24,6 +30,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
@@ -33,19 +40,18 @@ import com.example.movieappdemo1.R
 import com.example.movieappdemo1.common.log.LogUtil
 import com.example.movieappdemo1.domain.model.MovieModelResult
 import com.example.movieappdemo1.presentation.util.ConvertUtil
+import com.example.movieappdemo1.ui.theme.DeepBlue
+import com.example.movieappdemo1.ui.theme.White
 import com.google.gson.Gson
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @Preview
 @Composable
 fun MovieInfoScreenPreview() {
     val navController = rememberNavController()
-    val movieInfoScreenViewModel = MovieInfoScreenViewModel()
     MovieInfoScreen(
         navController = navController,
-        movieInfoScreenViewModel = movieInfoScreenViewModel,
-        ""
+        movieInfoScreenViewModel = hiltViewModel(),
+        "{\"adult\":false,\"backdrop_path\":\"/en3GU5uGkKaYmSyetHV4csHHiH3.jpg\",\"genre_ids\":[10752,28,18],\"id\":929590,\"original_language\":\"en\",\"original_title\":\"Civil War\",\"overview\":\"In the near future, a group of war journalists attempt to survive while reporting the truth as the United States stands on the brink of civil war.\",\"popularity\":1977.095,\"poster_path\":\"/sh7Rg8Er3tFcN9BpKIPOMvALgZd.jpg\",\"release_date\":\"2024-04-10\",\"title\":\"Civil War\",\"video\":false,\"vote_average\":7.313,\"vote_count\":922}"
     )
 }
 
@@ -64,14 +70,20 @@ fun MovieInfoScreen(
 
     val scrollableState = rememberScrollState()
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(scrollableState),
     ) {
-        ActionBar(navController, movieModelResult.title.toString())
-        ThumbnailImage(movieModelResult = movieModelResult)
-        MovieInfoText(movieModelResult = movieModelResult)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollableState),
+        ) {
+            ActionBar(navController, movieModelResult.title.toString())
+            ThumbnailImage(movieModelResult = movieModelResult)
+            MovieInfoText(movieModelResult = movieModelResult)
+        }
+        SaveMovieButton(movieInfoScreenViewModel, movieModelResult = movieModelResult)
     }
 
 }
@@ -88,7 +100,7 @@ fun ActionBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(48.dp)
+            .height(60.dp)
     ) {
         Column(
             modifier = Modifier
@@ -161,12 +173,12 @@ fun MovieInfoText(
             .padding(20.dp)
     ) {
         Text(
-            text = movieModelResult.title?:"",
+            text = movieModelResult.title ?: "",
             letterSpacing = 1.sp
         )
         Spacer(modifier = Modifier.height(10.dp))
         Text(
-            text = movieModelResult.releaseDate?:"",
+            text = movieModelResult.releaseDate ?: "",
             letterSpacing = 1.sp
         )
         Spacer(modifier = Modifier.height(5.dp))
@@ -176,8 +188,36 @@ fun MovieInfoText(
         )
         Spacer(modifier = Modifier.height(15.dp))
         Text(
-            text = movieModelResult.overview?:"",
+            text = movieModelResult.overview ?: "",
             letterSpacing = 1.sp
         )
+    }
+}
+
+@Composable
+fun SaveMovieButton(
+    movieInfoScreenViewModel: MovieInfoScreenViewModel,
+    movieModelResult: MovieModelResult
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(20.dp),
+        contentAlignment = Alignment.BottomEnd
+    ) {
+        FloatingActionButton(
+            onClick = {
+                movieInfoScreenViewModel.saveMovie(movieModelResult)
+                LogUtil.i_dev("Save movie ${movieModelResult.title}")
+            },
+            containerColor = DeepBlue,
+            shape = CircleShape,
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Add,
+                contentDescription = "This is Add Fab",
+                tint = White,
+            )
+        }
     }
 }

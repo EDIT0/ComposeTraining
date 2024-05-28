@@ -54,7 +54,7 @@ fun MovieListScreen(
             .fillMaxSize()
             .background(White)
     ) {
-        ActionBar()
+        MovieListActionBar()
         MovieList(navController, movieListScreenViewModel)
     }
 
@@ -62,11 +62,11 @@ fun MovieListScreen(
 }
 
 @Composable
-fun ActionBar() {
+fun MovieListActionBar() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(48.dp)
+            .height(60.dp)
     ) {
         Text(
             text = "Popular Movie List",
