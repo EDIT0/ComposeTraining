@@ -1,7 +1,7 @@
 package com.example.movieappdemo1.presentation.ui.screen.movielist
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -96,9 +97,14 @@ fun MovieList(
         itemsIndexed(movieListScreenViewModel.allMovieList) {index, item ->
 //            LogUtil.d_dev("NavController: ${navController.currentDestination}\nindex: ${index} / item: ${item?.title}")
             movieListScreenViewModel.currentPosition.value = index
-            MovieItem(index, item) {
-                moveToMovieInfo(navController, it)
-            }
+            MovieItem(index, item,
+                onItemClick = {
+                    moveToMovieInfo(navController, it)
+                },
+                onItemLongClick = {
+
+                }
+            )
         }
     }
 
@@ -118,15 +124,27 @@ fun MovieList(
 fun MovieItem(
     index: Int,
     movieModelResult: MovieModelResult,
-    onItemClick: (MovieModelResult) -> Unit
+    onItemClick: (MovieModelResult) -> Unit,
+    onItemLongClick: (MovieModelResult) -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .clickable {
-                LogUtil.d_dev("Clicked title: ${movieModelResult.title}")
-                onItemClick.invoke(movieModelResult)
+//            .clickable {
+//                LogUtil.d_dev("Clicked title: ${movieModelResult.title}")
+//                onItemClick.invoke(movieModelResult)
+//            }
+            .pointerInput(Unit){
+                detectTapGestures(
+                    onTap = {
+                        LogUtil.d_dev("Clicked title: ${movieModelResult.title}")
+                        onItemClick.invoke(movieModelResult)
+                    },
+                    onLongPress = {
+                        onItemLongClick.invoke(movieModelResult)
+                    }
+                )
             }
     ) {
         Row {
