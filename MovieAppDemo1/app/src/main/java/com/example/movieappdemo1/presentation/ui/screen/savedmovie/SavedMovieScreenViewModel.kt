@@ -27,7 +27,7 @@ class SavedMovieScreenViewModel @Inject constructor(
 
     val savedMovieSearchText = mutableStateOf("")
 
-    val allSavedMoviesList = getSavedMoviesUseCase.execute()
+//    val allSavedMoviesList = getSavedMoviesUseCase.execute()
     val currentPosition = mutableStateOf(-1)
 
     var keyword = MutableLiveData<String>("")

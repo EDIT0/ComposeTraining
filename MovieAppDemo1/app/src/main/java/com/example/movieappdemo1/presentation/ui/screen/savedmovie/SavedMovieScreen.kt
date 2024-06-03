@@ -1,5 +1,6 @@
 package com.example.movieappdemo1.presentation.ui.screen.savedmovie
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,7 +10,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -18,6 +21,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,6 +35,8 @@ import com.example.movieappdemo1.presentation.ui.screen.home.moveToMovieInfo
 import com.example.movieappdemo1.presentation.ui.screen.movielist.MovieItem
 import com.example.movieappdemo1.ui.theme.LightGray
 import com.example.movieappdemo1.ui.theme.White
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 @Preview
 @Composable
@@ -84,12 +90,13 @@ fun SavedMovieActionBar(
                 unfocusedContainerColor = LightGray
             ),
             placeholder = {
-                Text(text = "영화 검색")
+                Text(text = "저장된 영화 검색")
             }
         )
     }
 }
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun SavedMoviesList(
@@ -97,6 +104,9 @@ fun SavedMoviesList(
     savedMovieScreenViewModel: SavedMovieScreenViewModel,
     list: List<MovieModelResult>
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    val scrollState = rememberLazyListState()
+
     if(list.isEmpty()) {
         Column(
             modifier = Modifier
@@ -114,7 +124,9 @@ fun SavedMoviesList(
             LogUtil.i_dev("영화: ${item}")
         }
 
-        LazyColumn {
+        LazyColumn(
+            state = scrollState
+        ) {
             itemsIndexed(
                 list,
                 key = { index, item ->
@@ -238,5 +250,8 @@ fun SavedMoviesList(
 //                )
             }
         }
+    }
+    coroutineScope.launch {
+        scrollState.scrollToItem(0)
     }
 }
