@@ -52,6 +52,9 @@ fun SavedMovieScreen(
     navController: NavController,
     savedMovieScreenViewModel: SavedMovieScreenViewModel
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    val scrollState = rememberLazyListState()
+
 //    val allSavedMoviesList = savedMovieScreenViewModel.allSavedMoviesList.collectAsState(initial = emptyList())
     val allSavedMoviesList = savedMovieScreenViewModel.getSearchSavedMoviesStateFlow.collectAsState(initial = emptyList())
 
@@ -61,8 +64,11 @@ fun SavedMovieScreen(
             .background(White)
     ) {
         SavedMovieActionBar(savedMovieScreenViewModel)
-        SavedMoviesList(navController, savedMovieScreenViewModel, allSavedMoviesList.value)
+        SavedMoviesList(navController, savedMovieScreenViewModel, scrollState, allSavedMoviesList.value)
     }
+
+    scrollLogic(savedMovieScreenViewModel.isDelete.value, coroutineScope, scrollState)
+
 }
 
 @Composable
@@ -83,6 +89,7 @@ fun SavedMovieActionBar(
             onValueChange = {
                 savedMovieScreenViewModel.savedMovieSearchText.value = it
                 savedMovieScreenViewModel.keyword.value = it
+                LogUtil.i_dev("MYTAG 저장된 영화 검색어: ${savedMovieScreenViewModel.keyword.value}")
             },
             maxLines = 1,
             colors = TextFieldDefaults.colors(
@@ -102,10 +109,9 @@ fun SavedMovieActionBar(
 fun SavedMoviesList(
     navController: NavController,
     savedMovieScreenViewModel: SavedMovieScreenViewModel,
+    scrollState: LazyListState,
     list: List<MovieModelResult>
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    val scrollState = rememberLazyListState()
 
     if(list.isEmpty()) {
         Column(
@@ -251,6 +257,22 @@ fun SavedMoviesList(
             }
         }
     }
+}
+
+private fun scrollLogic(
+    isDelete: Boolean,
+    coroutineScope: CoroutineScope,
+    scrollState: LazyListState
+) {
+    if(isDelete) {
+
+    } else {
+        scrollToTop(coroutineScope, scrollState)
+    }
+}
+
+fun scrollToTop(coroutineScope: CoroutineScope, scrollState: LazyListState) {
+    LogUtil.i_dev("MYTAG Scroll to top")
     coroutineScope.launch {
         scrollState.scrollToItem(0)
     }

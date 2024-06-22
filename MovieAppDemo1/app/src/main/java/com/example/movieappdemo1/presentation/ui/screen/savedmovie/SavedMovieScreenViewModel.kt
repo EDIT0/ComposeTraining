@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -29,16 +30,24 @@ class SavedMovieScreenViewModel @Inject constructor(
 
 //    val allSavedMoviesList = getSavedMoviesUseCase.execute()
     val currentPosition = mutableStateOf(-1)
+    var isDelete = mutableStateOf<Boolean>(false)
 
     var keyword = MutableLiveData<String>("")
     @OptIn(ExperimentalCoroutinesApi::class)
     val getSearchSavedMoviesStateFlow: Flow<List<MovieModelResult>> = keyword.asFlow().flatMapLatest { filter ->
         getSearchSavedMoviesUseCase.execute_using_stateflow(filter)
+            .onCompletion {
+                LogUtil.i_dev("MYTAG isDelete: ${isDelete.value}")
+                if(isDelete.value) {
+                    isDelete.value = false
+                }
+            }
     }
 
     fun deleteSavedMovie(movieModelResult: MovieModelResult) {
         LogUtil.i_dev("Delete ${movieModelResult.title}")
         viewModelScope.launch(Dispatchers.IO) {
+            isDelete.value = true // 삭제 할 때는 ScrollToTop이 필요없음
             deleteSavedMovieUseCase.execute(movieModelResult)
         }
     }

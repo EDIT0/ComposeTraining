@@ -17,7 +17,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,9 +29,7 @@ import com.example.movieappdemo1.common.log.LogUtil
 import com.example.movieappdemo1.domain.model.MovieModelResult
 import com.example.movieappdemo1.presentation.ui.screen.home.moveToMovieInfo
 import com.example.movieappdemo1.presentation.ui.screen.movielist.MovieItem
-import com.example.movieappdemo1.presentation.ui.screen.savedmovie.SavedMovieActionBar
-import com.example.movieappdemo1.presentation.ui.screen.savedmovie.SavedMovieScreenViewModel
-import com.example.movieappdemo1.presentation.ui.screen.savedmovie.SavedMoviesList
+import com.example.movieappdemo1.presentation.util.SearchDelayUtil
 import com.example.movieappdemo1.ui.theme.LightGray
 import com.example.movieappdemo1.ui.theme.White
 import kotlinx.coroutines.launch
@@ -80,7 +77,14 @@ fun SearchMovieActionBar(
             value = searchMovieScreenViewModel.searchMovieSearchText.value,
             onValueChange = {
                 searchMovieScreenViewModel.searchMovieSearchText.value = it
-                searchMovieScreenViewModel.getSearchMovies(it, true)
+                val isPass = SearchDelayUtil.onDelay {
+                    LogUtil.i_dev("MYTAG 라스트 검색어: ${searchMovieScreenViewModel.searchMovieSearchText.value}")
+                    searchMovieScreenViewModel.getSearchMovies(searchMovieScreenViewModel.searchMovieSearchText.value, true)
+                }
+                if(isPass) {
+                    LogUtil.i_dev("MYTAG 검색어: ${searchMovieScreenViewModel.searchMovieSearchText.value}")
+                    searchMovieScreenViewModel.getSearchMovies(searchMovieScreenViewModel.searchMovieSearchText.value, true)
+                }
             },
             maxLines = 1,
             colors = TextFieldDefaults.colors(

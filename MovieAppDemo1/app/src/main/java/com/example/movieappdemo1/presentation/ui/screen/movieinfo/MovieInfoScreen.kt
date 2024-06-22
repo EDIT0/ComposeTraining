@@ -74,14 +74,15 @@ fun MovieInfoScreen(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollableState),
-        ) {
+        Column {
             ActionBar(navController, movieModelResult.title.toString())
-            ThumbnailImage(movieModelResult = movieModelResult)
-            MovieInfoText(movieModelResult = movieModelResult)
+            Column(
+                modifier = Modifier
+                    .verticalScroll(scrollableState)
+            ) {
+                ThumbnailImage(movieModelResult = movieModelResult)
+                MovieInfoText(movieModelResult = movieModelResult)
+            }
         }
         SaveMovieButton(movieInfoScreenViewModel, movieModelResult = movieModelResult)
     }
