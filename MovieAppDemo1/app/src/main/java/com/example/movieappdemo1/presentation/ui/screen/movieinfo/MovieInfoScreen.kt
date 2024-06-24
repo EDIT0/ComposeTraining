@@ -1,5 +1,6 @@
 package com.example.movieappdemo1.presentation.ui.screen.movieinfo
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,12 +26,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
@@ -48,11 +50,15 @@ import com.google.gson.Gson
 @Composable
 fun MovieInfoScreenPreview() {
     val navController = rememberNavController()
-    MovieInfoScreen(
+    MovieInfoScreenUI(
         navController = navController,
-        movieInfoScreenViewModel = hiltViewModel(),
-        "{\"adult\":false,\"backdrop_path\":\"/en3GU5uGkKaYmSyetHV4csHHiH3.jpg\",\"genre_ids\":[10752,28,18],\"id\":929590,\"original_language\":\"en\",\"original_title\":\"Civil War\",\"overview\":\"In the near future, a group of war journalists attempt to survive while reporting the truth as the United States stands on the brink of civil war.\",\"popularity\":1977.095,\"poster_path\":\"/sh7Rg8Er3tFcN9BpKIPOMvALgZd.jpg\",\"release_date\":\"2024-04-10\",\"title\":\"Civil War\",\"video\":false,\"vote_average\":7.313,\"vote_count\":922}"
+        "{\"adult\":false,\"backdrop_path\":\"/en3GU5uGkKaYmSyetHV4csHHiH3.jpg\",\"genre_ids\":[10752,28,18],\"id\":929590,\"original_language\":\"en\",\"original_title\":\"Civil War\",\"overview\":\"In the near future, a group of war journalists attempt to survive while reporting the truth as the United States stands on the brink of civil war.\",\"popularity\":1977.095,\"poster_path\":\"/sh7Rg8Er3tFcN9BpKIPOMvALgZd.jpg\",\"release_date\":\"2024-04-10\",\"title\":\"Civil War\",\"video\":false,\"vote_average\":7.313,\"vote_count\":922}",
+        movieInfoScreenViewModelPresenter = { }
     )
+}
+
+sealed class MovieInfoScreenViewModelPresenter {
+    data class SaveMovie(val movieModelResult: MovieModelResult) : MovieInfoScreenViewModelPresenter()
 }
 
 @Composable
@@ -61,11 +67,28 @@ fun MovieInfoScreen(
     movieInfoScreenViewModel: MovieInfoScreenViewModel,
     movieModelResultJson: String
 ) {
+
+    MovieInfoScreenUI(navController, movieModelResultJson) {
+        val callback : MovieInfoScreenViewModelPresenter = it
+        when(callback) {
+            is MovieInfoScreenViewModelPresenter.SaveMovie -> {
+                movieInfoScreenViewModel.saveMovie(callback.movieModelResult)
+            }
+        }
+    }
+
+}
+
+@Composable
+fun MovieInfoScreenUI(
+    navController: NavController,
+    movieModelResultJson: String,
+    movieInfoScreenViewModelPresenter: (MovieInfoScreenViewModelPresenter) -> Unit
+) {
     val movieModelResultString = ConvertUtil.urlDecode(movieModelResultJson)
     LogUtil.i_dev("movieModelResultJson: ${movieModelResultString}")
     val gson = Gson()
-    val movieModelResult: MovieModelResult =
-        gson.fromJson(movieModelResultString, MovieModelResult::class.java)
+    val movieModelResult: MovieModelResult = gson.fromJson(movieModelResultString, MovieModelResult::class.java)
     LogUtil.i_dev("movieModelResult: ${movieModelResult}")
 
     val scrollableState = rememberScrollState()
@@ -84,9 +107,8 @@ fun MovieInfoScreen(
                 MovieInfoText(movieModelResult = movieModelResult)
             }
         }
-        SaveMovieButton(movieInfoScreenViewModel, movieModelResult = movieModelResult)
+        SaveMovieButton(movieInfoScreenViewModelPresenter, movieModelResult = movieModelResult)
     }
-
 }
 
 @OptIn(ExperimentalGlideComposeApi::class)
@@ -127,6 +149,10 @@ fun ActionBar(
                 model = R.drawable.ic_arrow_back_ios_new_24,
                 contentDescription = "Back button"
             )
+//            Image(
+//                painter = painterResource(id = R.drawable.ic_arrow_back_ios_new_24),
+//                contentDescription = "Back button"
+//            )
         }
 
         Column(
@@ -150,6 +176,20 @@ fun ActionBar(
 }
 
 @OptIn(ExperimentalGlideComposeApi::class)
+@Preview
+@Composable
+private fun PreviewImage() {
+//    Image(
+//        painter = painterResource(id = R.drawable.ic_arrow_back_ios_new_24),
+//        contentDescription = null
+//    )
+    GlideImage(
+        model = R.drawable.ic_arrow_back_ios_new_24,
+        contentDescription = "Back button"
+    )
+}
+
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun ThumbnailImage(
     movieModelResult: MovieModelResult
@@ -160,7 +200,8 @@ fun ThumbnailImage(
     ) {
         GlideImage(
             model = BuildConfig.BASE_MOVIE_POSTER + movieModelResult.posterPath,
-            contentDescription = "Movie poster image"
+            contentDescription = null,
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }
@@ -197,7 +238,7 @@ fun MovieInfoText(
 
 @Composable
 fun SaveMovieButton(
-    movieInfoScreenViewModel: MovieInfoScreenViewModel,
+    movieInfoScreenViewModelPresenter: (MovieInfoScreenViewModelPresenter) -> Unit,
     movieModelResult: MovieModelResult
 ) {
     Box(
@@ -208,7 +249,7 @@ fun SaveMovieButton(
     ) {
         FloatingActionButton(
             onClick = {
-                movieInfoScreenViewModel.saveMovie(movieModelResult)
+                movieInfoScreenViewModelPresenter.invoke(MovieInfoScreenViewModelPresenter.SaveMovie(movieModelResult))
                 LogUtil.i_dev("Save movie ${movieModelResult.title}")
             },
             containerColor = DeepBlue,

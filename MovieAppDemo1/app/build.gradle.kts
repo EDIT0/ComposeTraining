@@ -67,6 +67,9 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
+    /* LiveData */
+    implementation(libs.androidx.runtime.livedata)
+
     /* Coroutines */
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1-Beta")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1-Beta")
@@ -96,7 +99,7 @@ dependencies {
     implementation("androidx.compose.material:material:1.6.7")
 
     /* Glide */
-    implementation("com.github.bumptech.glide:compose:1.0.0-beta01")
+    implementation("com.github.bumptech.glide:compose:1.0.0-alpha.1")
 
     /* Room */
     val room_version = "2.6.1"
