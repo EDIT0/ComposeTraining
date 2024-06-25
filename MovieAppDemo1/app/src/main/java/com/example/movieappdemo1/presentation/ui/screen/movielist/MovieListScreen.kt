@@ -19,47 +19,161 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
 import com.example.movieappdemo1.BuildConfig
+import com.example.movieappdemo1.R
 import com.example.movieappdemo1.common.log.LogUtil
 import com.example.movieappdemo1.domain.model.MovieModelResult
+import com.example.movieappdemo1.presentation.ui.screen.home.HomeScreenViewModelPresenter
+import com.example.movieappdemo1.presentation.ui.screen.home.SetLoading
 import com.example.movieappdemo1.presentation.ui.screen.home.moveToMovieInfo
-import com.example.movieappdemo1.presentation.ui.screen.home.setLoading
 import com.example.movieappdemo1.ui.theme.White
+import com.skydoves.landscapist.ImageOptions
+import com.skydoves.landscapist.glide.GlideImage
 
 @Preview
 @Composable
-fun MovieListScreenPreview() {
+fun PreviewMovieListScreen() {
     val bottomNavController = rememberNavController()
     val navController = rememberNavController()
-    MovieListScreen(bottomNavController, navController, hiltViewModel())
+
+    val mockMovie1 = MovieModelResult(
+        idx = 1,
+        adult = false,
+        backdropPath = "/path/to/backdrop1.jpg",
+        genreIds = listOf(28, 12, 878),
+        id = 101,
+        originalLanguage = "en",
+        originalTitle = "Mock Movie 1",
+        overview = "This is the overview of Mock Movie 1. It's a thrilling adventure with lots of action.",
+        popularity = 1200.5,
+        posterPath = "/path/to/poster1.jpg",
+        releaseDate = "2023-06-01",
+        title = "Mock Movie 1",
+        video = false,
+        voteAverage = 8.5,
+        voteCount = 1500
+    )
+
+    val mockMovie2 = MovieModelResult(
+        idx = 2,
+        adult = false,
+        backdropPath = "/path/to/backdrop2.jpg",
+        genreIds = listOf(16, 35, 10751),
+        id = 102,
+        originalLanguage = "en",
+        originalTitle = "Mock Movie 2",
+        overview = "Mock Movie 2 is a delightful animated comedy that will entertain the whole family.",
+        popularity = 900.3,
+        posterPath = "/path/to/poster2.jpg",
+        releaseDate = "2022-12-15",
+        title = "Mock Movie 2",
+        video = false,
+        voteAverage = 7.8,
+        voteCount = 800
+    )
+
+    val mockMovie3 = MovieModelResult(
+        idx = 3,
+        adult = false,
+        backdropPath = "/path/to/backdrop3.jpg",
+        genreIds = listOf(18, 10749),
+        id = 103,
+        originalLanguage = "en",
+        originalTitle = "Mock Movie 3",
+        overview = "Mock Movie 3 is a dramatic love story that explores the depths of human emotion.",
+        popularity = 1100.0,
+        posterPath = "/path/to/poster3.jpg",
+        releaseDate = "2021-09-20",
+        title = "Mock Movie 3",
+        video = false,
+        voteAverage = 9.0,
+        voteCount = 2000
+    )
+
+    UiMovieListScreen(
+        navController,
+        listOf(mockMovie1, mockMovie2, mockMovie3),
+        isLoading = false,
+        currentPosition = 1,
+        homeScreenViewModelPresenter = { },
+        movieListScreenViewModelPresenter = { }
+    )
+}
+
+sealed class MovieListScreenViewModelPresenter {
+    class UpdateCurrentPosition(val position: Int) : MovieListScreenViewModelPresenter()
+    class UpdateIsLoading(val isLoading: Boolean) : MovieListScreenViewModelPresenter()
+    class GetPopularMovies : MovieListScreenViewModelPresenter()
 }
 
 @Composable
 fun MovieListScreen(
     bottomNavController: NavController,
     navController: NavController,
-    movieListScreenViewModel: MovieListScreenViewModel
+    movieListScreenViewModel: MovieListScreenViewModel,
+    homeScreenViewModelPresenter : (HomeScreenViewModelPresenter) -> Unit
 ) {
+    val allMovieList = movieListScreenViewModel.allMovieList
+    val isLoading = movieListScreenViewModel.isLoading.value
+    val currentPosition = movieListScreenViewModel.currentPosition.value
 
+    LogUtil.d_dev("MYTAG Recomposition ${movieListScreenViewModel.hashCode()} size: ${movieListScreenViewModel.allMovieList.size} isLoading: ${movieListScreenViewModel.isLoading.value}")
+
+    UiMovieListScreen(
+        navController = navController,
+        allMovieList = allMovieList,
+        isLoading = isLoading,
+        currentPosition = currentPosition,
+        homeScreenViewModelPresenter
+    ) {
+        val callback: MovieListScreenViewModelPresenter = it
+        when (callback) {
+            is MovieListScreenViewModelPresenter.UpdateCurrentPosition -> {
+                movieListScreenViewModel.currentPosition.value = callback.position
+            }
+            is MovieListScreenViewModelPresenter.GetPopularMovies -> {
+                movieListScreenViewModel.getPopularMovies()
+            }
+            is MovieListScreenViewModelPresenter.UpdateIsLoading -> {
+                movieListScreenViewModel.isLoading.value = callback.isLoading
+            }
+        }
+    }
+
+}
+
+@Composable
+fun UiMovieListScreen(
+    navController: NavController,
+    allMovieList: List<MovieModelResult>,
+    isLoading: Boolean,
+    currentPosition: Int,
+    homeScreenViewModelPresenter: (HomeScreenViewModelPresenter) -> Unit,
+    movieListScreenViewModelPresenter: (MovieListScreenViewModelPresenter) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(White)
     ) {
         MovieListActionBar()
-        MovieList(navController, movieListScreenViewModel)
+        MovieList(
+            navController,
+            movieListScreenViewModelPresenter,
+            allMovieList,
+            isLoading,
+            currentPosition
+        )
     }
 
-    setLoading(movieListScreenViewModel.isLoading.value)
+    SetLoading(homeScreenViewModelPresenter, isLoading)
 }
 
 @Composable
@@ -82,7 +196,10 @@ fun MovieListActionBar() {
 @Composable
 fun MovieList(
     navController: NavController,
-    movieListScreenViewModel: MovieListScreenViewModel,
+    movieListScreenViewModelPresenter: (MovieListScreenViewModelPresenter) -> Unit,
+    allMovieList: List<MovieModelResult>,
+    isLoading: Boolean,
+    currentPosition: Int
 ) {
     val scrollState = rememberLazyListState()
     val cantScrollForward = !scrollState.canScrollForward
@@ -94,9 +211,10 @@ fun MovieList(
     LazyColumn (
         state = scrollState
     ){
-        itemsIndexed(movieListScreenViewModel.allMovieList) {index, item ->
+        itemsIndexed(allMovieList) {index, item ->
 //            LogUtil.d_dev("NavController: ${navController.currentDestination}\nindex: ${index} / item: ${item?.title}")
-            movieListScreenViewModel.currentPosition.value = index
+//            movieListScreenViewModel.currentPosition.value = index
+            movieListScreenViewModelPresenter(MovieListScreenViewModelPresenter.UpdateCurrentPosition(index))
             MovieItem(index, item,
                 onItemClick = {
                     moveToMovieInfo(navController, it)
@@ -109,17 +227,14 @@ fun MovieList(
     }
 
     if(cantScrollForward) {
-        if(
-            !movieListScreenViewModel.isLoading.value
-            && movieListScreenViewModel.currentPosition.value >= (movieListScreenViewModel.allMovieList.size - 5)
-            ) {
-            LogUtil.d_dev("MYTAG Request new item ${movieListScreenViewModel.allMovieList.size}")
-            movieListScreenViewModel.getPopularMovies()
+        if(!isLoading && currentPosition >= (allMovieList.size - 5)) {
+            LogUtil.d_dev("MYTAG Request new item ${allMovieList.size}")
+//            movieListScreenViewModel.getPopularMovies()
+            movieListScreenViewModelPresenter(MovieListScreenViewModelPresenter.GetPopularMovies())
         }
     }
 }
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun MovieItem(
     index: Int,
@@ -135,7 +250,7 @@ fun MovieItem(
 //                LogUtil.d_dev("Clicked title: ${movieModelResult.title}")
 //                onItemClick.invoke(movieModelResult)
 //            }
-            .pointerInput(Unit){
+            .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
                         LogUtil.d_dev("Clicked title: ${movieModelResult.title}")
@@ -157,9 +272,11 @@ fun MovieItem(
                 horizontalAlignment = Alignment.CenterHorizontally
             ){
                 GlideImage(
-                    model = BuildConfig.BASE_MOVIE_POSTER + movieModelResult.posterPath,
-                    contentDescription = "Movie poster image",
-                    contentScale = ContentScale.Fit
+                    imageModel = { BuildConfig.BASE_MOVIE_POSTER + movieModelResult.posterPath },
+                    previewPlaceholder = painterResource(id = R.drawable.ic_launcher_background),
+                    imageOptions = ImageOptions(
+                        contentScale = ContentScale.FillHeight
+                    )
                 )
             }
             Column(

@@ -26,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.movieappdemo1.common.log.LogUtil
@@ -40,10 +39,25 @@ import kotlinx.coroutines.launch
 
 @Preview
 @Composable
-fun SavedMovieScreenPreview() {
+fun PreviewSavedMovieScreen() {
     val bottomNavController = rememberNavController()
     val navController = rememberNavController()
-    SavedMovieScreen(bottomNavController, navController, hiltViewModel())
+
+    UiSavedMovieScreen(
+        navController,
+        emptyList(),
+        "SearchText",
+        "Keyword",
+        false,
+        savedMovieScreenViewModelPresenter = { }
+    )
+}
+
+sealed class SavedMovieScreenViewModelPresenter {
+    class UpdateSearchText(val text: String) : SavedMovieScreenViewModelPresenter()
+    class UpdateKeyword(val keyword: String) : SavedMovieScreenViewModelPresenter()
+    class UpdateCurrentPosition(val position: Int) : SavedMovieScreenViewModelPresenter()
+    class DeleteSavedMovie(val movieModelResult: MovieModelResult) : SavedMovieScreenViewModelPresenter()
 }
 
 @Composable
@@ -52,28 +66,79 @@ fun SavedMovieScreen(
     navController: NavController,
     savedMovieScreenViewModel: SavedMovieScreenViewModel
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    val scrollState = rememberLazyListState()
-
 //    val allSavedMoviesList = savedMovieScreenViewModel.allSavedMoviesList.collectAsState(initial = emptyList())
     val allSavedMoviesList = savedMovieScreenViewModel.getSearchSavedMoviesStateFlow.collectAsState(initial = emptyList())
+
+    val savedMovieSearchText = savedMovieScreenViewModel.savedMovieSearchText.value
+    val keyword = savedMovieScreenViewModel.keyword.value
+
+    val isDelete: Boolean = savedMovieScreenViewModel.isDelete.value
+
+    UiSavedMovieScreen(
+        navController,
+        allSavedMoviesList.value,
+        savedMovieSearchText,
+        keyword?:"",
+        isDelete,
+        savedMovieScreenViewModelPresenter = {
+            val callback : SavedMovieScreenViewModelPresenter = it
+            when(callback) {
+                is SavedMovieScreenViewModelPresenter.UpdateCurrentPosition -> {
+                    savedMovieScreenViewModel.currentPosition.value = callback.position
+                }
+                is SavedMovieScreenViewModelPresenter.UpdateKeyword -> {
+                    savedMovieScreenViewModel.keyword.value = callback.keyword
+                }
+                is SavedMovieScreenViewModelPresenter.UpdateSearchText -> {
+                    savedMovieScreenViewModel.savedMovieSearchText.value = callback.text
+                }
+                is SavedMovieScreenViewModelPresenter.DeleteSavedMovie -> {
+                    savedMovieScreenViewModel.deleteSavedMovie(callback.movieModelResult)
+                }
+            }
+        }
+    )
+
+}
+
+@Composable
+fun UiSavedMovieScreen(
+    navController: NavController,
+    allSavedMoviesList: List<MovieModelResult>,
+    savedMovieSearchText: String,
+    keyword: String,
+    isDelete: Boolean,
+    savedMovieScreenViewModelPresenter: (SavedMovieScreenViewModelPresenter) -> Unit
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val scrollState = rememberLazyListState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(White)
     ) {
-        SavedMovieActionBar(savedMovieScreenViewModel)
-        SavedMoviesList(navController, savedMovieScreenViewModel, scrollState, allSavedMoviesList.value)
+        SavedMovieActionBar(
+            savedMovieSearchText,
+            keyword,
+            savedMovieScreenViewModelPresenter
+        )
+        SavedMoviesList(
+            navController,
+            scrollState,
+            allSavedMoviesList,
+            savedMovieScreenViewModelPresenter
+        )
     }
 
-    scrollLogic(savedMovieScreenViewModel.isDelete.value, coroutineScope, scrollState)
-
+    scrollLogic(isDelete, coroutineScope, scrollState)
 }
 
 @Composable
 fun SavedMovieActionBar(
-    savedMovieScreenViewModel: SavedMovieScreenViewModel
+    savedMovieSearchText: String,
+    keyword: String,
+    savedMovieScreenViewModelPresenter : (SavedMovieScreenViewModelPresenter) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -85,11 +150,13 @@ fun SavedMovieActionBar(
                 .fillMaxSize()
                 .fillMaxHeight(),
             shape = RoundedCornerShape(10.dp),
-            value = savedMovieScreenViewModel.savedMovieSearchText.value,
+            value = savedMovieSearchText,
             onValueChange = {
-                savedMovieScreenViewModel.savedMovieSearchText.value = it
-                savedMovieScreenViewModel.keyword.value = it
-                LogUtil.i_dev("MYTAG 저장된 영화 검색어: ${savedMovieScreenViewModel.keyword.value}")
+                savedMovieScreenViewModelPresenter(SavedMovieScreenViewModelPresenter.UpdateSearchText(it))
+                savedMovieScreenViewModelPresenter(SavedMovieScreenViewModelPresenter.UpdateKeyword(it))
+//                savedMovieScreenViewModel.savedMovieSearchText.value = it
+//                savedMovieScreenViewModel.keyword.value = it
+                LogUtil.i_dev("MYTAG 저장된 영화 검색어: ${keyword}")
             },
             maxLines = 1,
             colors = TextFieldDefaults.colors(
@@ -108,9 +175,9 @@ fun SavedMovieActionBar(
 @Composable
 fun SavedMoviesList(
     navController: NavController,
-    savedMovieScreenViewModel: SavedMovieScreenViewModel,
     scrollState: LazyListState,
-    list: List<MovieModelResult>
+    list: List<MovieModelResult>,
+    savedMovieScreenViewModelPresenter: (SavedMovieScreenViewModelPresenter) -> Unit
 ) {
 
     if(list.isEmpty()) {
@@ -140,13 +207,14 @@ fun SavedMoviesList(
                 }
             ) {index, item ->
 //            LogUtil.d_dev("NavController: ${navController.currentDestination}\nindex: ${index} / item: ${item?.title}")
-                savedMovieScreenViewModel.currentPosition.value = index
+                savedMovieScreenViewModelPresenter(SavedMovieScreenViewModelPresenter.UpdateCurrentPosition(index))
+//                savedMovieScreenViewModel.currentPosition.value = index
                 MovieItem(index, item,
                     onItemClick = {
                         moveToMovieInfo(navController, it)
                     },
                     onItemLongClick = {
-                        savedMovieScreenViewModel.deleteSavedMovie(it)
+                        savedMovieScreenViewModelPresenter(SavedMovieScreenViewModelPresenter.DeleteSavedMovie(it))
                     }
                 )
 

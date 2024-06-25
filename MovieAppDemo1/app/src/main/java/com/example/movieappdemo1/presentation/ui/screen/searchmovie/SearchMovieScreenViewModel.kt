@@ -2,17 +2,16 @@ package com.example.movieappdemo1.presentation.ui.screen.searchmovie
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.movieappdemo1.domain.model.MovieModel
+import com.example.movieappdemo1.common.log.LogUtil
 import com.example.movieappdemo1.domain.model.MovieModelResult
 import com.example.movieappdemo1.domain.usecase.GetSearchMoviesUseCase
 import com.example.movieappdemo1.presentation.util.NetworkManager
+import com.example.movieappdemo1.presentation.util.SearchDelayUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import retrofit2.Response
 import javax.inject.Inject
 
 @HiltViewModel
@@ -49,6 +48,21 @@ class SearchMovieScreenViewModel @Inject constructor(
                 }
                 isLoading.value = false
             }
+        }
+    }
+
+    fun searchLogic() {
+        val isPass = SearchDelayUtil.onDelay {
+            LogUtil.i_dev("MYTAG 라스트 검색어: ${searchMovieSearchText.value}")
+//                    searchMovieScreenViewModel.getSearchMovies(searchMovieScreenViewModel.searchMovieSearchText.value, true)
+            getSearchMovies(searchMovieSearchText.value, true)
+//            searchMovieScreenViewModelPresenter(SearchMovieScreenViewModelPresenter.GetSearchMovies(searchMovieSearchText, true))
+        }
+        if(isPass) {
+            LogUtil.i_dev("MYTAG 검색어: ${searchMovieSearchText.value}")
+//                    searchMovieScreenViewModel.getSearchMovies(searchMovieScreenViewModel.searchMovieSearchText.value, true)
+            getSearchMovies(searchMovieSearchText.value, true)
+//            searchMovieScreenViewModelPresenter(SearchMovieScreenViewModelPresenter.GetSearchMovies(searchMovieSearchText, true))
         }
     }
 }

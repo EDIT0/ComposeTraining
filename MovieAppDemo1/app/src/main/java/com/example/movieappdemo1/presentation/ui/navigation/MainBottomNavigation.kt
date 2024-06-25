@@ -7,6 +7,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.movieappdemo1.presentation.ui.screen.home.BottomNavItem
+import com.example.movieappdemo1.presentation.ui.screen.home.HomeScreenViewModelPresenter
 import com.example.movieappdemo1.presentation.ui.screen.movielist.MovieListScreen
 import com.example.movieappdemo1.presentation.ui.screen.savedmovie.SavedMovieScreen
 import com.example.movieappdemo1.presentation.ui.screen.searchmovie.SearchMovieScreen
@@ -14,12 +15,13 @@ import com.example.movieappdemo1.presentation.ui.screen.searchmovie.SearchMovieS
 @Composable
 fun MainBottomNavigation(
     bottomNavHostController: NavHostController,
-    navController: NavController
+    navController: NavController,
+    homeScreenViewModelPresenter: (HomeScreenViewModelPresenter) -> Unit
 ) {
     NavHost(navController = bottomNavHostController, startDestination = BottomNavItem.MovieList.screenRoute) {
         /* MovieListScreen */
         composable(BottomNavItem.MovieList.screenRoute) {
-            MovieListScreen(bottomNavHostController, navController, hiltViewModel())
+            MovieListScreen(bottomNavHostController, navController, hiltViewModel(), homeScreenViewModelPresenter)
         }
 
         /* SearchMovieScreen */

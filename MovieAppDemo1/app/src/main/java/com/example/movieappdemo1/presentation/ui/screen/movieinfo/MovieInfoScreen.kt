@@ -1,6 +1,6 @@
 package com.example.movieappdemo1.presentation.ui.screen.movieinfo
 
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,22 +35,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
 import com.example.movieappdemo1.BuildConfig
 import com.example.movieappdemo1.R
 import com.example.movieappdemo1.common.log.LogUtil
 import com.example.movieappdemo1.domain.model.MovieModelResult
 import com.example.movieappdemo1.presentation.util.ConvertUtil
 import com.example.movieappdemo1.ui.theme.DeepBlue
+import com.example.movieappdemo1.ui.theme.LightGray
 import com.example.movieappdemo1.ui.theme.White
 import com.google.gson.Gson
+import com.skydoves.landscapist.ImageOptions
+import com.skydoves.landscapist.glide.GlideImage
 
 @Preview
 @Composable
-fun MovieInfoScreenPreview() {
+fun PreviewMovieInfoScreen() {
     val navController = rememberNavController()
-    MovieInfoScreenUI(
+    UiMovieInfoScreen(
         navController = navController,
         "{\"adult\":false,\"backdrop_path\":\"/en3GU5uGkKaYmSyetHV4csHHiH3.jpg\",\"genre_ids\":[10752,28,18],\"id\":929590,\"original_language\":\"en\",\"original_title\":\"Civil War\",\"overview\":\"In the near future, a group of war journalists attempt to survive while reporting the truth as the United States stands on the brink of civil war.\",\"popularity\":1977.095,\"poster_path\":\"/sh7Rg8Er3tFcN9BpKIPOMvALgZd.jpg\",\"release_date\":\"2024-04-10\",\"title\":\"Civil War\",\"video\":false,\"vote_average\":7.313,\"vote_count\":922}",
         movieInfoScreenViewModelPresenter = { }
@@ -68,19 +69,23 @@ fun MovieInfoScreen(
     movieModelResultJson: String
 ) {
 
-    MovieInfoScreenUI(navController, movieModelResultJson) {
-        val callback : MovieInfoScreenViewModelPresenter = it
-        when(callback) {
-            is MovieInfoScreenViewModelPresenter.SaveMovie -> {
-                movieInfoScreenViewModel.saveMovie(callback.movieModelResult)
+    UiMovieInfoScreen(
+        navController,
+        movieModelResultJson,
+        movieInfoScreenViewModelPresenter = {
+            val callback: MovieInfoScreenViewModelPresenter = it
+            when (callback) {
+                is MovieInfoScreenViewModelPresenter.SaveMovie -> {
+                    movieInfoScreenViewModel.saveMovie(callback.movieModelResult)
+                }
             }
         }
-    }
+    )
 
 }
 
 @Composable
-fun MovieInfoScreenUI(
+fun UiMovieInfoScreen(
     navController: NavController,
     movieModelResultJson: String,
     movieInfoScreenViewModelPresenter: (MovieInfoScreenViewModelPresenter) -> Unit
@@ -88,7 +93,8 @@ fun MovieInfoScreenUI(
     val movieModelResultString = ConvertUtil.urlDecode(movieModelResultJson)
     LogUtil.i_dev("movieModelResultJson: ${movieModelResultString}")
     val gson = Gson()
-    val movieModelResult: MovieModelResult = gson.fromJson(movieModelResultString, MovieModelResult::class.java)
+    val movieModelResult: MovieModelResult =
+        gson.fromJson(movieModelResultString, MovieModelResult::class.java)
     LogUtil.i_dev("movieModelResult: ${movieModelResult}")
 
     val scrollableState = rememberScrollState()
@@ -96,6 +102,9 @@ fun MovieInfoScreenUI(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .background(
+                color = White
+            )
     ) {
         Column {
             ActionBar(navController, movieModelResult.title.toString())
@@ -111,7 +120,6 @@ fun MovieInfoScreenUI(
     }
 }
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun ActionBar(
     navController: NavController,
@@ -124,6 +132,9 @@ fun ActionBar(
         modifier = Modifier
             .fillMaxWidth()
             .height(60.dp)
+            .background(
+                color = LightGray
+            )
     ) {
         Column(
             modifier = Modifier
@@ -146,13 +157,12 @@ fun ActionBar(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             GlideImage(
-                model = R.drawable.ic_arrow_back_ios_new_24,
-                contentDescription = "Back button"
+                imageModel = { R.drawable.ic_arrow_back_ios_new_24 },
+                previewPlaceholder = painterResource(id = R.drawable.ic_arrow_back_ios_new_24),
+                imageOptions = ImageOptions(
+                    alignment = Alignment.Center
+                )
             )
-//            Image(
-//                painter = painterResource(id = R.drawable.ic_arrow_back_ios_new_24),
-//                contentDescription = "Back button"
-//            )
         }
 
         Column(
@@ -175,21 +185,18 @@ fun ActionBar(
     }
 }
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Preview
 @Composable
-private fun PreviewImage() {
-//    Image(
-//        painter = painterResource(id = R.drawable.ic_arrow_back_ios_new_24),
-//        contentDescription = null
-//    )
+private fun PreviewBackButton() {
     GlideImage(
-        model = R.drawable.ic_arrow_back_ios_new_24,
-        contentDescription = "Back button"
+        imageModel = { R.drawable.ic_arrow_back_ios_new_24 },
+        previewPlaceholder = painterResource(id = R.drawable.ic_arrow_back_ios_new_24),
+        imageOptions = ImageOptions(
+            alignment = Alignment.Center
+        )
     )
 }
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun ThumbnailImage(
     movieModelResult: MovieModelResult
@@ -199,9 +206,12 @@ fun ThumbnailImage(
             .fillMaxWidth()
     ) {
         GlideImage(
-            model = BuildConfig.BASE_MOVIE_POSTER + movieModelResult.posterPath,
-            contentDescription = null,
-            modifier = Modifier.fillMaxWidth()
+            imageModel = { BuildConfig.BASE_MOVIE_POSTER + movieModelResult.posterPath },
+            modifier = Modifier.fillMaxWidth(),
+            previewPlaceholder = painterResource(id = R.drawable.ic_launcher_background),
+            imageOptions = ImageOptions(
+                contentScale = ContentScale.FillWidth
+            )
         )
     }
 }
@@ -249,7 +259,11 @@ fun SaveMovieButton(
     ) {
         FloatingActionButton(
             onClick = {
-                movieInfoScreenViewModelPresenter.invoke(MovieInfoScreenViewModelPresenter.SaveMovie(movieModelResult))
+                movieInfoScreenViewModelPresenter.invoke(
+                    MovieInfoScreenViewModelPresenter.SaveMovie(
+                        movieModelResult
+                    )
+                )
                 LogUtil.i_dev("Save movie ${movieModelResult.title}")
             },
             containerColor = DeepBlue,

@@ -98,8 +98,8 @@ dependencies {
 
     implementation("androidx.compose.material:material:1.6.7")
 
-    /* Glide */
-    implementation("com.github.bumptech.glide:compose:1.0.0-alpha.1")
+    /* Landscapist */
+    implementation("com.github.skydoves:landscapist-glide:2.3.4")
 
     /* Room */
     val room_version = "2.6.1"

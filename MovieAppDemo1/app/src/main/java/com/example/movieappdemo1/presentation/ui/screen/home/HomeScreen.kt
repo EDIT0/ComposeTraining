@@ -23,6 +23,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.movieappdemo1.common.log.LogUtil
@@ -37,13 +38,22 @@ import com.google.gson.Gson
 
 @Preview
 @Composable
-fun HomeScreenPreview() {
+fun PreviewHomeScreen() {
     val navController = rememberNavController()
-    val homeScreenViewModel = HomeScreenViewModel()
-    HomeScreen(navController, homeScreenViewModel, "")
+    val navHostController = rememberNavController()
+
+    UiHomeScreen(
+        navController,
+        navHostController,
+        "introData",
+        false,
+        { }
+    )
 }
 
-lateinit var mHomeScreenViewModel: HomeScreenViewModel
+sealed class HomeScreenViewModelPresenter {
+    class UpdateIsLoading(val isLoading: Boolean) : HomeScreenViewModelPresenter()
+}
 
 @Composable
 fun HomeScreen(
@@ -51,8 +61,34 @@ fun HomeScreen(
     homeScreenViewModel: HomeScreenViewModel,
     intro: String?
 ) {
+
     val navHostController = rememberNavController()
-    mHomeScreenViewModel = homeScreenViewModel
+    val isLoading = homeScreenViewModel.isLoading.value
+
+    UiHomeScreen(
+        navController = navController,
+        navHostController = navHostController,
+        intro = intro,
+        isLoading = isLoading,
+        homeScreenViewModelPresenter = {
+            val callback : HomeScreenViewModelPresenter = it
+            when(callback) {
+                is HomeScreenViewModelPresenter.UpdateIsLoading -> {
+                    homeScreenViewModel.isLoading.value = callback.isLoading
+                }
+            }
+        }
+    )
+}
+
+@Composable
+fun UiHomeScreen(
+    navController: NavController,
+    navHostController: NavHostController,
+    intro: String?,
+    isLoading: Boolean,
+    homeScreenViewModelPresenter : (HomeScreenViewModelPresenter) -> Unit
+) {
 
     LogUtil.d_dev("HomeScreen ${intro}")
 
@@ -62,10 +98,10 @@ fun HomeScreen(
         }
     ) {
         Box(Modifier.padding(it)) {
-            MainBottomNavigation(navHostController, navController)
+            MainBottomNavigation(navHostController, navController, homeScreenViewModelPresenter)
         }
     }
-    IsLoading(homeScreenViewModel.isLoading.value)
+    IsLoading(isLoading)
 }
 
 @Composable
@@ -143,8 +179,13 @@ fun IsLoading(isLoading: Boolean) {
     }
 }
 
-fun setLoading(isLoading: Boolean) {
-    mHomeScreenViewModel.isLoading.value = isLoading
+@Composable
+fun SetLoading(homeScreenViewModelPresenter : (HomeScreenViewModelPresenter) -> Unit, isLoading: Boolean) {
+//    isLoading?.let {
+//        movieListScreenViewModelPresenter(MovieListScreenViewModelPresenter.UpdateIsLoading(isLoading))
+//    }
+    homeScreenViewModelPresenter(HomeScreenViewModelPresenter.UpdateIsLoading(isLoading))
+//    mHomeScreenViewModel.isLoading.value = isLoading
 }
 
 fun moveToMovieInfo(navController: NavController, movieModelResult: MovieModelResult) {
