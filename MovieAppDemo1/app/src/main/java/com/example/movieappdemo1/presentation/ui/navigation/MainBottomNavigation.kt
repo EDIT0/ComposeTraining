@@ -26,7 +26,7 @@ fun MainBottomNavigation(
 
         /* SearchMovieScreen */
         composable(BottomNavItem.SearchMovie.screenRoute) {
-            SearchMovieScreen(bottomNavHostController, navController, hiltViewModel())
+            SearchMovieScreen(bottomNavHostController, navController, hiltViewModel(), homeScreenViewModelPresenter)
         }
 
         /* SavedMovieScreen */

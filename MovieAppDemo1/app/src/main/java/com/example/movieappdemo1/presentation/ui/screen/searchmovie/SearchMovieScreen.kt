@@ -26,6 +26,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.movieappdemo1.common.log.LogUtil
 import com.example.movieappdemo1.domain.model.MovieModelResult
+import com.example.movieappdemo1.presentation.ui.screen.home.HomeScreenViewModelPresenter
+import com.example.movieappdemo1.presentation.ui.screen.home.SetLoading
 import com.example.movieappdemo1.presentation.ui.screen.home.moveToMovieInfo
 import com.example.movieappdemo1.presentation.ui.screen.movielist.MovieItem
 import com.example.movieappdemo1.ui.theme.LightGray
@@ -41,8 +43,10 @@ fun SearchMovieScreenPreview() {
         navController,
         emptyList(),
         false,
+        false,
         "",
         1,
+        homeScreenViewModelPresenter = { },
         searchMovieScreenViewModelPresenter = { }
     )
 }
@@ -58,9 +62,12 @@ sealed class SearchMovieScreenViewModelPresenter {
 fun SearchMovieScreen(
     bottomNavController: NavController,
     navController: NavController,
-    searchMovieScreenViewModel: SearchMovieScreenViewModel
+    searchMovieScreenViewModel: SearchMovieScreenViewModel,
+    homeScreenViewModelPresenter: (HomeScreenViewModelPresenter) -> Unit
 ) {
     val searchedMoviesList = searchMovieScreenViewModel.searchedMovies
+
+    val isPagingDone = searchMovieScreenViewModel.isPagingDone.value
 
     val isLoading = searchMovieScreenViewModel.isLoading.value
 
@@ -70,9 +77,11 @@ fun SearchMovieScreen(
     UiSearchMovieScreen(
         navController,
         searchedMoviesList,
+        isPagingDone,
         isLoading,
         searchMovieSearchText,
         currentPosition,
+        homeScreenViewModelPresenter,
         searchMovieScreenViewModelPresenter = {
             val callback : SearchMovieScreenViewModelPresenter = it
             when(callback) {
@@ -97,9 +106,11 @@ fun SearchMovieScreen(
 fun UiSearchMovieScreen(
     navController: NavController,
     searchedMoviesList: List<MovieModelResult>,
+    isPagingDone: Boolean,
     isLoading: Boolean,
     searchMovieSearchText: String,
     currentPosition: Int,
+    homeScreenViewModelPresenter: (HomeScreenViewModelPresenter) -> Unit,
     searchMovieScreenViewModelPresenter: (SearchMovieScreenViewModelPresenter) -> Unit
 ) {
 
@@ -115,12 +126,15 @@ fun UiSearchMovieScreen(
         SearchMoviesList(
             navController,
             isLoading,
+            isPagingDone,
             currentPosition,
             searchedMoviesList,
             searchMovieSearchText,
             searchMovieScreenViewModelPresenter
         )
     }
+
+    SetLoading(homeScreenViewModelPresenter, isLoading)
 }
 
 @Composable
@@ -171,6 +185,7 @@ fun SearchMovieActionBar(
 fun SearchMoviesList(
     navController: NavController,
     isLoading: Boolean,
+    isPagingDone: Boolean,
     currentPosition: Int,
     searchedMoviesList: List<MovieModelResult>,
     searchMovieSearchText: String,
@@ -225,7 +240,7 @@ fun SearchMoviesList(
         }
 
         if(cantScrollForward) {
-            if(!isLoading && currentPosition >= (searchedMoviesList.size - 5)) {
+            if(!isLoading && !isPagingDone && currentPosition >= (searchedMoviesList.size - 5)) {
                 LogUtil.d_dev("MYTAG Request new item ${searchedMoviesList.size}")
                 searchMovieScreenViewModelPresenter.invoke(SearchMovieScreenViewModelPresenter.GetSearchMovies(searchMovieSearchText, false))
 //                searchMovieScreenViewModel.getSearchMovies(searchMovieScreenViewModel.searchMovieSearchText.value, false)

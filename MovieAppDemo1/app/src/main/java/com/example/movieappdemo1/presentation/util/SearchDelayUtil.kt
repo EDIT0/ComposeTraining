@@ -19,7 +19,7 @@ object SearchDelayUtil {
             timer = 0L
             CoroutineScope(Dispatchers.Main).launch {
                 isPass = false
-                delay(1000L)
+                delay(500L)
                 isPass = true
             }
             return true
@@ -40,7 +40,7 @@ object SearchDelayUtil {
             while (isTimerOn) {
                 timer += 10L
                 delay(10L)
-                if(timer > 1010L) {
+                if(timer > 510L) {
                     lastStopCallback.invoke()
                     isTimerOn = false
                     cancel()

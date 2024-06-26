@@ -11,6 +11,7 @@ import com.example.movieappdemo1.presentation.util.NetworkManager
 import com.example.movieappdemo1.presentation.util.SearchDelayUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -26,6 +27,7 @@ class SearchMovieScreenViewModel @Inject constructor(
 
     private var language = "en-US"
     private var page = 1
+    var isPagingDone = mutableStateOf(false)
     var isLoading = mutableStateOf(false)
 
 
@@ -40,8 +42,15 @@ class SearchMovieScreenViewModel @Inject constructor(
             viewModelScope.launch(Dispatchers.IO) {
                 isLoading.value = true
                 val apiResult = getSearchMoviesUseCase.execute(query, language, page)
+                if(page >= apiResult.body()?.totalPages!!) {
+                    isPagingDone.value = true
+                } else {
+                    isPagingDone.value = false
+                }
                 if(apiResult.body()?.movieModelResults.isNullOrEmpty()) {
-                    searchedMovies.clear()
+                    if(isClear) {
+                        searchedMovies.clear()
+                    }
                 } else {
                     page++
                     searchedMovies.addAll(apiResult.body()?.movieModelResults!!)
