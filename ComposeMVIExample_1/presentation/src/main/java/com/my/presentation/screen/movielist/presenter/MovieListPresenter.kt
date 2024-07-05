@@ -4,4 +4,5 @@ import com.my.domain.model.MovieModelResult
 
 sealed class MovieListPresenter {
     class MoveToMovieInfo(movieModelResult: MovieModelResult) : MovieListPresenter()
+    class MoveToMovieSearch() : MovieListPresenter()
 }
