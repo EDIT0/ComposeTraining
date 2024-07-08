@@ -1,4 +1,4 @@
-package com.my.presentation.screen.moviesearch.intent
+package com.my.presentation.screen.moviesearch.intent.viewmodeltoview
 
 import com.my.domain.model.MovieModelResult
 

@@ -10,7 +10,7 @@ import androidx.navigation.NavController
 import com.google.gson.Gson
 import com.my.common.UrlConvertUtil
 import com.my.domain.model.MovieModelResult
-import com.my.presentation.screen.moviedetail.model.MovieDetailInfoUiState
+import com.my.presentation.screen.moviedetail.state.MovieDetailInfoUiState
 import com.my.presentation.screen.moviedetail.viewmodel.MovieDetailViewModel
 
 @Composable

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -22,7 +23,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -33,11 +33,12 @@ import kotlinx.coroutines.launch
 @Composable
 fun SearchBarComponent(
     searchText: String,
+    heightDp: Int,
     changeSearchText: (String) -> Unit,
     searchIconClick: (String) -> Unit,
-    fakeButton: Boolean,
+    fakeButton: Boolean, // 버튼용으로 사용(true) or 실제 TextInput으로 사용(false)
     fakeButtonClick: () -> Unit,
-    startKeyboardUp: Boolean
+    startKeyboardUp: Boolean // 바로 포커스 true/false
 ) {
 
     val focusManager = LocalFocusManager.current
@@ -50,6 +51,7 @@ fun SearchBarComponent(
         },
         modifier = Modifier
             .fillMaxWidth()
+            .height(heightDp.dp)
             .clickable {
                 fakeButtonClick.invoke()
             }
@@ -105,5 +107,5 @@ fun SearchBarComponent(
 @Preview
 @Composable
 fun PreviewSearchBarComponent() {
-    SearchBarComponent(searchText = "Text", {}, {}, false, {}, true)
+    SearchBarComponent(searchText = "Text", 50, {}, {}, false, {}, true)
 }

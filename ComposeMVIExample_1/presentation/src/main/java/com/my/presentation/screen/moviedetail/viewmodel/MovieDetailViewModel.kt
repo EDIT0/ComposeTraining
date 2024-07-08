@@ -4,12 +4,9 @@ import android.app.Application
 import androidx.lifecycle.viewModelScope
 import com.my.common.NetworkManager
 import com.my.domain.model.MovieModelResult
-import com.my.domain.usecase.GetPopularMoviesUseCase
 import com.my.presentation.screen.base.viewmodel.BaseAndroidViewModel
 import com.my.presentation.screen.moviedetail.intent.MovieDetailInfoUiEvent
-import com.my.presentation.screen.moviedetail.model.MovieDetailInfoUiState
-import com.my.presentation.screen.movielist.intent.MovieListUiEvent
-import com.my.presentation.screen.movielist.model.MovieListUiState
+import com.my.presentation.screen.moviedetail.state.MovieDetailInfoUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted

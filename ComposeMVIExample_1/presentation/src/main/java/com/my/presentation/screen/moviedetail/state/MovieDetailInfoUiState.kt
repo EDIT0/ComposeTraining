@@ -1,4 +1,4 @@
-package com.my.presentation.screen.moviedetail.model
+package com.my.presentation.screen.moviedetail.state
 
 import com.my.domain.model.MovieModelResult
 

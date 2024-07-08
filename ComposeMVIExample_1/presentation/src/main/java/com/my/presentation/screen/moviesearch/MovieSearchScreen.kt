@@ -1,8 +1,12 @@
 package com.my.presentation.screen.moviesearch
 
 import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -15,15 +19,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.my.domain.model.MovieModelResult
+import com.my.presentation.component.BackButtonComponent
 import com.my.presentation.component.IsLoading
 import com.my.presentation.component.MovieItem
 import com.my.presentation.component.SearchBarComponent
-import com.my.presentation.screen.movielist.presenter.MovieListPresenter
-import com.my.presentation.screen.movielist.presenter.MovieListViewModelPresenter
 import com.my.presentation.screen.moviesearch.model.SearchAndListUiState
-import com.my.presentation.screen.moviesearch.presenter.MovieSearchPresenter
-import com.my.presentation.screen.moviesearch.presenter.MovieSearchViewModelPresenter
+import com.my.presentation.screen.moviesearch.intent.viewtoview.MovieSearchScreenEvent
+import com.my.presentation.screen.moviesearch.intent.viewtoviewmodel.MovieSearchViewModelEvent
 import com.my.presentation.screen.moviesearch.viewmodel.MovieSearchViewModel
 
 @Composable
@@ -32,6 +36,7 @@ fun MovieSearchScreen(
     movieSearchViewModel: MovieSearchViewModel = hiltViewModel()
 ) {
     MovieSearchScreenUI(
+        navController = navController,
         searchAndListState = SearchAndListUiState(),
         movieSearchPresenter = {
 
@@ -44,9 +49,10 @@ fun MovieSearchScreen(
 
 @Composable
 fun MovieSearchScreenUI(
+    navController: NavController,
     searchAndListState: SearchAndListUiState,
-    movieSearchPresenter: (MovieSearchPresenter) -> Unit,
-    movieSearchViewModelPresenter: (MovieSearchViewModelPresenter) -> Unit
+    movieSearchPresenter: (MovieSearchScreenEvent) -> Unit,
+    movieSearchViewModelPresenter: (MovieSearchViewModelEvent) -> Unit
 ) {
     val scrollState = rememberLazyListState()
     val cantScrollForward = !scrollState.canScrollForward
@@ -60,25 +66,45 @@ fun MovieSearchScreenUI(
             .padding(5.dp)
     ) {
 
-        SearchBarComponent(
-            searchText = "",
-            changeSearchText = { },
-            searchIconClick = { },
-            fakeButton = false,
-            fakeButtonClick = {
-                Log.d("MYTAG", "fake button clicked")
-            },
-            startKeyboardUp = true
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier
+                    .height(50.dp),
+                verticalArrangement = Arrangement.Center
+            ) {
+                BackButtonComponent(
+                    enable = true,
+                    backButtonClick = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            SearchBarComponent(
+                searchText = "",
+                heightDp = 50,
+                changeSearchText = { },
+                searchIconClick = { },
+                fakeButton = false,
+                fakeButtonClick = {
+                    Log.d("MYTAG", "TextInput clicked")
+                },
+                startKeyboardUp = true
+            )
+        }
+
         searchAndListState.searchedMovieList?.let { searchedMovieList ->
             LazyColumn(
                 state = scrollState
             ) {
                 itemsIndexed(searchedMovieList) {index, item ->
-                    movieSearchViewModelPresenter.invoke(MovieSearchViewModelPresenter.UpdateCurrentPosition(index))
+                    movieSearchViewModelPresenter.invoke(MovieSearchViewModelEvent.UpdateCurrentPosition(index))
                     MovieItem(index, item,
                         onItemClick = {
-                            movieSearchPresenter.invoke(MovieSearchPresenter.MoveToMovieInfo(it))
+                            movieSearchPresenter.invoke(MovieSearchScreenEvent.MoveToMovieInfo(it))
                         },
                         onItemLongClick = {
 
@@ -90,7 +116,7 @@ fun MovieSearchScreenUI(
             if(cantScrollForward) {
                 if(!searchAndListState.isLoading && searchAndListState.currentPosition >= (searchedMovieList.size - 10)) {
                     Log.d("MYTAG", "Request new item ${searchedMovieList.size}")
-                    movieSearchViewModelPresenter.invoke(MovieSearchViewModelPresenter.GetPopularMovies())
+                    movieSearchViewModelPresenter.invoke(MovieSearchViewModelEvent.GetPopularMovies())
                 }
             }
         }
@@ -103,6 +129,7 @@ fun MovieSearchScreenUI(
 @Composable
 fun PreviewMovieSearchScreen() {
     MovieSearchScreenUI(
+        navController = rememberNavController(),
         searchAndListState = SearchAndListUiState(listOf(MovieModelResult(), MovieModelResult(), MovieModelResult())),
         movieSearchPresenter = { },
         movieSearchViewModelPresenter = { }

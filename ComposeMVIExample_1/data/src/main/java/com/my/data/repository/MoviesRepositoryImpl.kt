@@ -1,6 +1,7 @@
 package com.my.data.repository
 
 import android.util.Log
+import com.my.common.NetworkConstant
 import com.my.data.repository.remoteDataSource.MoviesRemoteDataSource
 import com.my.domain.model.MovieModel
 import com.my.domain.model.base.RequestResult
@@ -34,7 +35,11 @@ class MoviesRepositoryImpl @Inject constructor(
                             emit(RequestResult.DataEmpty())
                         }
                     } else if(randomNumber >= 20) {
-                        emit(RequestResult.Error("Error", "에러입니다."))
+                        if(Random.nextInt(1, 20) >= 10) {
+                            emit(RequestResult.Error(NetworkConstant.ERROR, "에러입니다."))
+                        } else {
+                            emit(RequestResult.Error(NetworkConstant.ERROR_2, "2 에러입니다."))
+                        }
                     } else if(randomNumber >= 1) {
                         emit(RequestResult.DataEmpty())
                     }
