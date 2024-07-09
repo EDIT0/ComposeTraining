@@ -60,8 +60,6 @@ class MovieListViewModel @Inject constructor(
     private var page = 1
     private var totalPages = 0
 
-    private var currentPosition = -1
-
     private fun getPopularMovies() {
         if(networkManager.checkNetworkState()) {
             viewModelScope.launch {
@@ -126,9 +124,8 @@ class MovieListViewModel @Inject constructor(
     }
 
     private fun updateCurrentPosition(position: Int) {
-        currentPosition = position
         viewModelScope.launch {
-            movieListUiEventChannel.send(MovieListUiEvent.UpdateCurrentPosition(currentPosition))
+            movieListUiEventChannel.send(MovieListUiEvent.UpdateCurrentPosition(position))
         }
     }
 
@@ -164,7 +161,7 @@ class MovieListViewModel @Inject constructor(
 //                movieListUiState.copy(code = null, message = null, isDataEmpty = movieListUiEvent.isDataEmpty)
 //            }
             is MovieListUiEvent.UpdateCurrentPosition -> {
-                movieListUiState.copy(currentPosition = currentPosition)
+                movieListUiState.copy(currentPosition = movieListUiEvent.currentPosition)
             }
         }
     }

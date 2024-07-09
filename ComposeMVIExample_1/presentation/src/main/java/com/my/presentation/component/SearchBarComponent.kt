@@ -15,6 +15,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -23,7 +25,9 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
@@ -43,11 +47,15 @@ fun SearchBarComponent(
 
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
+    val textState = remember { mutableStateOf(TextFieldValue(searchText)) }
+
+    val scope = rememberCoroutineScope()
 
     TextField(
-        value = searchText,
+        value = textState.value,
         onValueChange = {
-            changeSearchText.invoke(it)
+            textState.value = it
+            changeSearchText.invoke(it.text)
         },
         modifier = Modifier
             .fillMaxWidth()
@@ -68,7 +76,8 @@ fun SearchBarComponent(
                 contentDescription = "search movie",
                 modifier = Modifier
                     .clickable {
-                        searchIconClick.invoke(searchText)
+                        searchIconClick.invoke(textState.value.text)
+                        focusManager.clearFocus()
                     },
                 tint = Color.Black
             )
@@ -84,6 +93,7 @@ fun SearchBarComponent(
         keyboardActions = KeyboardActions(
             onDone = {
                 Log.d("MYTAG", "Keyboard onDone")
+                searchIconClick.invoke(textState.value.text)
                 focusManager.clearFocus()
             },
             onNext = {
@@ -94,12 +104,12 @@ fun SearchBarComponent(
     )
 
     if(startKeyboardUp) {
-        rememberCoroutineScope().launch {
+        Log.d("MYTAG", "Keyboard Up")
+        scope.launch {
             delay(200L)
             focusRequester.requestFocus()
+            textState.value = textState.value.copy(selection = TextRange(textState.value.text.length))
         }
-    } else {
-
     }
 
 }
