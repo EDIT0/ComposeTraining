@@ -184,4 +184,11 @@ class MovieSearchViewModel @Inject constructor(
             }
         }
     }
+
+    override fun onCleared() {
+        super.onCleared()
+        searchAndUiEventChannel.close()
+        _searchAndListUiErrorEvent.close()
+        _sideEffects.close()
+    }
 }

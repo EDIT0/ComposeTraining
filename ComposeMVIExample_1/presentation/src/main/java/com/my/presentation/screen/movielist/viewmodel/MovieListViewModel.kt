@@ -177,4 +177,13 @@ class MovieListViewModel @Inject constructor(
             }
         }
     }
+
+    override fun onCleared() {
+        super.onCleared()
+
+        movieListUiEventChannel.close()
+        movieCountUiEventChannel.close()
+        _movieListUiErrorEvent.close()
+        _sideEffects.close()
+    }
 }
