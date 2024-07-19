@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.navigation.compose.rememberNavController
 import com.my.composepermissiondemo1.component.CommonDialog
 import com.my.composepermissiondemo1.model.CommonDialogModel
@@ -28,7 +29,7 @@ class MainActivity : ComponentActivity() {
 
     private var currentRoute: String? = null
     private val mainViewModel: MainViewModel by viewModels()
-    private var isShowDialogWithOnResume = false
+    private var isShowDialogWithOnResume by mutableStateOf(false)
 
     @SuppressLint("StateFlowValueCalledInComposition")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,6 +49,8 @@ class MainActivity : ComponentActivity() {
 
                 if(isShowDialogWithOnResume) {
                     showCommonDialog.value = showCommonDialog.value.copy(isShow = true, message = "message", buttonText = "buttonText")
+                } else {
+                    showCommonDialog.value = showCommonDialog.value.copy(isShow = false, message = "", buttonText = "")
                 }
 
                 val navController = rememberNavController()
@@ -99,6 +102,7 @@ class MainActivity : ComponentActivity() {
                         isShowDialogWithOnResume = true
                     } else {
                         LogUtil.d_dev("권한이 모두 승인된 상태입니다.")
+                        isShowDialogWithOnResume = false
                     }
                 }
             }
