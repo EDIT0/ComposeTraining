@@ -18,6 +18,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.compose.rememberNavController
 import com.my.composebottomsheetdemo1.navigation.MainNavHost
 import com.my.composebottomsheetdemo1.ui.theme.ComposeBottomSheetDemo1Theme
@@ -25,7 +27,16 @@ import com.my.composebottomsheetdemo1.ui.theme.ComposeBottomSheetDemo1Theme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+//        enableEdgeToEdge() // 주석처리 필수 -> Navigationbar overlap
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        window.statusBarColor = getColor(R.color.white)
+        window.navigationBarColor = getColor(R.color.white)
+        WindowInsetsControllerCompat(window, this.window.decorView).run {
+            isAppearanceLightStatusBars = true // 아이콘 검정: true 화이트: false
+            isAppearanceLightNavigationBars = true // 아이콘 검정: true 화이트: false
+        }
+
         setContent {
             ComposeBottomSheetDemo1Theme {
                 val navController = rememberNavController()

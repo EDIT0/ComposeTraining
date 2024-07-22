@@ -2,10 +2,13 @@ package com.my.composebottomsheetdemo1.screen
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -52,7 +55,7 @@ fun SecondBottomSheetScreenUI() {
     val scope = rememberCoroutineScope()
 
     val modalBottomSheetState = rememberModalBottomSheetState(
-//        skipPartiallyExpanded = true
+        skipPartiallyExpanded = true,
         confirmValueChange = { sheetValue ->
             LogUtil.d_dev("confirmValueChange: ${sheetValue}")
             true // false 일 경우, BottomSheet 상태 변경이 되지 않음
@@ -64,6 +67,9 @@ fun SecondBottomSheetScreenUI() {
     }
 
     val scrollState = rememberScrollState()
+
+    val bottomPadding = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -74,7 +80,7 @@ fun SecondBottomSheetScreenUI() {
             ModalBottomSheet(
                 modifier = Modifier
                     // 전체 높이 설정
-                    .fillMaxHeight(fraction = 0.9f),
+                    .fillMaxHeight(fraction = 0.45f),
                 onDismissRequest = {
                     isShowBottomSheet.value = false
                     scope.launch {
@@ -121,7 +127,7 @@ fun SecondBottomSheetScreenUI() {
                                 }
                                 isShowBottomSheet.value = false
                             },
-                        text = "1\n",
+                        text = "1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1",
                         style = TextStyle(fontSize = 50.sp)
                     )
                 }
