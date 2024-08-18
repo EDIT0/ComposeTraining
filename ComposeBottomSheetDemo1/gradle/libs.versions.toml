@@ -10,6 +10,7 @@ activityCompose = "1.9.0"
 composeBom = "2024.04.01"
 hiltAndroid = "2.51.1"
 hiltNavigationCompose = "1.2.0"
+v2All = "2.20.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -29,6 +30,7 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltAndroid" }
+v2-all = { module = "com.kakao.sdk:v2-all", version.ref = "v2All" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

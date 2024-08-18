@@ -69,6 +69,12 @@ dependencies {
     ksp(libs.hilt.android.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
+    /* Kakao */
+    implementation ("com.kakao.maps.open:android:2.9.7")
+    implementation(libs.v2.all)
+
+    implementation("com.github.skydoves:flexible-bottomsheet-material3:0.1.4")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

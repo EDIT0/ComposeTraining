@@ -32,6 +32,9 @@ fun HomeScreen(
         Button(onClick = { navController.navigate(route = NavigationScreenName.SecondBottomSheetScreen.name)  }) {
             Text(text = "Second")
         }
+        Button(onClick = { navController.navigate(route = NavigationScreenName.ThirdMapBottomSheetScreen.name)  }) {
+            Text(text = "ThirdMap")
+        }
     }
 
 }
