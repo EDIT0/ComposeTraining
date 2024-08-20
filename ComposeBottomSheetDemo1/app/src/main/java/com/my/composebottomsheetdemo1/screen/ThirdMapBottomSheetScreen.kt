@@ -2,25 +2,20 @@ package com.my.composebottomsheetdemo1.screen
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.util.Log
+import android.graphics.Rect
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
-import androidx.compose.foundation.gestures.rememberScrollableState
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
@@ -36,9 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,25 +40,22 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import com.kakao.vectormap.KakaoMap
+import com.kakao.vectormap.LatLng
+import com.kakao.vectormap.camera.CameraPosition
+import com.kakao.vectormap.camera.CameraUpdateFactory
 import com.my.composebottomsheetdemo1.KakaoMapUtil
 import com.my.composebottomsheetdemo1.LogUtil
 import com.my.composebottomsheetdemo1.ViewSizeUtil
@@ -75,7 +65,6 @@ import com.skydoves.flexible.core.FlexibleSheetSize
 import com.skydoves.flexible.core.FlexibleSheetValue
 import com.skydoves.flexible.core.rememberFlexibleBottomSheetState
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 @Composable
 fun ThirdMapBottomSheetScreen(
@@ -144,6 +133,10 @@ fun ThirdMapBottomSheetScreenUI(
         mutableStateOf(0)
     }
 
+    val newCenter : MutableState<LatLng?> = remember {
+        mutableStateOf(null)
+    }
+
     val mapView = KakaoMapUtil.setKakaoMap(
         localContext,
         NavigationScreenName.ThirdMapBottomSheetScreen.name,
@@ -181,6 +174,31 @@ fun ThirdMapBottomSheetScreenUI(
         mutableStateOf(BsViewMode.One)
     }
 
+
+    // 스크롤 방향을 기억하는 상태
+    var isScrollingUp by remember { mutableStateOf(false) }
+
+    // 이전 스크롤 위치를 저장할 상태
+    var previousScrollOffset by remember { mutableStateOf(0f) }
+
+    try {
+        // 이전 위치와 현재 위치를 비교하여 스크롤 방향 결정
+        isScrollingUp = flexibleBottomSheetState.swipeableState.requireOffset() < previousScrollOffset
+        previousScrollOffset = flexibleBottomSheetState.swipeableState.requireOffset()
+    } catch (e: Exception) {
+
+    }
+
+    var expand by rememberSaveable {
+        mutableStateOf(0f)
+    }
+    var half by rememberSaveable {
+        mutableStateOf(0f)
+    }
+    var collapse by rememberSaveable {
+        mutableStateOf(0f)
+    }
+
     try {
 //        LogUtil.d_dev("flexibleSheetSize: ${flexibleBottomSheetState.flexibleSheetSize}")
 //        LogUtil.d_dev("currentValue: ${flexibleBottomSheetState.currentValue}")
@@ -188,14 +206,50 @@ fun ThirdMapBottomSheetScreenUI(
 //        LogUtil.d_dev("anchor: ${flexibleBottomSheetState.swipeableState.anchors}")
 
         val offset = flexibleBottomSheetState.requireOffset()
-        val half = flexibleBottomSheetState.swipeableState.anchors[FlexibleSheetValue.IntermediatelyExpanded]!!
-        val collapse = flexibleBottomSheetState.swipeableState.anchors[FlexibleSheetValue.SlightlyExpanded]!!
+        expand = flexibleBottomSheetState.swipeableState.anchors[FlexibleSheetValue.FullyExpanded]?:0f
+        half = flexibleBottomSheetState.swipeableState.anchors[FlexibleSheetValue.IntermediatelyExpanded]?:0f
+        collapse = flexibleBottomSheetState.swipeableState.anchors[FlexibleSheetValue.SlightlyExpanded]?:0f
+
         val movingTotalHeight = collapse - half
         realMovingHeight.value = movingTotalHeight
         val offsetY = half - offset
-        if(half <= offset && collapse >= offset) {
-            LogUtil.d_dev("이때만 지도가 움직여야합니다. offsetY: ${offsetY}")
+        if(half < offset && collapse > offset) {
+//            LogUtil.d_dev("MYTAG 이때만 지도가 움직여야합니다. offsetY: ${offsetY} / offset: ${offset}")
             realOffsetY.value = offsetY
+
+            val fraction = when {
+                offset < half -> 0f
+                offset > collapse -> movingTotalHeight
+                else -> {
+                    // 스크롤이 500 ~ 700 사이일 때, 비례적으로 이동
+                    val progress = (offset - half) / (collapse - half)
+                    progress * movingTotalHeight
+                }
+            }
+            LogUtil.d_dev("MYTAG !!!!!!!!!!!!!!!!!!! ${fraction} / ${offset} / ${half} / ${collapse} / ${movingTotalHeight}")
+
+            val y = -(ViewSizeUtil.pxToDp(localContext, realMovingHeight.value) + ViewSizeUtil.pxToDp(localContext, realOffsetY.value))
+//            LogUtil.d_dev("MYTAG y: ${y}")
+
+//            val newCenter : Point = kakaoMap.value?.toScreenPoint(kakaoMap.value?.cameraPosition?.position!!)!!
+//            val center = kakaoMap.value?.fromScreenPoint(newCenter.value!!.x, newCenter.value!!.y)
+//
+//            val newPoint : Point = Point(0, 0)
+//            if(isScrollingUp) {
+//                newPoint.set(newCenter.value!!.x, newCenter.value!!.y + fraction.toInt())
+//            } else {
+//                newPoint.set(newCenter.value!!.x, newCenter.value!!.y - fraction.toInt())
+//            }
+
+//            LogUtil.d_dev("MYTAG cX: ${newCenter.value!!.x} cY: ${newCenter.value!!.y} / ${kakaoMap.value?.fromScreenPoint(newCenter.value!!.x, newCenter.value!!.y)}")
+//            LogUtil.d_dev("MYTAG x: ${newPoint.x} y: ${newPoint.y}")
+
+//            val changed = kakaoMap.value?.fromScreenPoint(newPoint.x, newPoint.y)
+
+//            kakaoMap.value?.moveCamera(
+//                CameraUpdateFactory.newCenterPosition(
+//                    LatLng.from(changed!!.latitude, changed!!.longitude), 16)
+//            )
         }
         LogUtil.d_dev("${ViewSizeUtil.pxToDp(localContext, realOffsetY.value).dp} / ${ViewSizeUtil.pxToDp(localContext, realMovingHeight.value).dp}")
         LogUtil.d_dev("Move 1: ${-ViewSizeUtil.pxToDp(localContext, realOffsetY.value).dp - ViewSizeUtil.pxToDp(localContext, realMovingHeight.value).dp}")
@@ -215,16 +269,51 @@ fun ThirdMapBottomSheetScreenUI(
 
             AndroidView(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .offset(y = -(ViewSizeUtil.pxToDp(localContext, realMovingHeight.value).dp + ViewSizeUtil.pxToDp(localContext, realOffsetY.value).dp)),
+                    .fillMaxSize(),
+//                    .offset(
+//                        y = -(ViewSizeUtil.pxToDp(
+//                            localContext,
+//                            realMovingHeight.value
+//                        ).dp + ViewSizeUtil.pxToDp(localContext, realOffsetY.value).dp)
+//                    ),
                 factory = { context ->
                     mapView!!
                 }
             )
 
-            Button(onClick = { moveToFirst.invoke() }) {
-                Text(text = "Button")
+            Row {
+                Button(onClick = { moveToFirst.invoke() }) {
+                    Text(text = "다른 화면으로")
+                }
+
+                Button(onClick = {
+                    viewMode.value = BsViewMode.One
+                }) {
+                    Text(text = "단계별")
+                }
+
+                Button(onClick = {
+                    viewMode.value = BsViewMode.Two
+                }) {
+                    Text(text = "마커정보")
+                }
+
+                Button(onClick = {
+//                    val newCenterX = kakaoMap.value?.viewport!!.width() / 2
+//                    val newCenterY = (expand + half) / 2
+//                    val latLng = kakaoMap.value?.fromScreenPoint(newCenterX, newCenterY.toInt())
+//
+//                    LogUtil.d_dev("MYTAG 음? ${half} / ${latLng!!.latitude},${latLng.longitude}")
+//
+//                    kakaoMap.value?.moveCamera(
+//                        CameraUpdateFactory.newCenterPosition(LatLng.from(latLng!!.latitude, latLng.longitude))
+//                    )
+                    LogUtil.d_dev("MYTAG 현재 센터: ${kakaoMap.value?.cameraPosition?.position}")
+                }) {
+
+                }
             }
+
         }
 
         if(viewMode.value == BsViewMode.One) {
@@ -341,15 +430,75 @@ fun ThirdMapBottomSheetScreenUI(
         }
     }
 
-    kakaoMap.value?.setOnMapClickListener { kakaoMap, latLng, pointF, poi ->
-        if(viewMode.value == BsViewMode.One) {
-            viewMode.value = BsViewMode.Two
-        } else if(viewMode.value == BsViewMode.Two) {
-            viewMode.value = BsViewMode.One
-        }
+    kakaoMap.value?.setOnCameraMoveEndListener { kakaoMap, cameraPosition, gestureType ->
+        val viewport: Rect = kakaoMap.viewport
+
+        LogUtil.d_dev("현재 보이는 화면 - width: ${viewport.width()} height: ${viewport.height()}")
+
+        val x = viewport.width() / 2
+        val y = viewport.height() / 2
+
+
+        // fromScreenPoint() 를 이용하여 스크린 좌표를 지리적 좌표로 변환할 수 있습니다.
+        val position: LatLng = kakaoMap.fromScreenPoint(x, y)!!
+        LogUtil.d_dev("현재 보이는 화면 - x: ${x}, y: ${y}")
+        LogUtil.d_dev("현재 보이는 화면 - Center: ${cameraPosition.position.latitude} / ${cameraPosition.position.longitude}")
+        LogUtil.d_dev("현재 보이는 화면 - position latlng: ${position.latitude} / ${position.longitude}")
+
+        val top = viewport.top
+        val bottom = viewport.bottom
+        val left = viewport.left
+        val right = viewport.right
+        LogUtil.d_dev("현재 보이는 화면 - ${viewport.top} ${viewport.bottom} ${viewport.left} ${viewport.right}")
+
+        val topLeft: LatLng = kakaoMap.fromScreenPoint(top, left)!!
+        val topRight: LatLng = kakaoMap.fromScreenPoint(right, left)!!
+        val bottomLeft: LatLng = kakaoMap.fromScreenPoint(top, bottom)!!
+        val bottomRight: LatLng = kakaoMap.fromScreenPoint(right, bottom)!!
+
+        LogUtil.i_dev("현재 보이는 화면 - TopLeft: ${topLeft.latitude}, ${topLeft.longitude}")
+        LogUtil.i_dev("현재 보이는 화면 - TopRight: ${topRight.latitude}, ${topRight.longitude}")
+        LogUtil.i_dev("현재 보이는 화면 - BottomLeft: ${bottomLeft.latitude}, ${bottomLeft.longitude}")
+        LogUtil.i_dev("현재 보이는 화면 - BottomRight: ${bottomRight.latitude}, ${bottomRight.longitude}")
     }
 
+    kakaoMap.value?.setOnMapClickListener { kakaoMap, latLng, pointF, poi ->
+        try {
+            val newCenterX = kakaoMap.toScreenPoint(latLng)?.x!!
+            val newCenterY = kakaoMap.toScreenPoint(latLng)?.y!! - (kakaoMap.viewport.centerY() - kakaoMap.toScreenPoint(latLng)?.y!!)
+            val newLatLng = kakaoMap.fromScreenPoint(newCenterX.toInt(), newCenterY.toInt())
 
+            val changedLatLng = LatLng.from(latLng.latitude + (latLng.latitude - newLatLng?.latitude!!), latLng.longitude)
+
+            LogUtil.d_dev("MYTAG 음? ${newCenterX} / ${newCenterY} / ${newLatLng!!.latitude},${newLatLng.longitude}")
+
+            kakaoMap.moveCamera(
+                CameraUpdateFactory.newCenterPosition(LatLng.from(newLatLng.latitude, newLatLng.longitude))
+            )
+        } catch (e: Exception) {
+            LogUtil.e_dev("MYTAG ${e}")
+        }
+
+    }
+
+//    LogUtil.d_dev("MYTAG ${kakaoMap.value?.viewport?.width()} / ${kakaoMap.value?.viewport?.height()} / ${kakaoMap.value?.viewport?.width()?.dp} ${kakaoMap.value?.viewport?.height()?.dp}")
+    if(kakaoMap.value?.viewport?.width() != null && kakaoMap.value?.viewport?.height() != null) {
+        val centerX = kakaoMap.value?.viewport?.width()!! / 2
+        val centerY = kakaoMap.value?.viewport?.height()!! / 2
+        kakaoMap.value?.fromScreenPoint(centerX, centerY)
+
+//        LogUtil.d_dev("MYTAG ${kakaoMap.value?.viewport?.width()?.dp!! / 2} ${kakaoMap.value?.viewport?.height()?.dp!! / 2}")
+//        LogUtil.d_dev("MYTAG ${realOffsetY.value}")
+
+//        val newY = kakaoMap.value?.viewport?.height()!! / 2 - realOffsetY.value
+//
+//        kakaoMap.value?.moveCamera(
+//            CameraUpdateFactory.newCenterPosition(
+//                LatLng.from((kakaoMap.value?.viewport?.width()!! / 2).toDouble(), newY.toDouble()), 16
+//            )
+//        )
+
+    }
 
 /**
  * 좀 더 봐야함
