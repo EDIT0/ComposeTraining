@@ -54,7 +54,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import com.kakao.vectormap.KakaoMap
 import com.kakao.vectormap.LatLng
-import com.kakao.vectormap.camera.CameraPosition
 import com.kakao.vectormap.camera.CameraUpdateFactory
 import com.my.composebottomsheetdemo1.KakaoMapUtil
 import com.my.composebottomsheetdemo1.LogUtil
@@ -210,23 +209,14 @@ fun ThirdMapBottomSheetScreenUI(
         half = flexibleBottomSheetState.swipeableState.anchors[FlexibleSheetValue.IntermediatelyExpanded]?:0f
         collapse = flexibleBottomSheetState.swipeableState.anchors[FlexibleSheetValue.SlightlyExpanded]?:0f
 
+        LogUtil.d_dev("MYTAG expand: ${expand} / half: ${half} / collapse: ${collapse}")
+
         val movingTotalHeight = collapse - half
         realMovingHeight.value = movingTotalHeight
         val offsetY = half - offset
         if(half < offset && collapse > offset) {
 //            LogUtil.d_dev("MYTAG 이때만 지도가 움직여야합니다. offsetY: ${offsetY} / offset: ${offset}")
             realOffsetY.value = offsetY
-
-            val fraction = when {
-                offset < half -> 0f
-                offset > collapse -> movingTotalHeight
-                else -> {
-                    // 스크롤이 500 ~ 700 사이일 때, 비례적으로 이동
-                    val progress = (offset - half) / (collapse - half)
-                    progress * movingTotalHeight
-                }
-            }
-            LogUtil.d_dev("MYTAG !!!!!!!!!!!!!!!!!!! ${fraction} / ${offset} / ${half} / ${collapse} / ${movingTotalHeight}")
 
             val y = -(ViewSizeUtil.pxToDp(localContext, realMovingHeight.value) + ViewSizeUtil.pxToDp(localContext, realOffsetY.value))
 //            LogUtil.d_dev("MYTAG y: ${y}")
@@ -430,6 +420,15 @@ fun ThirdMapBottomSheetScreenUI(
         }
     }
 
+    val betweenCenterAndHalf : MutableState<Double> = rememberSaveable {
+        mutableStateOf(0.0)
+    }
+    val betweenCenterAndCollapse : MutableState<Double> = rememberSaveable {
+        mutableStateOf(0.0)
+    }
+    val calLatLngHalf: MutableState<LatLng?> = rememberSaveable {
+        mutableStateOf(null)
+    }
     kakaoMap.value?.setOnCameraMoveEndListener { kakaoMap, cameraPosition, gestureType ->
         val viewport: Rect = kakaoMap.viewport
 
@@ -460,25 +459,38 @@ fun ThirdMapBottomSheetScreenUI(
         LogUtil.i_dev("현재 보이는 화면 - TopRight: ${topRight.latitude}, ${topRight.longitude}")
         LogUtil.i_dev("현재 보이는 화면 - BottomLeft: ${bottomLeft.latitude}, ${bottomLeft.longitude}")
         LogUtil.i_dev("현재 보이는 화면 - BottomRight: ${bottomRight.latitude}, ${bottomRight.longitude}")
+
+        val aHalf = right / 2
+        val bHalf = bottom
+        val abHalf = kakaoMap.fromScreenPoint(aHalf, bHalf)
+
+        try {
+            betweenCenterAndHalf.value = cameraPosition.position.latitude - kakaoMap.fromScreenPoint(aHalf, half.toInt())!!.latitude
+            LogUtil.d_dev("betweenCenterAndHalf: ${betweenCenterAndHalf.value}")
+            betweenCenterAndCollapse.value = cameraPosition.position.latitude - kakaoMap.fromScreenPoint(aHalf, collapse.toInt())!!.latitude
+        } catch (e: Exception) {
+            LogUtil.e_dev("betweenCenterAndHalf ${e}")
+        }
+
+
+        val cHalf = right / 2
+        val dHalf = bottom / 4
+        val eHalf = dHalf * 3
+        val ceHalf = kakaoMap.fromScreenPoint(cHalf, eHalf)
+
+        val latHalf = ceHalf!!.latitude - abHalf!!.latitude - betweenCenterAndHalf.value
+        val lngHalf = ceHalf.longitude - abHalf.longitude
+        calLatLngHalf.value = LatLng.from(latHalf, lngHalf)
+        LogUtil.d_dev("Half 계산 ${latHalf}, ${lngHalf}")
     }
 
     kakaoMap.value?.setOnMapClickListener { kakaoMap, latLng, pointF, poi ->
-        try {
-            val newCenterX = kakaoMap.toScreenPoint(latLng)?.x!!
-            val newCenterY = kakaoMap.toScreenPoint(latLng)?.y!! - (kakaoMap.viewport.centerY() - kakaoMap.toScreenPoint(latLng)?.y!!)
-            val newLatLng = kakaoMap.fromScreenPoint(newCenterX.toInt(), newCenterY.toInt())
-
-            val changedLatLng = LatLng.from(latLng.latitude + (latLng.latitude - newLatLng?.latitude!!), latLng.longitude)
-
-            LogUtil.d_dev("MYTAG 음? ${newCenterX} / ${newCenterY} / ${newLatLng!!.latitude},${newLatLng.longitude}")
-
-            kakaoMap.moveCamera(
-                CameraUpdateFactory.newCenterPosition(LatLng.from(newLatLng.latitude, newLatLng.longitude))
-            )
-        } catch (e: Exception) {
-            LogUtil.e_dev("MYTAG ${e}")
-        }
-
+        val calLat : Double = calLatLngHalf.value?.latitude?:0.0
+        // 중앙과 높이 1/4지점 찍기
+        // 중앙에서 미리 계산해둔 latitude만큼 빼기
+        kakaoMap.moveCamera(
+            CameraUpdateFactory.newCenterPosition(LatLng.from(latLng.latitude - calLat, latLng.longitude))
+        )
     }
 
 //    LogUtil.d_dev("MYTAG ${kakaoMap.value?.viewport?.width()} / ${kakaoMap.value?.viewport?.height()} / ${kakaoMap.value?.viewport?.width()?.dp} ${kakaoMap.value?.viewport?.height()?.dp}")
