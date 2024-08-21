@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
@@ -31,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -198,7 +200,27 @@ fun ThirdMapBottomSheetScreenUI(
         mutableStateOf(0f)
     }
 
+
+    var onePixelDistance by rememberSaveable {
+        mutableStateOf(0.0)
+    }
+    var slideOffset by rememberSaveable {
+        mutableStateOf(0f)
+    }
+    var currentCollapseLat by rememberSaveable {
+        mutableStateOf(0.0)
+    }
+    var currentHalfLat by rememberSaveable {
+        mutableStateOf(0.0)
+    }
+    var currentColHalfDistanceLat by rememberSaveable {
+        mutableStateOf(0.0)
+    }
+
     try {
+        slideOffset = calculateSlideOffset(flexibleBottomSheetState.requireOffset(), ViewSizeUtil.dpToPx(localContext, screenHeight.toFloat()).toFloat())
+//        LogUtil.i_dev("MYTAG SlideOffset: ${slideOffset} Offset: ${flexibleBottomSheetState.requireOffset()} ScreenHeight: ${ViewSizeUtil.dpToPx(localContext, screenHeight.toFloat()).toFloat()}")
+
 //        LogUtil.d_dev("flexibleSheetSize: ${flexibleBottomSheetState.flexibleSheetSize}")
 //        LogUtil.d_dev("currentValue: ${flexibleBottomSheetState.currentValue}")
         LogUtil.d_dev("progress: ${flexibleBottomSheetState.swipeableState.progress}")
@@ -209,7 +231,7 @@ fun ThirdMapBottomSheetScreenUI(
         half = flexibleBottomSheetState.swipeableState.anchors[FlexibleSheetValue.IntermediatelyExpanded]?:0f
         collapse = flexibleBottomSheetState.swipeableState.anchors[FlexibleSheetValue.SlightlyExpanded]?:0f
 
-        LogUtil.d_dev("MYTAG expand: ${expand} / half: ${half} / collapse: ${collapse}")
+//        LogUtil.d_dev("MYTAG expand: ${expand} / half: ${half} / collapse: ${collapse}")
 
         val movingTotalHeight = collapse - half
         realMovingHeight.value = movingTotalHeight
@@ -218,7 +240,7 @@ fun ThirdMapBottomSheetScreenUI(
 //            LogUtil.d_dev("MYTAG 이때만 지도가 움직여야합니다. offsetY: ${offsetY} / offset: ${offset}")
             realOffsetY.value = offsetY
 
-            val y = -(ViewSizeUtil.pxToDp(localContext, realMovingHeight.value) + ViewSizeUtil.pxToDp(localContext, realOffsetY.value))
+//            val y = -(ViewSizeUtil.pxToDp(localContext, realMovingHeight.value) + ViewSizeUtil.pxToDp(localContext, realOffsetY.value))
 //            LogUtil.d_dev("MYTAG y: ${y}")
 
 //            val newCenter : Point = kakaoMap.value?.toScreenPoint(kakaoMap.value?.cameraPosition?.position!!)!!
@@ -248,6 +270,31 @@ fun ThirdMapBottomSheetScreenUI(
 
     }
 
+    var heightChange by rememberSaveable {
+        mutableStateOf(0.0)
+    }
+
+    LaunchedEffect(key1 = slideOffset) {
+        if(slideOffset > 0.1 && slideOffset < 0.4) {
+            val normalizedOffset = (slideOffset - 0.1) / (0.4 - 0.1)
+            heightChange = normalizedOffset * realMovingHeight.value
+//            if(isScrollingUp) {
+////                val newLat = kakaoMap.value?.cameraPosition?.position?.latitude!! - heightChange * onePixelDistance
+//                val newLat = normalizedOffset * currentColHalfDistanceLat + currentCollapseLat
+//                kakaoMap.value?.moveCamera(
+//                    CameraUpdateFactory.newCenterPosition(LatLng.from(newLat, kakaoMap.value?.cameraPosition?.position?.longitude!!))
+//                )
+//            } else {
+////                val newLat = kakaoMap.value?.cameraPosition?.position?.latitude!! + heightChange * onePixelDistance
+//                val newLat = currentHalfLat - normalizedOffset * currentColHalfDistanceLat
+//                kakaoMap.value?.moveCamera(
+//                    CameraUpdateFactory.newCenterPosition(LatLng.from(newLat, kakaoMap.value?.cameraPosition?.position?.longitude!!))
+//                )
+//            }
+
+            LogUtil.i_dev("MYTAG heightChange: ${heightChange}\nonePixelDistance: ${onePixelDistance}\ncurrentCollapseLat: ${currentCollapseLat}")
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -259,7 +306,8 @@ fun ThirdMapBottomSheetScreenUI(
 
             AndroidView(
                 modifier = Modifier
-                    .fillMaxSize(),
+                    .fillMaxSize()
+                    .offset(y = -ViewSizeUtil.pxToDp(localContext, heightChange.toFloat()).dp / 2),
 //                    .offset(
 //                        y = -(ViewSizeUtil.pxToDp(
 //                            localContext,
@@ -482,6 +530,20 @@ fun ThirdMapBottomSheetScreenUI(
         val lngHalf = ceHalf.longitude - abHalf.longitude
         calLatLngHalf.value = LatLng.from(latHalf, lngHalf)
         LogUtil.d_dev("Half 계산 ${latHalf}, ${lngHalf}")
+
+
+        val a = kakaoMap.fromScreenPoint(right, bottom)
+        val b = kakaoMap.fromScreenPoint(right, top)
+        val c = b!!.latitude - a!!.latitude
+//        val c = 0.01
+        val d = c / ViewSizeUtil.dpToPx(localContext, screenHeight.toFloat())
+        onePixelDistance = d
+        LogUtil.i_dev("MYTAG d: ${d}\nc: ${c}\nb: ${b}\na: ${a}")
+
+        currentCollapseLat = kakaoMap.fromScreenPoint(aHalf, collapse.toInt())!!.latitude
+        currentHalfLat = kakaoMap.fromScreenPoint(aHalf, half.toInt())!!.latitude
+        currentColHalfDistanceLat = currentHalfLat - currentCollapseLat
+        LogUtil.d_dev("MYTAG currentCollapseLat: ${currentCollapseLat} currentHalfLat: ${currentHalfLat} currentColHalfDistanceLat: ${currentColHalfDistanceLat}")
     }
 
     kakaoMap.value?.setOnMapClickListener { kakaoMap, latLng, pointF, poi ->
@@ -663,6 +725,10 @@ fun ThirdMapBottomSheetScreenUI(
 //            }
 //        }
 //    )
+}
+
+fun calculateSlideOffset(currentY: Float, maxHeight: Float): Float {
+    return 1.0f - (currentY / maxHeight)
 }
 
 enum class BsViewMode {
