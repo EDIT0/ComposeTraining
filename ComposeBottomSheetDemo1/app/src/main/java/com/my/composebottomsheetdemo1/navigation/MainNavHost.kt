@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.my.composebottomsheetdemo1.screen.FirstBottomSheetScreen
+import com.my.composebottomsheetdemo1.screen.FourthMapBottomSheetScreen
 import com.my.composebottomsheetdemo1.screen.HomeScreen
 import com.my.composebottomsheetdemo1.screen.SecondBottomSheetScreen
 import com.my.composebottomsheetdemo1.screen.ThirdMapBottomSheetScreen
@@ -41,6 +42,12 @@ fun MainNavHost(
             route = NavigationScreenName.ThirdMapBottomSheetScreen.name
         ) {
             ThirdMapBottomSheetScreen(navController = navHostController)
+        }
+
+        composable(
+            route = NavigationScreenName.FourthMapBottomSheetScreen.name
+        ) {
+            FourthMapBottomSheetScreen(navController = navHostController)
         }
 
     }

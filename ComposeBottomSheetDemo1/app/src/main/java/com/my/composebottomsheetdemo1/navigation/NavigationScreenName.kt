@@ -4,5 +4,6 @@ enum class NavigationScreenName {
     HomeScreen,
     FirstBottomSheetScreen,
     SecondBottomSheetScreen,
-    ThirdMapBottomSheetScreen
+    ThirdMapBottomSheetScreen,
+    FourthMapBottomSheetScreen
 }
