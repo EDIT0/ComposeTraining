@@ -1,9 +1,9 @@
 package com.my.presentation.screen.movielist.state
 
-import com.my.domain.model.MovieModelResult
+import com.my.domain.model.MovieModel
 
 data class MovieListUiState(
-    var movieList: List<MovieModelResult>? = null,
+    var movieModel: MovieModel? = null,
     val isLoading: Boolean = false,
 //    val code: String? = null,
 //    val message: String? = null,

@@ -4,15 +4,15 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.my.common.NetworkManager
+import com.my.domain.model.MovieModel
+import com.my.domain.model.MovieModelResult
 import com.my.domain.model.base.RequestResult
 import com.my.domain.usecase.GetPopularMoviesUseCase
 import com.my.presentation.screen.base.viewmodel.BaseAndroidViewModel
 import com.my.presentation.screen.movielist.intent.viewmodeltoview.MovieListUiEvent
 import com.my.presentation.screen.movielist.intent.viewtoviewmodel.MovieListViewModelEvent
 import com.my.presentation.screen.base.sideeffect.SideEffectEvent
-import com.my.presentation.screen.movielist.intent.viewmodeltoview.MovieCountUiEvent
 import com.my.presentation.screen.movielist.intent.viewmodeltoview.MovieListUiErrorEvent
-import com.my.presentation.screen.movielist.state.MovieCountUiState
 import com.my.presentation.screen.movielist.state.MovieListUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -46,10 +46,10 @@ class MovieListViewModel @Inject constructor(
     private val _movieListUiErrorEvent = Channel<MovieListUiErrorEvent>()
     val movieListUiErrorEvent = _movieListUiErrorEvent.receiveAsFlow()
 
-    private val movieCountUiEventChannel = Channel<MovieCountUiEvent>() // Movie Count 관련 State 업데이트
-    val movieCountUiState: StateFlow<MovieCountUiState> = movieCountUiEventChannel.receiveAsFlow() // Movie Count 관련 State
-        .runningFold(MovieCountUiState(), ::reduceMovieCountUiState)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, MovieCountUiState())
+//    private val movieCountUiEventChannel = Channel<MovieCountUiEvent>() // Movie Count 관련 State 업데이트
+//    val movieCountUiState: StateFlow<MovieCountUiState> = movieCountUiEventChannel.receiveAsFlow() // Movie Count 관련 State
+//        .runningFold(MovieCountUiState(), ::reduceMovieCountUiState)
+//        .stateIn(viewModelScope, SharingStarted.Eagerly, MovieCountUiState())
 
     // Side Effect 이벤트
     private val _sideEffects = Channel<SideEffectEvent>()
@@ -57,18 +57,38 @@ class MovieListViewModel @Inject constructor(
 
     private val language = "en-US"
 
-    private var page = 1
-    private var totalPages = 0
+//    private var page = 1
+//    private var totalPages = 0
 
-    private fun getPopularMovies() {
+    private fun getPopularMovies(page: Int, size: Int) {
+        val requestPage = page + 1
         if(networkManager.checkNetworkState()) {
             viewModelScope.launch {
+                if((requestPage-1) == movieListUiState.value.movieModel?.totalPages) {
+                    Log.d("MYTAG", "마지막 페이지")
+                    return@launch
+                }
+
+                if(requestPage == 1) {
+                    viewModelScope.launch {
+                        movieListUiEventChannel.send(
+                            MovieListUiEvent.Success(
+                                movieModel = MovieModel(
+                                    page = null,
+                                    movieModelResults = ArrayList<MovieModelResult>(),
+                                    totalPages = null,
+                                    totalResults = null
+                                )
+                            ))
+                    }
+                }
+
                 movieListUiEventChannel.send(MovieListUiEvent.Loading(isLoading = true))
-                getPopularMoviesUseCase.execute(language, page)
+                getPopularMoviesUseCase.execute(language, requestPage)
                     .onStart {
                         _sideEffects.send(SideEffectEvent.ShowToast("데이터 요청 시작"))
-                        movieCountUiEventChannel.send(MovieCountUiEvent.UpdateTotalMovieCount(-1))
-                        movieCountUiEventChannel.send(MovieCountUiEvent.UpdateCurrentMovieCount(-1))
+//                        movieCountUiEventChannel.send(MovieCountUiEvent.UpdateTotalMovieCount(-1))
+//                        movieCountUiEventChannel.send(MovieCountUiEvent.UpdateCurrentMovieCount(-1))
                     }
                     .onCompletion {
                         _sideEffects.send(SideEffectEvent.ShowToast("데이터 요청 끝"))
@@ -102,19 +122,33 @@ class MovieListViewModel @Inject constructor(
                     .collect {
                         delay(1000L)
                         Log.d("MYTAG", "collect: ${it}")
-                        if(movieListUiState.value.movieList == null || movieListUiState.value.movieList!!.isEmpty()) {
-                            movieListUiEventChannel.send(MovieListUiEvent.Success(movieList = it!!.movieModelResults))
-                        } else {
-                            val tmp = ArrayList(movieListUiState.value.movieList)
-                            tmp.addAll(it!!.movieModelResults)
-                            movieListUiEventChannel.send(MovieListUiEvent.Success(tmp))
-                        }
-                        totalPages = it.totalPages
-                        page = it.page
-                        page++
 
-                        movieCountUiEventChannel.send(MovieCountUiEvent.UpdateTotalMovieCount(totalPages * 20))
-                        movieCountUiEventChannel.send(MovieCountUiEvent.UpdateCurrentMovieCount(movieListUiState.value.movieList?.size?:0))
+                        val tmpList = ArrayList<MovieModelResult>()
+                        if(movieListUiState.value.movieModel != null && !movieListUiState.value.movieModel?.movieModelResults.isNullOrEmpty()) {
+                            tmpList.addAll(movieListUiState.value.movieModel?.movieModelResults!!)
+                            tmpList.addAll(it!!.movieModelResults!!)
+                        } else {
+                            tmpList.addAll(it!!.movieModelResults!!)
+                        }
+                        it.movieModelResults = tmpList
+
+                        movieListUiEventChannel.send(MovieListUiEvent.Success(movieModel = it))
+
+
+
+//                        if(movieListUiState.value.movieList == null || movieListUiState.value.movieList!!.isEmpty()) {
+//                            movieListUiEventChannel.send(MovieListUiEvent.Success(movieList = it!!.movieModelResults))
+//                        } else {
+//                            val tmp = ArrayList(movieListUiState.value.movieList)
+//                            tmp.addAll(it!!.movieModelResults)
+//                            movieListUiEventChannel.send(MovieListUiEvent.Success(tmp))
+//                        }
+//                        totalPages = it.totalPages
+//                        page = it.page
+//                        page++
+
+//                        movieCountUiEventChannel.send(MovieCountUiEvent.UpdateTotalMovieCount(totalPages * 20))
+//                        movieCountUiEventChannel.send(MovieCountUiEvent.UpdateCurrentMovieCount(movieListUiState.value.movieList?.size?:0))
                     }
                 movieListUiEventChannel.send(MovieListUiEvent.Loading(isLoading = false))
             }
@@ -134,7 +168,7 @@ class MovieListViewModel @Inject constructor(
     fun handleViewModelEvent(movieListViewModelEvent: MovieListViewModelEvent) {
         when (movieListViewModelEvent) {
             is MovieListViewModelEvent.GetPopularMovies -> {
-                getPopularMovies()
+                getPopularMovies(movieListViewModelEvent.page, movieListViewModelEvent.size)
             }
             is MovieListViewModelEvent.UpdateCurrentPosition -> {
                 updateCurrentPosition(movieListViewModelEvent.position)
@@ -146,7 +180,7 @@ class MovieListViewModel @Inject constructor(
     private fun reduceMovieListUiState(movieListUiState: MovieListUiState, movieListUiEvent: MovieListUiEvent) : MovieListUiState {
         return when(movieListUiEvent){
             is MovieListUiEvent.Success -> {
-                movieListUiState.copy(movieList = movieListUiEvent.movieList)
+                movieListUiState.copy(movieModel = movieListUiEvent.movieModel)
             }
 //            is MovieListUiEvent.Fail -> {
 //                movieListUiState.copy(code = movieListUiEvent.code, message = movieListUiEvent.message, throwable = null, isDataEmpty = false)
@@ -167,22 +201,22 @@ class MovieListViewModel @Inject constructor(
     }
 
     // ViewModel의 데이터 처리에 대한 State 변화를 View에게 알림
-    private fun reduceMovieCountUiState(movieCountUiState: MovieCountUiState, movieCountUiEvent: MovieCountUiEvent) : MovieCountUiState {
-        return when(movieCountUiEvent) {
-            is MovieCountUiEvent.UpdateTotalMovieCount -> {
-                movieCountUiState.copy(totalMovieCount = movieCountUiEvent.totalMovieCount)
-            }
-            is MovieCountUiEvent.UpdateCurrentMovieCount -> {
-                movieCountUiState.copy(currentMovieCount = movieCountUiEvent.currentMovieCount)
-            }
-        }
-    }
+//    private fun reduceMovieCountUiState(movieCountUiState: MovieCountUiState, movieCountUiEvent: MovieCountUiEvent) : MovieCountUiState {
+//        return when(movieCountUiEvent) {
+//            is MovieCountUiEvent.UpdateTotalMovieCount -> {
+//                movieCountUiState.copy(totalMovieCount = movieCountUiEvent.totalMovieCount)
+//            }
+//            is MovieCountUiEvent.UpdateCurrentMovieCount -> {
+//                movieCountUiState.copy(currentMovieCount = movieCountUiEvent.currentMovieCount)
+//            }
+//        }
+//    }
 
     override fun onCleared() {
         super.onCleared()
 
         movieListUiEventChannel.close()
-        movieCountUiEventChannel.close()
+//        movieCountUiEventChannel.close()
         _movieListUiErrorEvent.close()
         _sideEffects.close()
     }

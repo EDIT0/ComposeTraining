@@ -1,5 +1,6 @@
 package com.my.presentation.screen.moviesearch
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
@@ -19,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,6 +38,7 @@ import androidx.navigation.NavController
 import com.google.gson.Gson
 import com.my.common.NetworkConstant
 import com.my.common.UrlConvertUtil
+import com.my.domain.model.MovieModel
 import com.my.domain.model.MovieModelResult
 import com.my.presentation.activity.MainActivity
 import com.my.presentation.component.BackButtonComponent
@@ -49,6 +52,7 @@ import com.my.presentation.screen.moviesearch.state.SearchAndListUiState
 import com.my.presentation.screen.moviesearch.intent.viewtoview.MovieSearchScreenEvent
 import com.my.presentation.screen.moviesearch.intent.viewtoviewmodel.MovieSearchViewModelEvent
 import com.my.presentation.screen.moviesearch.viewmodel.MovieSearchViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -59,10 +63,12 @@ fun MovieSearchScreen(
     movieSearchViewModel: MovieSearchViewModel = hiltViewModel()
 ) {
     val localContext = LocalContext.current
+    val scope = rememberCoroutineScope()
     Log.d("MYTAG", "MovieSearchScreen Recomposition")
 
     MovieSearchScreenUI(
         localContext = localContext,
+        scope = scope,
         back = {
             navController.popBackStack()
         },
@@ -83,7 +89,7 @@ fun MovieSearchScreen(
         movieSearchViewModelEvent = {
             when(it) {
                 is MovieSearchViewModelEvent.GetSearchMovies -> {
-                    movieSearchViewModel.handleViewModelEvent(MovieSearchViewModelEvent.GetSearchMovies(it.query, it.isClear))
+                    movieSearchViewModel.handleViewModelEvent(it)
                 }
                 is MovieSearchViewModelEvent.UpdateCurrentPosition -> {
                     movieSearchViewModel.handleViewModelEvent(MovieSearchViewModelEvent.UpdateCurrentPosition(it.position))
@@ -99,6 +105,7 @@ fun MovieSearchScreen(
 @Composable
 fun MovieSearchScreenUI(
     localContext: Context,
+    scope: CoroutineScope,
     back: () -> Unit,
     sideEffectEvent: SideEffectEvent,
     searchAndListUiState: SearchAndListUiState,
@@ -112,6 +119,8 @@ fun MovieSearchScreenUI(
         sideEffectEvent = sideEffectEvent
     )
     SearchAndListUiStateView(
+        localContext = localContext,
+        scope = scope,
         back = back,
         searchAndListUiState = searchAndListUiState,
         searchAndListUiErrorEvent = searchAndListUiErrorEvent,
@@ -138,8 +147,11 @@ fun SideEffectEvent(
     }
 }
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun SearchAndListUiStateView(
+    localContext: Context,
+    scope: CoroutineScope,
     back: () -> Unit,
     searchAndListUiState: SearchAndListUiState,
     searchAndListUiErrorEvent: SearchAndListUiErrorEvent,
@@ -147,11 +159,42 @@ fun SearchAndListUiStateView(
     movieSearchViewModelEvent: (MovieSearchViewModelEvent) -> Unit
 ) {
     val scrollState = rememberLazyListState()
-    val cantScrollForward = !scrollState.canScrollForward
-    val cantScrollBackward = !scrollState.canScrollBackward
+//    val cantScrollForward = !scrollState.canScrollForward
+//    val cantScrollBackward = !scrollState.canScrollBackward
+
+    val endReached = remember {
+        derivedStateOf {
+            with (scrollState.layoutInfo) {
+                visibleItemsInfo.lastOrNull()?.index == totalItemsCount - 1
+            }
+        }
+    }
+    val endReachedSupport = rememberSaveable {
+        mutableStateOf(true)
+    }
+
+    // 스크롤 끝 도달 시 새로운 페이지 요청
+    if(!searchAndListUiState.isLoading && endReached.value && endReachedSupport.value) {
+        endReachedSupport.value = false
+
+        if(searchAndListUiState.searchedMovieModel?.page != searchAndListUiState.searchedMovieModel?.totalPages) {
+            movieSearchViewModelEvent.invoke(
+                MovieSearchViewModelEvent.GetSearchMovies(
+                    query = searchAndListUiState.searchText?:"",
+                    page = searchAndListUiState.searchedMovieModel?.page?:0,
+                    size = 20,
+                    isClear = false
+                ))
+        }
+
+        scope.launch {
+            delay(200L)
+            endReachedSupport.value = true
+        }
+    }
 
     // 검색 관련 변수
-    val scope = rememberCoroutineScope()
+//    val scope = rememberCoroutineScope()
     var job by remember { mutableStateOf<Job?>(null) }
     val lastText = rememberSaveable {
         mutableStateOf("")
@@ -196,7 +239,14 @@ fun SearchAndListUiStateView(
                 },
                 searchIconClick = {
                     job?.cancel()
-                    movieSearchViewModelEvent.invoke(MovieSearchViewModelEvent.GetSearchMovies(searchAndListUiState.searchText?:"", true))
+                    movieSearchViewModelEvent.invoke(
+                        MovieSearchViewModelEvent.GetSearchMovies(
+                            query = searchAndListUiState.searchText?:"",
+                            page = searchAndListUiState.searchedMovieModel?.page?:0,
+                            size = 20,
+                            isClear = true
+                        )
+                    )
                 },
                 fakeButton = false,
                 fakeButtonClick = {
@@ -209,16 +259,23 @@ fun SearchAndListUiStateView(
                 job?.cancel()
                 job = scope.launch {
                     delay(1000L)
-                    movieSearchViewModelEvent.invoke(MovieSearchViewModelEvent.GetSearchMovies(searchAndListUiState.searchText?:"", true))
+                    movieSearchViewModelEvent.invoke(
+                        MovieSearchViewModelEvent.GetSearchMovies(
+                            query = searchAndListUiState.searchText?:"",
+                            page = 0,
+                            size = 20,
+                            isClear = true
+                        )
+                    )
                 }
             }
         }
 
-        searchAndListUiState.searchedMovieList?.let { searchedMovieList ->
+        searchAndListUiState.searchedMovieModel?.let { searchedMovieList ->
             LazyColumn(
                 state = scrollState
             ) {
-                itemsIndexed(searchedMovieList) {index, item ->
+                itemsIndexed(searchedMovieList.movieModelResults!!) {index, item ->
                     movieSearchViewModelEvent.invoke(MovieSearchViewModelEvent.UpdateCurrentPosition(index))
                     MovieItem(index, item,
                         onItemClick = {
@@ -235,17 +292,17 @@ fun SearchAndListUiStateView(
                 }
             }
 
-            if(!searchAndListUiState.isPagingDone) {
-                if(cantScrollForward) {
-                    if(!searchAndListUiState.isLoading && searchAndListUiState.currentPosition >= searchedMovieList.size - 10) {
-                        Log.d("MYTAG", "Request new item ${searchedMovieList.size}")
-                        movieSearchViewModelEvent.invoke(MovieSearchViewModelEvent.GetSearchMovies(searchAndListUiState.searchText?:"", false))
-                    }
-                }
-            }
+//            isLoadingf(!searchAndListUiState.isPagingDone) {
+//                if(cantScrollForward) {
+//                    if(!searchAndListUiState.isLoading && searchAndListUiState.currentPosition >= searchedMovieList.size - 10) {
+//                        Log.d("MYTAG", "Request new item ${searchedMovieList.size}")
+//                        movieSearchViewModelEvent.invoke(MovieSearchViewModelEvent.GetSearchMovies(searchAndListUiState.searchText?:"", false))
+//                    }
+//                }
+//            }
         }
 
-        if((searchAndListUiState.searchedMovieList?.size ?: 0) == 0) {
+        if((searchAndListUiState.searchedMovieModel?.movieModelResults?.size ?: 0) == 0 && !searchAndListUiState.isLoading) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -293,9 +350,15 @@ fun SearchAndListUiStateView(
 fun PreviewMovieSearchScreen() {
     MovieSearchScreenUI(
         localContext = LocalContext.current,
+        scope = rememberCoroutineScope(),
         back = { },
         sideEffectEvent = SideEffectEvent.Init(),
-        searchAndListUiState = SearchAndListUiState(listOf(MovieModelResult(), MovieModelResult(), MovieModelResult())),
+        searchAndListUiState = SearchAndListUiState(searchedMovieModel = MovieModel(
+            page = 1,
+            movieModelResults = listOf(MovieModelResult(), MovieModelResult(), MovieModelResult()),
+            totalPages = 10,
+            totalResults = null
+        )),
         searchAndListUiErrorEvent = SearchAndListUiErrorEvent.Init(),
         movieSearchScreenEvent = { },
         movieSearchViewModelEvent = { }

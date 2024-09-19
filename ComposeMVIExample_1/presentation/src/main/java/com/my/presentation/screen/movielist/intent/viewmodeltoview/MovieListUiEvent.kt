@@ -1,9 +1,9 @@
 package com.my.presentation.screen.movielist.intent.viewmodeltoview
 
-import com.my.domain.model.MovieModelResult
+import com.my.domain.model.MovieModel
 
 sealed interface MovieListUiEvent {
-    class Success(val movieList: List<MovieModelResult>) : MovieListUiEvent
+    class Success(val movieModel: MovieModel) : MovieListUiEvent
 //    class Fail(val code: String, val message: String?) : MovieListUiEvent
 //    class ExceptionHandle(val throwable: Throwable) : MovieListUiEvent
     class Loading(val isLoading: Boolean) : MovieListUiEvent

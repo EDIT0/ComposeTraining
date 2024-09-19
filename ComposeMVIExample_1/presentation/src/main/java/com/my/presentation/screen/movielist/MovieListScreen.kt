@@ -1,11 +1,13 @@
 package com.my.presentation.screen.movielist
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -14,16 +16,25 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -32,6 +43,7 @@ import androidx.navigation.NavController
 import com.google.gson.Gson
 import com.my.common.NetworkConstant
 import com.my.common.UrlConvertUtil
+import com.my.domain.model.MovieModel
 import com.my.domain.model.MovieModelResult
 import com.my.presentation.activity.MainActivity
 import com.my.presentation.component.IsLoadMoreLoading
@@ -45,6 +57,9 @@ import com.my.presentation.screen.base.sideeffect.SideEffectEvent
 import com.my.presentation.screen.movielist.intent.viewmodeltoview.MovieListUiErrorEvent
 import com.my.presentation.screen.movielist.state.MovieCountUiState
 import com.my.presentation.screen.movielist.viewmodel.MovieListViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun MovieListScreen(
@@ -52,10 +67,12 @@ fun MovieListScreen(
     movieListViewModel: MovieListViewModel = hiltViewModel(),
 ) {
     val localContext = LocalContext.current
+    val scope = rememberCoroutineScope()
     Log.d("MYTAG", "MovieListScreen Recomposition")
 
     MovieListScreenUI(
         localContext = localContext,
+        scope = scope,
         movieListScreenEvent = {
             when(it) {
                 is MovieListScreenEvent.MoveToMovieInfo -> {
@@ -74,7 +91,7 @@ fun MovieListScreen(
         movieListViewModelEvent = {
             when(it) {
                 is MovieListViewModelEvent.GetPopularMovies -> {
-                    movieListViewModel.handleViewModelEvent(MovieListViewModelEvent.GetPopularMovies())
+                    movieListViewModel.handleViewModelEvent(it)
                 }
                 is MovieListViewModelEvent.UpdateCurrentPosition -> {
                     movieListViewModel.handleViewModelEvent(MovieListViewModelEvent.UpdateCurrentPosition(it.position))
@@ -83,19 +100,20 @@ fun MovieListScreen(
         },
         movieListUiState = movieListViewModel.movieListUiState.collectAsState().value,
         movieListUiErrorEvent = movieListViewModel.movieListUiErrorEvent.collectAsState(initial = MovieListUiErrorEvent.Init()).value,
-        movieCountUiState = movieListViewModel.movieCountUiState.collectAsState().value
+//        movieCountUiState = movieListViewModel.movieCountUiState.collectAsState().value
     )
 }
 
 @Composable
 fun MovieListScreenUI(
     localContext: Context,
+    scope: CoroutineScope,
     movieListScreenEvent : (MovieListScreenEvent) -> Unit,
     sideEffectEvent: SideEffectEvent,
     movieListViewModelEvent: (MovieListViewModelEvent) -> Unit,
     movieListUiState: MovieListUiState,
     movieListUiErrorEvent: MovieListUiErrorEvent,
-    movieCountUiState: MovieCountUiState
+//    movieCountUiState: MovieCountUiState
 ) {
     val isInitData = rememberSaveable { mutableStateOf(false) }
 
@@ -118,11 +136,12 @@ fun MovieListScreenUI(
     )
     MovieListUiStateView(
         localContext = localContext,
+        scope = scope,
         movieListScreenEvent = movieListScreenEvent,
         movieListListViewModelEvent = movieListViewModelEvent,
         movieListUiState = movieListUiState,
         movieListUiErrorEvent = movieListUiErrorEvent,
-        movieCountUiState = movieCountUiState
+//        movieCountUiState = movieCountUiState
     )
 }
 
@@ -133,7 +152,7 @@ fun InitData(
 ) {
     LaunchedEffect(key1 = isInitData.value) {
         if (!isInitData.value) {
-            movieListListViewModelEvent.invoke(MovieListViewModelEvent.GetPopularMovies())
+            movieListListViewModelEvent.invoke(MovieListViewModelEvent.GetPopularMovies(page = 0, size = 20))
             isInitData.value = true
         }
     }
@@ -157,18 +176,49 @@ fun SideEffectEvent(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun MovieListUiStateView(
     localContext: Context,
+    scope: CoroutineScope,
     movieListScreenEvent : (MovieListScreenEvent) -> Unit,
     movieListListViewModelEvent: (MovieListViewModelEvent) -> Unit,
     movieListUiState: MovieListUiState,
     movieListUiErrorEvent: MovieListUiErrorEvent,
-    movieCountUiState: MovieCountUiState
+//    movieCountUiState: MovieCountUiState
 ) {
     val scrollState = rememberLazyListState()
-    val cantScrollForward = !scrollState.canScrollForward
-    val cantScrollBackward = !scrollState.canScrollBackward
+//    val cantScrollForward = !scrollState.canScrollForward
+//    val cantScrollBackward = !scrollState.canScrollBackward
+
+    val endReached = remember {
+        derivedStateOf {
+            with (scrollState.layoutInfo) {
+                visibleItemsInfo.lastOrNull()?.index == totalItemsCount - 1
+            }
+        }
+    }
+    val endReachedSupport = rememberSaveable {
+        mutableStateOf(true)
+    }
+    // 스크롤 끝 도달 시 새로운 페이지 요청
+    if(!movieListUiState.isLoading && endReached.value && endReachedSupport.value) {
+        endReachedSupport.value = false
+
+        if(movieListUiState.movieModel?.page != movieListUiState.movieModel?.totalPages) {
+            movieListListViewModelEvent.invoke(
+                MovieListViewModelEvent.GetPopularMovies(
+                    page = movieListUiState.movieModel?.page?:0,
+                    size = 20,
+                ))
+        }
+
+        scope.launch {
+            delay(200L)
+            endReachedSupport.value = true
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -191,14 +241,28 @@ fun MovieListUiStateView(
             startKeyboardUp = false
         )
 
+        val pullToRefreshState = rememberPullToRefreshState()
+
+        LaunchedEffect(key1 = pullToRefreshState.isRefreshing) {
+            if (pullToRefreshState.isRefreshing) {
+                movieListListViewModelEvent.invoke(MovieListViewModelEvent.GetPopularMovies(page = 0, size = 20))
+                scope.launch {
+                    delay(500)
+                    pullToRefreshState.endRefresh()
+                }
+            }
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .nestedScroll(pullToRefreshState.nestedScrollConnection)
         ) {
-            if(movieListUiState.movieList == null || movieListUiState.movieList?.size!! == 0) {
+            if(movieListUiState.movieModel == null || movieListUiState.movieModel?.movieModelResults?.size!! == 0 && !movieListUiState.isLoading) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
                         .background(Color.White),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -209,7 +273,7 @@ fun MovieListUiStateView(
                 LazyColumn(
                     state = scrollState
                 ) {
-                    itemsIndexed(movieListUiState.movieList!!) { index, item ->
+                    itemsIndexed(movieListUiState.movieModel?.movieModelResults!!) { index, item ->
                         movieListListViewModelEvent.invoke(MovieListViewModelEvent.UpdateCurrentPosition(index))
                         MovieItem(index, item,
                             onItemClick = {
@@ -226,13 +290,13 @@ fun MovieListUiStateView(
                     }
                 }
 
-                Log.d("MYTAG", "${cantScrollForward} / ${movieListUiState.currentPosition} / ${movieListUiState.movieList!!.size}")
-                if(cantScrollForward) {
-                    if(!movieListUiState.isLoading && movieListUiState.currentPosition >= (movieListUiState.movieList!!.size - 10)) {
-                        Log.d("MYTAG", "Request new item ${movieListUiState.movieList!!.size}")
-                        movieListListViewModelEvent.invoke(MovieListViewModelEvent.GetPopularMovies())
-                    }
-                }
+//                Log.d("MYTAG", "${cantScrollForward} / ${movieListUiState.currentPosition} / ${movieListUiState.movieModel!!.size}")
+//                if(cantScrollForward) {
+//                    if(!movieListUiState.isLoading && movieListUiState.currentPosition >= (movieListUiState.movieModel!!.size - 10)) {
+//                        Log.d("MYTAG", "Request new item ${movieListUiState.movieModel!!.size}")
+//                        movieListListViewModelEvent.invoke(MovieListViewModelEvent.GetPopularMovies())
+//                    }
+//                }
             }
 
             Column(
@@ -245,9 +309,20 @@ fun MovieListUiStateView(
 //                    modifier = Modifier
 //                        .fillMaxWidth(),
 //                    textAlign = TextAlign.End,
-                    text = "전체 영화 수: ${movieCountUiState.totalMovieCount} | 현재 영화 수: ${movieCountUiState.currentMovieCount}"
+                    text = "전체 영화 수: ${movieListUiState.movieModel?.totalResults?:0} | 현재 영화 수: ${movieListUiState.movieModel?.movieModelResults?.size?:0}"
                 )
             }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                if (pullToRefreshState.progress > 0.5f) {
+                    PullToRefreshContainer(state = pullToRefreshState)
+                }
+            }
+
         }
     }
 
@@ -304,11 +379,17 @@ fun MovieListUiStateView(
 fun PreviewMovieListScreen() {
     MovieListScreenUI(
         localContext = LocalContext.current,
+        scope = rememberCoroutineScope(),
         movieListScreenEvent = { },
         sideEffectEvent = SideEffectEvent.Init(),
         movieListViewModelEvent = { },
-        movieListUiState = MovieListUiState(movieList = listOf(MovieModelResult(), MovieModelResult(), MovieModelResult())),
+        movieListUiState = MovieListUiState(movieModel = MovieModel(
+            page = 1,
+            movieModelResults = listOf(MovieModelResult(), MovieModelResult(), MovieModelResult()),
+            totalPages = 10,
+            totalResults = 100,
+        )),
         movieListUiErrorEvent = MovieListUiErrorEvent.Init(),
-        movieCountUiState = MovieCountUiState(100, 1000)
+//        movieCountUiState = MovieCountUiState(100, 1000)
     )
 }

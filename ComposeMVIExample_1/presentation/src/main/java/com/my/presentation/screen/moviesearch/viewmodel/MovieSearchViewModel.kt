@@ -4,10 +4,13 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.my.common.NetworkManager
+import com.my.domain.model.MovieModel
+import com.my.domain.model.MovieModelResult
 import com.my.domain.model.base.RequestResult
 import com.my.domain.usecase.GetSearchMoviesUseCase
 import com.my.presentation.screen.base.sideeffect.SideEffectEvent
 import com.my.presentation.screen.base.viewmodel.BaseAndroidViewModel
+import com.my.presentation.screen.movielist.intent.viewmodeltoview.MovieListUiEvent
 import com.my.presentation.screen.moviesearch.intent.viewmodeltoview.SearchAndListUiErrorEvent
 import com.my.presentation.screen.moviesearch.intent.viewmodeltoview.SearchAndListUiEvent
 import com.my.presentation.screen.moviesearch.intent.viewtoviewmodel.MovieSearchViewModelEvent
@@ -49,11 +52,13 @@ class MovieSearchViewModel @Inject constructor(
     val sideEffects = _sideEffects.receiveAsFlow()
 
     private var language = "en-US"
-    private var page = 1
+//    private var page = 1
     private var currentSearchText = "" // 현재 검색된 검색어
 
 
-    private fun getSearchMovies(query : String, isClear: Boolean) {
+    private fun getSearchMovies(query : String, page: Int, size: Int, isClear: Boolean) {
+        val requestPage = page + 1
+
         // 같은 검색어 검색 x
         if(currentSearchText == query && isClear) {
             viewModelScope.launch {
@@ -65,15 +70,25 @@ class MovieSearchViewModel @Inject constructor(
         if(networkManager.checkNetworkState()) {
 
             viewModelScope.launch(Dispatchers.IO) {
+                if((requestPage-1) == searchAndListUiState.value.searchedMovieModel?.totalPages) {
+                    Log.d("MYTAG", "마지막 페이지")
+                    return@launch
+                }
+
                 if(isClear) {
-                    page = 1
-                    searchAndUiEventChannel.send(SearchAndListUiEvent.Success(searchedMovieList = emptyList()))
+//                    page = 1
+                    searchAndUiEventChannel.send(SearchAndListUiEvent.Success(searchedMovieModel = MovieModel(
+                        page = null,
+                        movieModelResults = ArrayList<MovieModelResult>(),
+                        totalPages = null,
+                        totalResults = null
+                    )))
                 }
 
                 currentSearchText = searchAndListUiState.value.searchText?:""
 
                 searchAndUiEventChannel.send(SearchAndListUiEvent.Loading(isLoading = true))
-                getSearchMoviesUseCase.execute(query, language, page)
+                getSearchMoviesUseCase.execute(query, language, requestPage)
                     .onStart {
 //                        _sideEffects.send(SideEffectEvent.ShowToast("데이터 요청 시작"))
                     }
@@ -106,29 +121,40 @@ class MovieSearchViewModel @Inject constructor(
                     .collect {
                         Log.d("MYTAG", "collect: ${it}")
 
-                        page = it!!.page
+//                        page = it!!.page
 
-                        if(page >= it.totalPages) {
+                        if((it?.page ?: 0) >= (it?.totalPages ?: 0)) {
                             searchAndUiEventChannel.send(SearchAndListUiEvent.UpdateIsPagingDone(isPagingDone = true))
                         } else {
                             searchAndUiEventChannel.send(SearchAndListUiEvent.UpdateIsPagingDone(isPagingDone = false))
                         }
 
-                        if(it.movieModelResults.isNullOrEmpty()) {
-                            if(isClear) {
-                                searchAndUiEventChannel.send(SearchAndListUiEvent.Success(searchedMovieList = emptyList()))
-                            }
+                        val tmpList = ArrayList<MovieModelResult>()
+                        if(searchAndListUiState.value.searchedMovieModel != null && !searchAndListUiState.value.searchedMovieModel?.movieModelResults.isNullOrEmpty()) {
+                            tmpList.addAll(searchAndListUiState.value.searchedMovieModel?.movieModelResults!!)
+                            tmpList.addAll(it!!.movieModelResults!!)
                         } else {
-                            page++
-
-                            if(searchAndListUiState.value.searchedMovieList == null || searchAndListUiState.value.searchedMovieList!!.isEmpty()) {
-                                searchAndUiEventChannel.send(SearchAndListUiEvent.Success(searchedMovieList = it.movieModelResults))
-                            } else {
-                                val tmp = ArrayList(searchAndListUiState.value.searchedMovieList)
-                                tmp.addAll(it.movieModelResults)
-                                searchAndUiEventChannel.send(SearchAndListUiEvent.Success(tmp))
-                            }
+                            tmpList.addAll(it!!.movieModelResults!!)
                         }
+                        it.movieModelResults = tmpList
+
+                        searchAndUiEventChannel.send(SearchAndListUiEvent.Success(searchedMovieModel = it))
+
+//                        if(it.movieModelResults.isNullOrEmpty()) {
+//                            if(isClear) {
+//                                searchAndUiEventChannel.send(SearchAndListUiEvent.Success(searchedMovieModel = emptyList()))
+//                            }
+//                        } else {
+//                            page++
+//
+//                            if(searchAndListUiState.value.searchedMovieModel == null || searchAndListUiState.value.searchedMovieModel!!.isEmpty()) {
+//                                searchAndUiEventChannel.send(SearchAndListUiEvent.Success(searchedMovieModel = it.movieModelResults))
+//                            } else {
+//                                val tmp = ArrayList(searchAndListUiState.value.searchedMovieModel)
+//                                tmp.addAll(it.movieModelResults)
+//                                searchAndUiEventChannel.send(SearchAndListUiEvent.Success(tmp))
+//                            }
+//                        }
                     }
                 searchAndUiEventChannel.send(SearchAndListUiEvent.Loading(isLoading = false))
             }
@@ -152,7 +178,7 @@ class MovieSearchViewModel @Inject constructor(
     fun handleViewModelEvent(movieSearchViewModelEvent: MovieSearchViewModelEvent) {
         when (movieSearchViewModelEvent) {
             is MovieSearchViewModelEvent.GetSearchMovies -> {
-                getSearchMovies(movieSearchViewModelEvent.query, movieSearchViewModelEvent.isClear)
+                getSearchMovies(movieSearchViewModelEvent.query, movieSearchViewModelEvent.page, movieSearchViewModelEvent.size, movieSearchViewModelEvent.isClear)
             }
             is MovieSearchViewModelEvent.UpdateCurrentPosition -> {
                 updateCurrentPosition(movieSearchViewModelEvent.position)
@@ -168,7 +194,7 @@ class MovieSearchViewModel @Inject constructor(
     private fun reduceSearchAndListUiState(searchAndListUiState: SearchAndListUiState, searchAndListUiEvent: SearchAndListUiEvent) : SearchAndListUiState {
         return when(searchAndListUiEvent){
             is SearchAndListUiEvent.Success -> {
-                searchAndListUiState.copy(searchedMovieList = searchAndListUiEvent.searchedMovieList)
+                searchAndListUiState.copy(searchedMovieModel = searchAndListUiEvent.searchedMovieModel)
             }
             is SearchAndListUiEvent.Loading -> {
                 searchAndListUiState.copy(isLoading = searchAndListUiEvent.isLoading)
