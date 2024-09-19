@@ -198,7 +198,7 @@ fun MovieListUiStateView(
                 visibleItemsInfo.lastOrNull()?.index == totalItemsCount - 1
             }
         }
-    }
+    } 
     val endReachedSupport = rememberSaveable {
         mutableStateOf(true)
     }
