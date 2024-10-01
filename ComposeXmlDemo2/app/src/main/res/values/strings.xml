@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">ComposeXmlDemo2</string>
+    <string name="title_activity_compose">ComposeActivity</string>
+    <string name="title_activity_home">HomeActivity</string>
+</resources>
