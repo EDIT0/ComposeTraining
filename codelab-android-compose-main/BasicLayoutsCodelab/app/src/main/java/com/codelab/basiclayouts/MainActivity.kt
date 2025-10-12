@@ -350,6 +350,7 @@ private fun SootheBottomNavigation(modifier: Modifier = Modifier) {
 @Composable
 fun MySootheAppPortrait() {
     MySootheTheme {
+        // Material Design을 구현하는 앱을 위한 구성 가능한 최상위 수준 컴포저블을 제공
         Scaffold(
             bottomBar = {
                 SootheBottomNavigation(
@@ -427,13 +428,15 @@ private fun SootheNavigationRail(modifier: Modifier = Modifier) {
 @Composable
 fun MySootheAppLandscape(){
     MySootheTheme {
-        Row {
-            SootheNavigationRail(
-                modifier = Modifier
-            )
-            HomeScreen(
-                modifier = Modifier
-            )
+        Scaffold() { paddingValues ->
+            Row {
+                SootheNavigationRail(
+                    modifier = Modifier
+                )
+                HomeScreen(
+                    modifier = Modifier
+                )
+            }
         }
     }
 }
