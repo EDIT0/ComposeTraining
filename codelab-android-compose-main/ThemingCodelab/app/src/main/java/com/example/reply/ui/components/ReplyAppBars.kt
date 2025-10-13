@@ -16,11 +16,13 @@
 
 package com.example.reply.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
@@ -40,13 +42,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.reply.R
 import com.example.reply.data.Email
+import com.example.reply.ui.theme.customBlue
 
 @Composable
 fun ReplySearchBar(modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(16.dp)
+            .background(
+                color = MaterialTheme.colorScheme.background,
+//                shape = CircleShape
+                shape = MaterialTheme.shapes.medium
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -80,7 +88,8 @@ fun EmailDetailAppBar(
     onBackPressed: () -> Unit
 ) {
     TopAppBar(
-        modifier = modifier,
+        modifier = modifier
+            .background(color = MaterialTheme.colorScheme.customBlue),
         title = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
