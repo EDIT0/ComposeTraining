@@ -25,6 +25,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -51,4 +52,20 @@ fun StatelessCounter(count: Int, onIncrement: () -> Unit, modifier: Modifier = M
             Text("Add one")
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun StatefulCounterPreview() {
+    StatefulCounter()
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun StatelessCounterPreview() {
+    StatelessCounter(
+        count = 3,
+        onIncrement = {},
+        modifier = Modifier
+    )
 }
