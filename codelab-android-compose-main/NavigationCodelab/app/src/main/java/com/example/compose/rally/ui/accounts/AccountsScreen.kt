@@ -23,10 +23,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.tooling.preview.Preview
 import com.example.compose.rally.R
 import com.example.compose.rally.data.UserData
 import com.example.compose.rally.ui.components.AccountRow
 import com.example.compose.rally.ui.components.StatementBody
+import com.example.compose.rally.ui.overview.OverviewScreen
+
+@Preview(showBackground = true)
+@Composable
+fun AccountsScreenPreview() {
+    AccountsScreen()
+}
 
 /**
  * The Accounts screen.
@@ -55,6 +63,12 @@ fun AccountsScreen(
             )
         }
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SingleAccountScreenPreview() {
+    SingleAccountScreen()
 }
 
 /**
