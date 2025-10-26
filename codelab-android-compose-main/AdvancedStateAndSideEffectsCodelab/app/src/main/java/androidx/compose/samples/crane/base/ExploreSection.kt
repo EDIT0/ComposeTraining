@@ -101,7 +101,7 @@ fun ExploreSection(
                 // the first item. We use a remembered derived state to
                 // minimize unnecessary compositions
                 val showButton by remember {
-                    derivedStateOf {
+                    derivedStateOf { // 상태가 변경될 때만 값 업데이트 및 리컴포지션
                         listState.firstVisibleItemIndex > 0
                     }
                 }
