@@ -156,19 +156,19 @@ fun RallyNavHost(
             }
         )
 
-        composable(
-            route = "${SingleAccount.route}/{${SingleAccount.accountTypeArg}}",
-            arguments = listOf(
-                navArgument(SingleAccount.accountTypeArg) { type = NavType.StringType }
-            ),
-            content = { navBackStackEntry ->
-                // Retrieve the passed argument
-                val accountType = navBackStackEntry.arguments?.getString(SingleAccount.accountTypeArg)
-
-                // Pass accountType to SingleAccountScreen
-                SingleAccountScreen(accountType = accountType)
-            }
-        )
+//        composable(
+//            route = "${SingleAccount.route}/{${SingleAccount.accountTypeArg}}",
+//            arguments = listOf(
+//                navArgument(SingleAccount.accountTypeArg) { type = NavType.StringType }
+//            ),
+//            content = { navBackStackEntry ->
+//                // Retrieve the passed argument
+//                val accountType = navBackStackEntry.arguments?.getString(SingleAccount.accountTypeArg)
+//
+//                // Pass accountType to SingleAccountScreen
+//                SingleAccountScreen(accountType = accountType)
+//            }
+//        )
 
         /**
          * 테스트 방법
