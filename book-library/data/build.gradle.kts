@@ -1,7 +1,22 @@
+import java.util.Properties
+import kotlin.apply
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
 }
+
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        load(localPropertiesFile.inputStream())
+    }
+}
+
+val bookLibraryApiKey: String = localProperties.getProperty("BOOK_LIBRARY_API_KEY")
 
 android {
     namespace = "com.my.book.library.data"
@@ -21,6 +36,18 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+
+            buildConfigField("String", "BOOK_LIBRARY_API_KEY", "\"${bookLibraryApiKey}\"")
+        }
+
+        debug {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+
+            buildConfigField("String", "BOOK_LIBRARY_API_KEY", "\"${bookLibraryApiKey}\"")
         }
     }
     compileOptions {
@@ -30,12 +57,17 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    buildFeatures {
+        buildConfig = true
+    }
 }
 
 dependencies {
 
     // Module
     implementation(project(":core:common"))
+    implementation(project(":core:model"))
+    implementation(project(":domain"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -46,4 +78,8 @@ dependencies {
 
     // Retrofit
     implementation(libs.retrofit)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
 }

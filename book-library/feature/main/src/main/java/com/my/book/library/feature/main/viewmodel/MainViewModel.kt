@@ -1,4 +1,4 @@
-package com.my.book.library.feature.main
+package com.my.book.library.feature.main.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel

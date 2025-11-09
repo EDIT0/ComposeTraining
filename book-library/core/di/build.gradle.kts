@@ -39,6 +39,8 @@ dependencies {
 
     // Module
     implementation(project(":core:common"))
+    implementation(project(":data"))
+    implementation(project(":domain"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

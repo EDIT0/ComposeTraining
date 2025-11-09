@@ -7,7 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.my.book.library.core.common.CommonMainViewModel
 import com.my.book.library.featrue.splash.SplashScreen
-import com.my.book.library.feature.main.MainScreen
+import com.my.book.library.feature.main.ui.MainScreen
 
 @Composable
 fun AppNavHost(

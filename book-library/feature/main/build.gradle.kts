@@ -41,6 +41,9 @@ android {
 
 dependencies {
 
+    // Module
+    implementation(project(":core:resource"))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
