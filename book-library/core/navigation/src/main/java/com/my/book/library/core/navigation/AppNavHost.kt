@@ -4,7 +4,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.navigation.compose.composable
+import com.my.book.feature.search_library.ui.SearchLibraryScreen
 import com.my.book.library.core.common.CommonMainViewModel
 import com.my.book.library.featrue.splash.SplashScreen
 import com.my.book.library.feature.main.ui.MainScreen
@@ -25,10 +29,15 @@ fun AppNavHost(
         // Splash
         composable(
             route = Screen.Splash.name,
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None },
             content = {
                 SplashScreen(
                     commonMainViewModel = commonMainViewModel,
                     onMoveToMain = {
+                        navHostController.popBackStack()
                         navHostController.navigate(route = Screen.Main.name)
                     },
                     modifier = modifier,
@@ -39,9 +48,34 @@ fun AppNavHost(
         // Main
         composable(
             route = Screen.Main.name,
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None },
             content = {
                 MainScreen(
                     commonMainViewModel = commonMainViewModel,
+                    onMoveToSearchLibrary = {
+                        navHostController.navigate(route = Screen.SearchLibrary.name)
+                    },
+                    modifier = modifier
+                )
+            }
+        )
+
+        // SearchLibrary
+        composable(
+            route = Screen.SearchLibrary.name,
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None },
+            content = {
+                SearchLibraryScreen(
+                    commonMainViewModel = commonMainViewModel,
+                    onBackPressed = {
+                        navHostController.popBackStack()
+                    },
                     modifier = modifier
                 )
             }

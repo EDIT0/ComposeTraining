@@ -2,7 +2,9 @@ package com.my.book.library.core.di
 
 import com.google.gson.GsonBuilder
 import com.my.book.library.core.common.Constant
+import com.my.book.library.core.common.util.LogUtil
 import com.my.book.library.core.di.interceptor.HeaderInterceptor
+import com.my.book.library.data.api.ApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,6 +19,12 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
+
+    @Singleton
+    @Provides
+    fun providesApiService(retrofit: Retrofit): ApiService {
+        return retrofit.create(ApiService::class.java)
+    }
 
     // Interceptor
     // OkHttpClient
@@ -35,7 +43,7 @@ object NetworkModule {
     ): OkHttpClient {
         val loggingInterceptor = HttpLoggingInterceptor(
             logger = {
-
+                LogUtil.i_dev("[Network] ${it}")
             }
         ).run {
             setLevel(HttpLoggingInterceptor.Level.BODY)

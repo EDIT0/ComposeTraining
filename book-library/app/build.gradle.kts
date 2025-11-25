@@ -52,8 +52,9 @@ dependencies {
     implementation(project(":core:resource"))
     implementation(project(":data"))
     implementation(project(":domain"))
-    implementation(project(":feature:splash"))
     implementation(project(":feature:main"))
+    implementation(project(":feature:search_library"))
+    implementation(project(":feature:splash"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

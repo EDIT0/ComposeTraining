@@ -42,6 +42,7 @@ android {
 dependencies {
 
     // Module
+    implementation(project(":core:common"))
     implementation(project(":core:resource"))
 
     implementation(libs.androidx.core.ktx)

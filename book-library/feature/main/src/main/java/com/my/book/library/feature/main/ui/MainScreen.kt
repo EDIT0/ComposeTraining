@@ -16,15 +16,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import com.my.book.library.core.resource.Gray300
-import com.my.book.library.core.resource.Gray600
 import com.my.book.library.core.resource.Green500
-import com.my.book.library.core.resource.Purple300
 import com.my.book.library.feature.main.ui.component.FakeSearchBar
 import com.my.book.library.feature.main.viewmodel.MainViewModel
 
 @Composable
 fun MainScreen(
     commonMainViewModel: ViewModel,
+    onMoveToSearchLibrary: () -> Unit,
     modifier: Modifier
 ) {
 
@@ -35,6 +34,7 @@ fun MainScreen(
 
     MainContent(
         localContext = localContext,
+        onMoveToSearchLibrary = onMoveToSearchLibrary,
         modifier = Modifier
     )
 }
@@ -42,6 +42,7 @@ fun MainScreen(
 @Composable
 fun MainContent(
     localContext: Context,
+    onMoveToSearchLibrary: () -> Unit,
     modifier: Modifier
 ) {
     Box(
@@ -52,16 +53,14 @@ fun MainContent(
                 .fillMaxSize()
         ) {
             FakeSearchBar(
-                modifier = Modifier
-                    .padding(horizontal = 20.dp, vertical = 10.dp)
-                    .background(
-                        color = Green500,
-                        shape = RoundedCornerShape(size = 10.dp)
-                    ),
+                modifier = Modifier,
+                backgroundColor = Green500,
+                backgroundShape = RoundedCornerShape(10.dp),
                 text = localContext.getString(com.my.book.library.core.resource.R.string.search_library_info),
                 textColor = Gray300,
                 onClick = {
                     Log.i("MYTAG", "Fake SearchBar Clicked")
+                    onMoveToSearchLibrary.invoke()
                 }
             )
         }
@@ -73,6 +72,7 @@ fun MainContent(
 fun MainUIPreview() {
     MainContent(
         localContext = LocalContext.current,
+        onMoveToSearchLibrary = {},
         modifier = Modifier
     )
 }

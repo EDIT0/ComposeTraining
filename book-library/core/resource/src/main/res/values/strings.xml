@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="search_library_info">도서관 정보를 검색하세요</string>
+    <string name="search_library_action_bar_title">도서관 정보 검색</string>
+    <string name="search_library_selection_city_title">도시</string>
+    <string name="search_library_filter_title">필터</string>
 </resources>
