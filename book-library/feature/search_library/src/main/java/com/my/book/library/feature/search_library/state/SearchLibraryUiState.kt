@@ -1,4 +1,4 @@
-package com.my.book.feature.search_library.state
+package com.my.book.library.feature.search_library.state
 
 import com.my.book.library.core.resource.LibraryData
 

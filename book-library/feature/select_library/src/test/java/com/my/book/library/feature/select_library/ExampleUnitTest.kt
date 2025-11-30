@@ -1,4 +1,4 @@
-package com.my.book.feature.search_library
+package com.my.book.library.feature.select_library
 
 import org.junit.Test
 

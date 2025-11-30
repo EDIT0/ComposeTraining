@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "com.my.book.library.feature.search_library"
+    namespace = "com.my.book.library.feature.select_library"
     compileSdk = 36
 
     defaultConfig {

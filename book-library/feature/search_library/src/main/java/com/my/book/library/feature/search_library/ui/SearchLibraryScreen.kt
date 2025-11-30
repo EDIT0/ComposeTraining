@@ -1,4 +1,4 @@
-package com.my.book.feature.search_library.ui
+package com.my.book.library.feature.search_library.ui
 
 import android.content.Context
 import androidx.compose.foundation.layout.Box
@@ -18,9 +18,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.my.book.feature.search_library.intent.SearchLibraryViewModelEvent
-import com.my.book.feature.search_library.state.SearchLibraryUiState
-import com.my.book.feature.search_library.viewmodel.SearchLibraryViewModel
+import com.my.book.library.feature.search_library.intent.SearchLibraryViewModelEvent
+import com.my.book.library.feature.search_library.state.SearchLibraryUiState
+import com.my.book.library.feature.search_library.viewmodel.SearchLibraryViewModel
 import com.my.book.library.core.common.component.CommonActionBar
 import com.my.book.library.core.common.component.MenuBoxView
 import com.my.book.library.core.common.component.SelectionChipView
@@ -89,7 +89,7 @@ fun SearchLibraryContent(
 
             MenuBoxView(
                 modifier = Modifier,
-                title = localContext.getString(com.my.book.library.core.resource.R.string.search_library_filter_title),
+                title = localContext.getString(R.string.search_library_filter_title),
                 isFilterOpen = searchLibraryUiState.value.isFilterOpen,
                 onClick = {
                     searchLibraryViewModelEvent.invoke(SearchLibraryViewModelEvent.SetIsFilterOpen(isFilterOpen = !searchLibraryUiState.value.isFilterOpen))

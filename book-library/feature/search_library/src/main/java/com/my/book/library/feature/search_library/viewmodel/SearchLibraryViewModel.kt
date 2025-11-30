@@ -1,11 +1,11 @@
-package com.my.book.feature.search_library.viewmodel
+package com.my.book.library.feature.search_library.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.my.book.feature.search_library.intent.SearchLibraryUiEvent
-import com.my.book.feature.search_library.intent.SearchLibraryViewModelEvent
-import com.my.book.feature.search_library.state.SearchLibraryUiState
+import com.my.book.library.feature.search_library.intent.SearchLibraryUiEvent
+import com.my.book.library.feature.search_library.intent.SearchLibraryViewModelEvent
+import com.my.book.library.feature.search_library.state.SearchLibraryUiState
 import com.my.book.library.core.model.req.ReqSearchRegionBookLibrary
 import com.my.book.library.domain.usecase.GetSearchRegionBookLibraryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
