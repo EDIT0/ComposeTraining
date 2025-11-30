@@ -4,5 +4,6 @@ enum class Screen {
 
     Splash,
     Main,
-    SearchLibrary
+    SearchLibrary,
+    SelectLibraryRegion
 }

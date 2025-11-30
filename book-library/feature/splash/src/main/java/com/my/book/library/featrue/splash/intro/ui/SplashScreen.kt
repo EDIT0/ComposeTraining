@@ -1,4 +1,4 @@
-package com.my.book.library.featrue.splash
+package com.my.book.library.featrue.splash.intro.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,31 +9,57 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
+import com.my.book.library.featrue.splash.intro.intent.SplashViewModelEvent
+import com.my.book.library.featrue.splash.intro.viewmodel.SplashViewModel
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
     commonMainViewModel: ViewModel,
     onMoveToMain: () -> Unit,
+    onMoveToSelectLibraryRegion: () -> Unit,
     modifier: Modifier
 ) {
+    val localContext = LocalContext.current
 
     val commonMainViewModel = commonMainViewModel
     val splashViewModel = hiltViewModel<SplashViewModel>()
 
+    LaunchedEffect(key1 = true) {
+        splashViewModel.sideEffectEvent.collect {
+            when(it) {
+                is SplashViewModel.SideEffectEvent.OnMoveToMain -> {
+                    onMoveToMain()
+                }
+                is SplashViewModel.SideEffectEvent.OnMoveToSelectLibrary -> {
+                    onMoveToSelectLibraryRegion()
+                }
+            }
+        }
+    }
+
     SplashContent(
         onMoveToMain = onMoveToMain,
-        modifier = Modifier
+        modifier = Modifier,
+        splashViewModelEvent = {
+            when(it) {
+                is SplashViewModelEvent.CheckMyLibraryInfo -> {
+                    splashViewModel.intentAction(it)
+                }
+            }
+        }
     )
 }
 
 @Composable
 fun SplashContent(
     onMoveToMain: () -> Unit,
-    modifier: Modifier
+    modifier: Modifier,
+    splashViewModelEvent: (SplashViewModelEvent) -> Unit
 ) {
 
     Box(
@@ -53,8 +79,8 @@ fun SplashContent(
 
     // TODO 임의 코드
     LaunchedEffect(Unit) {
-        delay(2000L)
-        onMoveToMain.invoke()
+        delay(1000L)
+        splashViewModelEvent.invoke(SplashViewModelEvent.CheckMyLibraryInfo())
     }
 }
 
@@ -63,6 +89,7 @@ fun SplashContent(
 fun SplashUIPreview() {
     SplashContent(
         onMoveToMain = {},
-        modifier = Modifier
+        modifier = Modifier,
+        splashViewModelEvent = {},
     )
 }

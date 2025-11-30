@@ -9,8 +9,9 @@ import androidx.compose.animation.ExitTransition
 import androidx.navigation.compose.composable
 import com.my.book.library.feature.search_library.ui.SearchLibraryScreen
 import com.my.book.library.core.common.CommonMainViewModel
-import com.my.book.library.featrue.splash.SplashScreen
+import com.my.book.library.featrue.splash.intro.ui.SplashScreen
 import com.my.book.library.feature.main.ui.MainScreen
+import com.my.book.library.feature.select_library.region.ui.SelectLibraryRegionScreen
 
 @Composable
 fun AppNavHost(
@@ -38,6 +39,10 @@ fun AppNavHost(
                     onMoveToMain = {
                         navHostController.popBackStack()
                         navHostController.navigate(route = Screen.Main.name)
+                    },
+                    onMoveToSelectLibraryRegion = {
+                        navHostController.popBackStack()
+                        navHostController.navigate(route = Screen.SelectLibraryRegion.name)
                     },
                     modifier = modifier,
                 )
@@ -71,6 +76,24 @@ fun AppNavHost(
             popExitTransition = { ExitTransition.None },
             content = {
                 SearchLibraryScreen(
+                    commonMainViewModel = commonMainViewModel,
+                    onBackPressed = {
+                        navHostController.popBackStack()
+                    },
+                    modifier = modifier
+                )
+            }
+        )
+
+        // SelectLibraryRegion
+        composable(
+            route = Screen.SelectLibraryRegion.name,
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None },
+            content = {
+                SelectLibraryRegionScreen(
                     commonMainViewModel = commonMainViewModel,
                     onBackPressed = {
                         navHostController.popBackStack()
