@@ -4,4 +4,6 @@
     <string name="search_library_action_bar_title">도서관 정보 검색</string>
     <string name="search_library_selection_city_title">도시</string>
     <string name="search_library_filter_title">필터</string>
+    <string name="select_library_region_title">도/시 선택</string>
+    <string name="select_library_detail_region_title">시/군/구 선택</string>
 </resources>

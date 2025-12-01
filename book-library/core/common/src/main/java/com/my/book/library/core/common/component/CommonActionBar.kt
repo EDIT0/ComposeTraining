@@ -1,7 +1,6 @@
 package com.my.book.library.core.common.component
 
 import android.content.Context
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,6 +30,7 @@ fun CommonActionBar(
     context: Context,
     modifier: Modifier = Modifier,
     actionBarTitle: String,
+    isShowBackButton: Boolean,
     onBackClick: () -> Unit
 ) {
 
@@ -44,21 +44,23 @@ fun CommonActionBar(
                 .fillMaxWidth()
                 .fillMaxHeight(),
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .noRippleClickable {
-                        onBackClick.invoke()
-                    }
-                    .padding(horizontal = 10.dp),
-                verticalArrangement = Arrangement.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowLeft,
-                    contentDescription = "",
+            if(isShowBackButton) {
+                Column(
                     modifier = Modifier
-                        .size(24.dp)
-                )
+                        .fillMaxHeight()
+                        .noRippleClickable {
+                            onBackClick.invoke()
+                        }
+                        .padding(horizontal = 10.dp),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowLeft,
+                        contentDescription = "",
+                        modifier = Modifier
+                            .size(24.dp)
+                    )
+                }
             }
 
             Column(
@@ -96,6 +98,7 @@ fun CommonActionBarPreview() {
         context = LocalContext.current,
         modifier = Modifier,
         actionBarTitle = "Action Bar Title",
-        onBackClick = {}
+        isShowBackButton = true,
+        onBackClick = {},
     )
 }

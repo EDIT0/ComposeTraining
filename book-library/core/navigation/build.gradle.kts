@@ -43,6 +43,7 @@ dependencies {
 
     // Module
     implementation(project(":core:common"))
+    implementation(project(":core:resource"))
     implementation(project(":feature:main"))
     implementation(project(":feature:search_library"))
     implementation(project(":feature:select_library"))

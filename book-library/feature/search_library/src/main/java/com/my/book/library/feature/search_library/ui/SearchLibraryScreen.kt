@@ -74,48 +74,52 @@ fun SearchLibraryContent(
     Box(
         modifier = modifier
     ) {
-        Column(
-            modifier = Modifier
-                .verticalScroll(state = rememberScrollState())
-        ) {
+        Column {
             CommonActionBar(
                 context = localContext,
                 modifier = Modifier,
                 actionBarTitle = localContext.getString(R.string.search_library_action_bar_title),
+                isShowBackButton = true,
                 onBackClick = {
                     onBackPressed.invoke()
                 }
             )
 
-            MenuBoxView(
-                modifier = Modifier,
-                title = localContext.getString(R.string.search_library_filter_title),
-                isFilterOpen = searchLibraryUiState.value.isFilterOpen,
-                onClick = {
-                    searchLibraryViewModelEvent.invoke(SearchLibraryViewModelEvent.SetIsFilterOpen(isFilterOpen = !searchLibraryUiState.value.isFilterOpen))
-                }
-            )
+            Column(
+                modifier = Modifier
+                    .verticalScroll(state = rememberScrollState())
+            ) {
 
-            if(searchLibraryUiState.value.isFilterOpen) {
-                Column(
-                    modifier = Modifier
-                        .padding(horizontal = 20.dp)
-                ) {
-                    Text(
-                        text = localContext.getString(R.string.search_library_selection_city_title)
-                    )
+                MenuBoxView(
+                    modifier = Modifier,
+                    title = localContext.getString(R.string.search_library_filter_title),
+                    isFilterOpen = searchLibraryUiState.value.isFilterOpen,
+                    onClick = {
+                        searchLibraryViewModelEvent.invoke(SearchLibraryViewModelEvent.SetIsFilterOpen(isFilterOpen = !searchLibraryUiState.value.isFilterOpen))
+                    }
+                )
 
-                    SelectionChipView(
-                        options = LibraryData.regionList,
-                        selected = searchLibraryUiState.value.selectionRegion,
-                        labelMapper = {
-                            it.name
-                        },
-                        onSelectedChange = {
-                            searchLibraryViewModelEvent.invoke(SearchLibraryViewModelEvent.SetSelectionRegion(selectionRegion = it))
-                            LogUtil.d_dev("Selected region: ${it}")
-                        }
-                    )
+                if(searchLibraryUiState.value.isFilterOpen) {
+                    Column(
+                        modifier = Modifier
+                            .padding(horizontal = 20.dp)
+                    ) {
+                        Text(
+                            text = localContext.getString(R.string.search_library_selection_city_title)
+                        )
+
+                        SelectionChipView(
+                            options = LibraryData.regionList,
+                            selected = searchLibraryUiState.value.selectionRegion,
+                            labelMapper = {
+                                it.name
+                            },
+                            onSelectedChange = {
+                                searchLibraryViewModelEvent.invoke(SearchLibraryViewModelEvent.SetSelectionRegion(selectionRegion = it))
+                                LogUtil.d_dev("Selected region: ${it}")
+                            }
+                        )
+                    }
                 }
             }
         }

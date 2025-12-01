@@ -1,5 +1,8 @@
 package com.my.book.library.core.resource
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
 object LibraryData {
     // 1. 도서관 코드 (별도 API 조회 필요)
     data class Library(
@@ -204,10 +207,11 @@ object LibraryData {
     )
 
     // 7. 지역 코드
+    @Parcelize
     data class Region(
         val code: Int,
         val name: String
-    )
+    ): Parcelable
 
     val regionList = listOf(
         Region(11, "서울"),
@@ -230,12 +234,13 @@ object LibraryData {
     )
 
     // 세부지역 코드 전체
+    @Parcelize
     data class DetailRegion(
         val code: Int,
         val regionCode: Int,
         val regionName: String,
         val districtName: String
-    )
+    ): Parcelable
 
     // 전체 세부지역 리스트
     val allDetailRegions = listOf(
