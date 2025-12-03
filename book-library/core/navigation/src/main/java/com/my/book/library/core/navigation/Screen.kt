@@ -6,5 +6,6 @@ enum class Screen {
     Main,
     SearchLibrary,
     SelectLibraryRegion,
-    SelectLibraryDetailRegion
+    SelectLibraryDetailRegion,
+    SelectLibraryList
 }

@@ -1,5 +1,6 @@
 package com.my.book.library.domain.usecase
 
+import androidx.paging.PagingData
 import com.my.book.library.core.model.network.RequestResult
 import com.my.book.library.core.model.req.ReqSearchDetailRegionBookLibrary
 import com.my.book.library.core.model.res.ResSearchBookLibrary
@@ -15,6 +16,12 @@ class GetSearchDetailRegionBookLibraryUseCase @Inject constructor(
         reqSearchDetailRegionBookLibrary: ReqSearchDetailRegionBookLibrary
     ): Flow<RequestResult<ResSearchBookLibrary>> {
         return repository.getSearchDetailRegionBookLibrary(reqSearchDetailRegionBookLibrary = reqSearchDetailRegionBookLibrary)
+    }
+
+    suspend fun invokePaging(
+        reqSearchDetailRegionBookLibrary: ReqSearchDetailRegionBookLibrary
+    ): Flow<PagingData<ResSearchBookLibrary.ResponseData.LibraryWrapper>> {
+        return repository.getSearchDetailRegionBookLibraryPaging(reqSearchDetailRegionBookLibrary = reqSearchDetailRegionBookLibrary)
     }
 
 }

@@ -1,5 +1,6 @@
 package com.my.book.library.data.repository
 
+import androidx.paging.PagingData
 import com.my.book.library.core.common.Constant
 import com.my.book.library.core.model.network.RequestResult
 import com.my.book.library.core.model.req.ReqSearchDetailRegionBookLibrary
@@ -57,6 +58,14 @@ class RepositoryImpl @Inject constructor(
                 emit(RequestResult.Error(code = response.code(), message = response.message()))
             }
         }
+    }
+
+    override suspend fun getSearchDetailRegionBookLibraryPaging(reqSearchDetailRegionBookLibrary: ReqSearchDetailRegionBookLibrary): Flow<PagingData<ResSearchBookLibrary.ResponseData.LibraryWrapper>> {
+        return remoteDataSource.getSearchDetailRegionBookLibraryPaging(
+            authToken = BuildConfig.BOOK_LIBRARY_API_KEY,
+            format = Constant.JSON,
+            reqSearchDetailRegionBookLibrary = reqSearchDetailRegionBookLibrary
+        )
     }
 
     override suspend fun getSearchLibCodeBookLibrary(reqSearchLibCodeBookLibrary: ReqSearchLibCodeBookLibrary): Flow<RequestResult<ResSearchBookLibrary>> {

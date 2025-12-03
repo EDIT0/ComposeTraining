@@ -1,25 +1,24 @@
 package com.my.book.library.core.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.navigation.compose.composable
+import com.google.gson.Gson
 import com.my.book.library.feature.search_library.ui.SearchLibraryScreen
 import com.my.book.library.core.common.CommonMainViewModel
-import com.my.book.library.core.common.util.LogUtil
 import com.my.book.library.core.resource.LibraryData
 import com.my.book.library.featrue.splash.intro.ui.SplashScreen
 import com.my.book.library.feature.main.ui.MainScreen
 import com.my.book.library.feature.select_library.detail_region.ui.SelectLibraryDetailRegionScreen
+import com.my.book.library.feature.select_library.library.ui.SelectLibraryListScreen
 import com.my.book.library.feature.select_library.region.ui.SelectLibraryRegionScreen
+import java.net.URLDecoder
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @Composable
 fun AppNavHost(
@@ -104,8 +103,12 @@ fun AppNavHost(
                 SelectLibraryRegionScreen(
                     commonMainViewModel = commonMainViewModel,
                     onMoveToDetailRegion = { region: LibraryData.Region ->
-                        navHostController.currentBackStackEntry?.savedStateHandle?.set(Data.Region.name, region)
-                        navHostController.navigate(route = Screen.SelectLibraryDetailRegion.name)
+                        val regionString = URLEncoder.encode(
+                            Gson().toJson(region),
+                            StandardCharsets.UTF_8.name()
+                        )
+
+                        navHostController.navigate(route = Screen.SelectLibraryDetailRegion.name + "/${regionString}")
                     },
                     onBackPressed = {
                         navHostController.popBackStack()
@@ -117,45 +120,71 @@ fun AppNavHost(
 
         // SelectLibraryDetailRegion
         composable(
-            route = Screen.SelectLibraryDetailRegion.name,
+            route = Screen.SelectLibraryDetailRegion.name + "/{${Data.Region.name}}",
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None },
             popEnterTransition = { EnterTransition.None },
             popExitTransition = { ExitTransition.None },
             content = {
-                var region by remember {
-                    mutableStateOf<LibraryData.Region?>(null)
+                val regionString = it.arguments?.getString(Data.Region.name)
+                val region = Gson().fromJson(URLDecoder.decode(regionString, StandardCharsets.UTF_8.name()), LibraryData.Region::class.java)
+
+                if(region == null) {
+                    navHostController.popBackStack()
+                    return@composable
                 }
 
-                // 한 번만 실행되도록 LaunchedEffect 사용
-                LaunchedEffect(Unit) {
-                    region = navHostController.previousBackStackEntry
-                        ?.savedStateHandle
-                        ?.get<LibraryData.Region>(Data.Region.name)
+                SelectLibraryDetailRegionScreen(
+                    commonMainViewModel = commonMainViewModel,
+                    onMoveToLibrary = { detailRegion: LibraryData.DetailRegion ->
+                        val detailRegionString = URLEncoder.encode(
+                            Gson().toJson(detailRegion),
+                            StandardCharsets.UTF_8.name()
+                        )
 
-                    LogUtil.d_dev("가져온 region: $region")
-
-                    navHostController.previousBackStackEntry?.savedStateHandle?.remove<LibraryData.Region>(Data.Region.name)
-
-                    if(region == null) {
+                        navHostController.navigate(route = Screen.SelectLibraryList.name + "/${detailRegionString}")
+                    },
+                    onBackPressed = {
                         navHostController.popBackStack()
-                    }
+                    },
+                    modifier = modifier,
+                    region = region
+                )
+            }
+        )
+
+        // SelectLibraryList
+        composable(
+            route = Screen.SelectLibraryList.name + "/{${Data.DetailRegion.name}}",
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None },
+            content = {
+                val detailRegionString = it.arguments?.getString(Data.DetailRegion.name)
+                val detailRegion = Gson().fromJson(
+                    URLDecoder.decode(
+                        detailRegionString,
+                        StandardCharsets.UTF_8.name()),
+                    LibraryData.DetailRegion::class.java
+                )
+
+                if(detailRegion == null) {
+                    navHostController.popBackStack()
+                    return@composable
                 }
 
-                // region이 null이 아닐 때만 화면 표시
-                region?.let { nonNullRegion ->
-                    SelectLibraryDetailRegionScreen(
-                        commonMainViewModel = commonMainViewModel,
-                        onMoveToLibrary = {
+                SelectLibraryListScreen(
+                    commonMainViewModel = commonMainViewModel,
+                    onMoveToLibraryDetail = {
 
-                        },
-                        onBackPressed = {
-                            navHostController.popBackStack()
-                        },
-                        modifier = modifier,
-                        region = nonNullRegion
-                    )
-                }
+                    },
+                    onBackPressed = {
+                        navHostController.popBackStack()
+                    },
+                    modifier = modifier,
+                    detailRegion = detailRegion
+                )
             }
         )
     }
