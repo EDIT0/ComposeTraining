@@ -29,12 +29,9 @@ class GetSearchDetailRegionBookLibraryPagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ResSearchBookLibrary.ResponseData.LibraryWrapper> {
         // LoadParams : 로드할 키와 항목 수 , LoadResult : 로드 작업의 결과
         return try {
-            delay(1000L)
-
             // 키 값이 없을 경우 기본값을 사용함
             val position = params.key ?: STARTING_PAGE_INDEX
 
-            // 데이터를 제공하는 인스턴스의 메소드 사용
             val response = apiService.getSearchDetailRegionBookLibrary(
                 authKey = authToken,
                 format = format,

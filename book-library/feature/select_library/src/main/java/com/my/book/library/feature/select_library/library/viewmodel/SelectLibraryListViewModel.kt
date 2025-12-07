@@ -80,7 +80,7 @@ class SelectLibraryListViewModel @Inject constructor(
         )
             .map { it ->
                 it.map {
-                    LogUtil.d_dev("페이징 데이터:  ${it}")
+                    LogUtil.d_dev("페이징 데이터: ${it}")
                     it
                 }
             }
