@@ -91,7 +91,7 @@ fun SelectLibraryListScreen(
 
     LogUtil.d_dev("SelectLibraryListUiState: ${selectLibraryListUiState.value}")
 
-    SelectLibraryContent(
+    SelectLibraryListContent(
         localContext = context,
         onMoveToLibraryDetail = onMoveToLibraryDetail,
         onBackPressed = {
@@ -114,7 +114,7 @@ fun SelectLibraryListScreen(
 }
 
 @Composable
-fun SelectLibraryContent(
+fun SelectLibraryListContent(
     localContext: Context,
     onMoveToLibraryDetail: (ResSearchBookLibrary.ResponseData.LibraryWrapper, LibraryData.DetailRegion) -> Unit,
     onBackPressed: () -> Unit,
@@ -376,7 +376,7 @@ fun SelectLibraryUiPreview() {
     val pagingData = PagingData.from(mockData)
     val flow = flowOf(pagingData)
 
-    SelectLibraryContent(
+    SelectLibraryListContent(
         localContext = LocalContext.current,
         onMoveToLibraryDetail = {_, _ -> },
         onBackPressed = {},

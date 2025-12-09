@@ -11,4 +11,11 @@
     <string name="select_library_list_connect_number">연락처</string>
     <string name="common_component_retry_title">다시시도</string>
     <string name="common_component_no_item">데이터가 없습니다.</string>
+    <string name="select_library_list_detail_address">주소</string>
+    <string name="select_library_list_detail_connect_number">연락처</string>
+    <string name="select_library_list_detail_fax">팩스</string>
+    <string name="select_library_list_detail_homepage">홈페이지</string>
+    <string name="select_library_list_detail_open">여는 시간</string>
+    <string name="select_library_list_detail_close">닫는 시간</string>
+    <string name="select_library_list_detail_register_button_title">등록하기</string>
 </resources>

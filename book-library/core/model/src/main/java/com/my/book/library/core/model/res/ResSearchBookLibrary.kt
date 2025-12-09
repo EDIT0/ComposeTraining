@@ -33,27 +33,27 @@ data class ResSearchBookLibrary(
         ) {
             data class LibraryInfo(
                 @SerializedName("libCode")
-                val libCode: String,
+                val libCode: String?,
                 @SerializedName("libName")
-                val libName: String,
+                val libName: String?,
                 @SerializedName("address")
-                val address: String,
+                val address: String?,
                 @SerializedName("tel")
-                val tel: String,
+                val tel: String?,
                 @SerializedName("fax")
-                val fax: String,
+                val fax: String?,
                 @SerializedName("latitude")
-                val latitude: String,
+                val latitude: String?,
                 @SerializedName("longitude")
-                val longitude: String,
+                val longitude: String?,
                 @SerializedName("homepage")
-                val homepage: String,
+                val homepage: String?,
                 @SerializedName("closed")
-                val closed: String,
+                val closed: String?,
                 @SerializedName("operatingTime")
-                val operatingTime: String,
+                val operatingTime: String?,
                 @SerializedName("BookCount")
-                val bookCount: String
+                val bookCount: String?
             )
         }
     }
