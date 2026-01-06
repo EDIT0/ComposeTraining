@@ -5,6 +5,7 @@ import com.my.book.library.core.resource.LibraryData
 
 sealed interface SelectLibraryListDetailViewModelEvent {
     data class UpdateDetailRegionAndLibrary(val detailRegion: LibraryData.DetailRegion, val library: ResSearchBookLibrary.ResponseData.LibraryWrapper): SelectLibraryListDetailViewModelEvent
+    object RegisterRegionAndLibrary: SelectLibraryListDetailViewModelEvent
 }
 
 sealed interface SelectLibraryListDetailUiEvent {

@@ -338,7 +338,15 @@ fun AppNavHost(
                 SelectLibraryListDetailScreen(
                     commonMainViewModel = commonMainViewModel,
                     onMoveToMain = {
-
+                        // 모든 백스택 제거 후 메인으로 이동
+//                        while (navHostController.popBackStack()) {
+//                            // 모든 백스택을 비움
+//                        }
+                        navHostController.navigate(route = Screen.Main.name) {
+                            popUpTo(Screen.SelectLibraryRegion.name) {
+                                inclusive = true
+                            }
+                        }
                     },
                     onBackPressed = {
                         navHostController.popBackStack()

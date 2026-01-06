@@ -1,5 +1,6 @@
 package com.my.book.library.featrue.splash.intro.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,9 @@ fun SplashScreen(
     LaunchedEffect(key1 = true) {
         splashViewModel.sideEffectEvent.collect {
             when(it) {
+                is SplashViewModel.SideEffectEvent.ShowToast -> {
+                    Toast.makeText(localContext, it.message, Toast.LENGTH_SHORT).show()
+                }
                 is SplashViewModel.SideEffectEvent.OnMoveToMain -> {
                     onMoveToMain()
                 }

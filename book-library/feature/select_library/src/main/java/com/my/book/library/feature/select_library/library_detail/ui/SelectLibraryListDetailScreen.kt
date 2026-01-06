@@ -3,6 +3,7 @@ package com.my.book.library.feature.select_library.library_detail.ui
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -56,7 +57,7 @@ fun SelectLibraryListDetailScreen(
 ) {
 
     LogUtil.d_dev("받은 데이터: ${detailRegion}\n${libraryInfo}")
-    val context = LocalContext.current
+    val localContext = LocalContext.current
 
     val commonMainViewModel = commonMainViewModel
     val selectLibraryListDetailViewModel = hiltViewModel<SelectLibraryListDetailViewModel>()
@@ -87,8 +88,21 @@ fun SelectLibraryListDetailScreen(
         }
     }
 
+    LaunchedEffect(key1 = true) {
+        selectLibraryListDetailViewModel.sideEffectEvent.collect {
+            when(it) {
+                is SelectLibraryListDetailViewModel.SideEffectEvent.ShowToast -> {
+                    Toast.makeText(localContext, it.message, Toast.LENGTH_SHORT).show()
+                }
+                is SelectLibraryListDetailViewModel.SideEffectEvent.OnSuccessRegistration -> {
+                    onMoveToMain.invoke()
+                }
+            }
+        }
+    }
+
     SelectLibraryListDetailContent(
-        localContext = context,
+        localContext = localContext,
         onMoveToMain = onMoveToMain,
         onBackPressed = {
             onBackPressed.invoke()
@@ -96,7 +110,10 @@ fun SelectLibraryListDetailScreen(
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight(),
-        libraryInfo = libraryInfo
+        libraryInfo = libraryInfo,
+        selectLibraryListDetailViewModelEvent = {
+            selectLibraryListDetailViewModel.intentAction(it)
+        }
     )
 }
 
@@ -106,7 +123,8 @@ fun SelectLibraryListDetailContent(
     onMoveToMain: () -> Unit,
     onBackPressed: () -> Unit,
     modifier: Modifier,
-    libraryInfo: ResSearchBookLibrary.ResponseData.LibraryWrapper
+    libraryInfo: ResSearchBookLibrary.ResponseData.LibraryWrapper,
+    selectLibraryListDetailViewModelEvent: (SelectLibraryListDetailViewModelEvent) -> Unit
 ) {
     val scrollState = rememberScrollState()
 
@@ -189,7 +207,7 @@ fun SelectLibraryListDetailContent(
             bottomButtonView(
                 title = localContext.getString(R.string.select_library_list_detail_register_button_title),
                 onClick = {
-
+                    selectLibraryListDetailViewModelEvent.invoke(SelectLibraryListDetailViewModelEvent.RegisterRegionAndLibrary)
                 }
             )
 
@@ -280,6 +298,7 @@ fun SelectLibraryListDetailUiPreview() {
                 operatingTime = "operatingTime",
                 bookCount = "bookCount"
             )
-        )
+        ),
+        selectLibraryListDetailViewModelEvent = { }
     )
 }
