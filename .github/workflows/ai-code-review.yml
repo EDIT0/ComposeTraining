@@ -34,10 +34,40 @@ jobs:
 
               payload = {
                   "model": "claude-sonnet-4-5-20250929",
-                  "max_tokens": 1000,
+                  "max_tokens": 1200,
                   "messages": [{
                       "role": "user",
-                      "content": "You are a senior Android engineer. Review this Kotlin PR diff focusing on coroutine safety, lifecycle leaks, architecture violations, and performance issues:\n\n" + diff_content
+                      "content": """당신은 10년 경력의 시니어 안드로이드 엔지니어입니다.
+
+다음 Kotlin PR diff를 코드 리뷰해주세요.
+
+다음 항목을 중점적으로 분석하세요:
+
+1. Coroutine 안전성 (viewModelScope, lifecycleScope, cancellation 문제)
+2. Lifecycle 메모리 누수 가능성
+3. MVVM / Clean Architecture 위반 여부
+4. Compose 재구성(Recomposition) 비효율
+5. 상태 관리 문제 (State hoisting, remember misuse 등)
+6. 성능 문제
+7. 가독성 및 유지보수성
+
+리뷰 형식은 다음과 같이 작성해주세요:
+
+## 🔴 치명적 문제
+- 문제 설명
+- 왜 문제인지
+- 개선 코드 예시
+
+## ⚠️ 개선 권장 사항
+- 문제 설명
+- 개선 방법
+
+## 🟢 잘 작성된 부분
+- 긍정적 피드백
+
+아래는 PR diff 입니다:
+
+""" + diff_content
                   }]
               }
 
@@ -92,5 +122,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '## 🤖 AI Code Review\n\n' + comment
+              body: '## 🤖 AI 코드 리뷰\n\n' + comment
             });
