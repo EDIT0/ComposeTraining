@@ -12,7 +12,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.navigation.compose.composable
 import com.google.gson.Gson
 import com.my.book.library.feature.search_library.ui.SearchLibraryScreen
-import com.my.book.library.core.common.CommonMainViewModel
+import com.my.book.library.core.common.CommonViewModel
 import com.my.book.library.core.model.res.ResSearchBookLibrary
 import com.my.book.library.core.resource.LibraryData
 import com.my.book.library.featrue.splash.intro.ui.SplashScreen
@@ -28,7 +28,7 @@ import java.nio.charset.StandardCharsets
 @Composable
 fun AppNavHost(
     navHostController: NavHostController,
-    commonMainViewModel: CommonMainViewModel,
+    commonViewModel: CommonViewModel,
     modifier: Modifier
 ) {
 
@@ -49,7 +49,7 @@ fun AppNavHost(
             popExitTransition = { ExitTransition.None },
             content = {
                 SplashScreen(
-                    commonMainViewModel = commonMainViewModel,
+                    commonViewModel = commonViewModel,
                     onMoveToMain = {
                         navHostController.popBackStack()
                         navHostController.navigate(route = Screen.Main.name)
@@ -72,7 +72,7 @@ fun AppNavHost(
             popExitTransition = { ExitTransition.None },
             content = {
                 MainScreen(
-                    commonMainViewModel = commonMainViewModel,
+                    commonViewModel = commonViewModel,
                     onMoveToSearchLibrary = {
                         navHostController.navigate(route = Screen.SearchLibrary.name)
                     },
@@ -90,7 +90,7 @@ fun AppNavHost(
             popExitTransition = { ExitTransition.None },
             content = {
                 SearchLibraryScreen(
-                    commonMainViewModel = commonMainViewModel,
+                    commonViewModel = commonViewModel,
                     onBackPressed = {
                         navHostController.popBackStack()
                     },
@@ -132,7 +132,7 @@ fun AppNavHost(
             },
             content = {
                 SelectLibraryRegionScreen(
-                    commonMainViewModel = commonMainViewModel,
+                    commonViewModel = commonViewModel,
                     onMoveToDetailRegion = { region: LibraryData.Region ->
                         val regionString = URLEncoder.encode(
                             Gson().toJson(region),
@@ -190,7 +190,7 @@ fun AppNavHost(
                 }
 
                 SelectLibraryDetailRegionScreen(
-                    commonMainViewModel = commonMainViewModel,
+                    commonViewModel = commonViewModel,
                     onMoveToLibrary = { detailRegion: LibraryData.DetailRegion ->
                         val detailRegionString = URLEncoder.encode(
                             Gson().toJson(detailRegion),
@@ -254,7 +254,7 @@ fun AppNavHost(
                 }
 
                 SelectLibraryListScreen(
-                    commonMainViewModel = commonMainViewModel,
+                    commonViewModel = commonViewModel,
                     onMoveToLibraryDetail = { libraryInfo, detailRegion ->
                         val detailRegionString = URLEncoder.encode(
                             Gson().toJson(detailRegion),
@@ -336,7 +336,7 @@ fun AppNavHost(
                 }
 
                 SelectLibraryListDetailScreen(
-                    commonMainViewModel = commonMainViewModel,
+                    commonViewModel = commonViewModel,
                     onMoveToMain = {
                         // 모든 백스택 제거 후 메인으로 이동
 //                        while (navHostController.popBackStack()) {

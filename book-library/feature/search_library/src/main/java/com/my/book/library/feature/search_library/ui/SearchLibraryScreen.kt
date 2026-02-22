@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.my.book.library.core.common.CommonViewModel
 import com.my.book.library.feature.search_library.intent.SearchLibraryViewModelEvent
 import com.my.book.library.feature.search_library.state.SearchLibraryUiState
 import com.my.book.library.feature.search_library.viewmodel.SearchLibraryViewModel
@@ -30,13 +31,13 @@ import com.my.book.library.core.resource.R
 
 @Composable
 fun SearchLibraryScreen(
-    commonMainViewModel: ViewModel,
+    commonViewModel: CommonViewModel,
     onBackPressed: () -> Unit,
     modifier: Modifier
 ) {
     val localContext = LocalContext.current
 
-    val commonMainViewModel = commonMainViewModel
+    val commonViewModel = commonViewModel
     val searchLibraryViewModel = hiltViewModel<SearchLibraryViewModel>()
 
     val searchLibraryUiState = searchLibraryViewModel.searchLibraryUiState.collectAsStateWithLifecycle()

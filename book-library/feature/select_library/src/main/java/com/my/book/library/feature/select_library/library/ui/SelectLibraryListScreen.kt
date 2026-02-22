@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,7 +38,7 @@ import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.my.book.library.core.common.CommonMainViewModel
+import com.my.book.library.core.common.CommonViewModel
 import com.my.book.library.core.common.component.CommonActionBar
 import com.my.book.library.core.common.component.ListLoadingView
 import com.my.book.library.core.common.component.RetryView
@@ -58,7 +59,7 @@ import kotlinx.coroutines.flow.flowOf
 
 @Composable
 fun SelectLibraryListScreen(
-    commonMainViewModel: CommonMainViewModel,
+    commonViewModel: CommonViewModel,
     onMoveToLibraryDetail: (ResSearchBookLibrary.ResponseData.LibraryWrapper, LibraryData.DetailRegion) -> Unit,
     onBackPressed: () -> Unit,
     modifier: Modifier,
@@ -68,7 +69,7 @@ fun SelectLibraryListScreen(
     LogUtil.d_dev("받은 데이터: ${detailRegion}")
     val context = LocalContext.current
 
-    val commonMainViewModel = commonMainViewModel
+    val commonMainViewModel = commonViewModel
     val selectLibraryListViewModel = hiltViewModel<SelectLibraryListViewModel>()
 
     /**
@@ -122,139 +123,143 @@ fun SelectLibraryListContent(
     selectLibraryListUiState: State<SelectLibraryListUiState>,
     libraryListPaging: LazyPagingItems<ResSearchBookLibrary.ResponseData.LibraryWrapper>?
 ) {
-    Box(
-        modifier = modifier
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            CommonActionBar(
-                context = localContext,
-                modifier = Modifier
-                    .padding(horizontal = 10.dp),
-                actionBarTitle = localContext.getString(R.string.select_library_list),
-                isShowBackButton = true,
-                onBackClick = {
-                    onBackPressed.invoke()
-                }
-            )
 
+    Scaffold() { innerPadding ->
+        Box(
+            modifier = modifier
+                .padding(innerPadding)
+        ) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
+                    .fillMaxSize()
             ) {
-                // 로딩이 완료되고 데이터가 없을 때만 "데이터가 없습니다" 표시
-                val isLoadingComplete = libraryListPaging?.loadState?.refresh is LoadState.NotLoading
-                val hasNoData = libraryListPaging?.itemCount == 0
-
-                if(isLoadingComplete && hasNoData) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(text = localContext.getString(R.string.common_component_no_item))
-                    }
-                }
-
-                LazyColumn(
+                CommonActionBar(
+                    context = localContext,
                     modifier = Modifier
-                        .weight(1f),
-                    content = {
-                        items(libraryListPaging?.itemCount?:0) {index ->
-                            libraryListPaging?.get(index).let { library ->
-                                LibraryItemView(
-                                    context = localContext,
-                                    libraryInfo = library,
-                                    onMoveToLibraryDetail = onMoveToLibraryDetail,
-                                    selectLibraryListUiState = selectLibraryListUiState
-                                )
-                            }
-                        }
-
-                        libraryListPaging?.loadState?.let { loadStatus ->
-                            LogUtil.i_dev("MYTAG addLoadStateListener ${loadStatus}")
-
-                            when (loadStatus.source.append) {
-                                is LoadState.Error -> {
-                                    LogUtil.e_dev("MYTAG append LoadState.Error")
-                                    item {
-                                        RetryView(
-                                            localContext = localContext,
-                                            retry = {
-                                                libraryListPaging.retry()
-                                            },
-                                            message = (loadStatus.source.refresh as LoadState.Error).error.localizedMessage
-                                        )
-                                    }
-                                }
-
-                                is LoadState.Loading -> {
-                                    LogUtil.d_dev("MYTAG append LoadState.Loading")
-                                    item {
-                                        ListLoadingView()
-                                    }
-                                }
-
-                                is LoadState.NotLoading -> {
-                                    LogUtil.d_dev("MYTAG append LoadState.NotLoading")
-                                }
-                            }
-
-                            when (loadStatus.source.prepend) {
-                                is LoadState.Error -> {
-                                    LogUtil.e_dev("MYTAG prepend LoadState.Error")
-                                    item {
-                                        RetryView(
-                                            localContext = localContext,
-                                            retry = {
-                                                libraryListPaging.retry()
-                                            },
-                                            message = (loadStatus.source.refresh as LoadState.Error).error.localizedMessage
-                                        )
-                                    }
-                                }
-
-                                is LoadState.Loading -> {
-                                    LogUtil.d_dev("MYTAG prepend LoadState.Loading")
-                                }
-
-                                is LoadState.NotLoading -> {
-                                    LogUtil.d_dev("MYTAG prepend LoadState.NotLoading")
-                                }
-                            }
-
-                            when (loadStatus.source.refresh) {
-                                is LoadState.Error -> {
-                                    LogUtil.e_dev("MYTAG refresh LoadState.Error")
-                                    item {
-                                        RetryView(
-                                            localContext = localContext,
-                                            retry = {
-                                                libraryListPaging.retry()
-                                            },
-                                            message = (loadStatus.source.refresh as LoadState.Error).error.localizedMessage
-                                        )
-                                    }
-                                }
-
-                                is LoadState.Loading -> {
-                                    LogUtil.d_dev("MYTAG refresh LoadState.Loading")
-                                    item {
-                                        ListLoadingView()
-                                    }
-                                }
-
-                                is LoadState.NotLoading -> {
-                                    LogUtil.d_dev("MYTAG refresh LoadState.NotLoading")
-                                }
-                            }
-                        }
+                        .padding(horizontal = 10.dp),
+                    actionBarTitle = localContext.getString(R.string.select_library_list),
+                    isShowBackButton = true,
+                    onBackClick = {
+                        onBackPressed.invoke()
                     }
                 )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                ) {
+                    // 로딩이 완료되고 데이터가 없을 때만 "데이터가 없습니다" 표시
+                    val isLoadingComplete = libraryListPaging?.loadState?.refresh is LoadState.NotLoading
+                    val hasNoData = libraryListPaging?.itemCount == 0
+
+                    if(isLoadingComplete && hasNoData) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(text = localContext.getString(R.string.common_component_no_item))
+                        }
+                    }
+
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(1f),
+                        content = {
+                            items(libraryListPaging?.itemCount?:0) {index ->
+                                libraryListPaging?.get(index).let { library ->
+                                    LibraryItemView(
+                                        context = localContext,
+                                        libraryInfo = library,
+                                        onMoveToLibraryDetail = onMoveToLibraryDetail,
+                                        selectLibraryListUiState = selectLibraryListUiState
+                                    )
+                                }
+                            }
+
+                            libraryListPaging?.loadState?.let { loadStatus ->
+                                LogUtil.i_dev("MYTAG addLoadStateListener ${loadStatus}")
+
+                                when (loadStatus.source.append) {
+                                    is LoadState.Error -> {
+                                        LogUtil.e_dev("MYTAG append LoadState.Error")
+                                        item {
+                                            RetryView(
+                                                localContext = localContext,
+                                                retry = {
+                                                    libraryListPaging.retry()
+                                                },
+                                                message = (loadStatus.source.refresh as LoadState.Error).error.localizedMessage
+                                            )
+                                        }
+                                    }
+
+                                    is LoadState.Loading -> {
+                                        LogUtil.d_dev("MYTAG append LoadState.Loading")
+                                        item {
+                                            ListLoadingView()
+                                        }
+                                    }
+
+                                    is LoadState.NotLoading -> {
+                                        LogUtil.d_dev("MYTAG append LoadState.NotLoading")
+                                    }
+                                }
+
+                                when (loadStatus.source.prepend) {
+                                    is LoadState.Error -> {
+                                        LogUtil.e_dev("MYTAG prepend LoadState.Error")
+                                        item {
+                                            RetryView(
+                                                localContext = localContext,
+                                                retry = {
+                                                    libraryListPaging.retry()
+                                                },
+                                                message = (loadStatus.source.refresh as LoadState.Error).error.localizedMessage
+                                            )
+                                        }
+                                    }
+
+                                    is LoadState.Loading -> {
+                                        LogUtil.d_dev("MYTAG prepend LoadState.Loading")
+                                    }
+
+                                    is LoadState.NotLoading -> {
+                                        LogUtil.d_dev("MYTAG prepend LoadState.NotLoading")
+                                    }
+                                }
+
+                                when (loadStatus.source.refresh) {
+                                    is LoadState.Error -> {
+                                        LogUtil.e_dev("MYTAG refresh LoadState.Error")
+                                        item {
+                                            RetryView(
+                                                localContext = localContext,
+                                                retry = {
+                                                    libraryListPaging.retry()
+                                                },
+                                                message = (loadStatus.source.refresh as LoadState.Error).error.localizedMessage
+                                            )
+                                        }
+                                    }
+
+                                    is LoadState.Loading -> {
+                                        LogUtil.d_dev("MYTAG refresh LoadState.Loading")
+                                        item {
+                                            ListLoadingView()
+                                        }
+                                    }
+
+                                    is LoadState.NotLoading -> {
+                                        LogUtil.d_dev("MYTAG refresh LoadState.NotLoading")
+                                    }
+                                }
+                            }
+                        }
+                    )
+                }
             }
         }
     }

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,7 +33,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.my.book.library.core.common.CommonMainViewModel
+import com.my.book.library.core.common.CommonViewModel
 import com.my.book.library.core.common.component.CommonActionBar
 import com.my.book.library.core.common.component.TitleExplanationView1
 import com.my.book.library.core.common.dpToSp
@@ -48,7 +49,7 @@ import com.my.book.library.feature.select_library.library_detail.viewmodel.Selec
 
 @Composable
 fun SelectLibraryListDetailScreen(
-    commonMainViewModel: CommonMainViewModel,
+    commonViewModel: CommonViewModel,
     onMoveToMain: () -> Unit,
     onBackPressed: () -> Unit,
     modifier: Modifier,
@@ -59,7 +60,7 @@ fun SelectLibraryListDetailScreen(
     LogUtil.d_dev("받은 데이터: ${detailRegion}\n${libraryInfo}")
     val localContext = LocalContext.current
 
-    val commonMainViewModel = commonMainViewModel
+    val commonMainViewModel = commonViewModel
     val selectLibraryListDetailViewModel = hiltViewModel<SelectLibraryListDetailViewModel>()
 
 
@@ -128,95 +129,97 @@ fun SelectLibraryListDetailContent(
 ) {
     val scrollState = rememberScrollState()
 
-    Box(
-        modifier = modifier
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
+    Scaffold() { innerPadding ->
+        Box(
+            modifier = modifier
+                .padding(innerPadding)
         ) {
-            CommonActionBar(
-                context = localContext,
-                modifier = Modifier
-                    .padding(horizontal = 10.dp),
-                actionBarTitle = libraryInfo.lib.libName?:"",
-                isShowBackButton = true,
-                onBackClick = {
-                    onBackPressed.invoke()
-                }
-            )
-
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .verticalScroll(state = scrollState)
+                    .fillMaxSize()
             ) {
-                TitleExplanationView1(
-                    modifier = Modifier,
-                    title = localContext.getString(R.string.select_library_list_detail_address),
-                    explanation = libraryInfo.lib.address?:"-",
-                    onExplanationTextClick = {
-                        // 구글 지도로 이동 및 좌표 찍기
+                CommonActionBar(
+                    context = localContext,
+                    modifier = Modifier
+                        .padding(horizontal = 10.dp),
+                    actionBarTitle = libraryInfo.lib.libName?:"",
+                    isShowBackButton = true,
+                    onBackClick = {
+                        onBackPressed.invoke()
                     }
                 )
 
-                TitleExplanationView1(
-                    modifier = Modifier,
-                    title = localContext.getString(R.string.select_library_list_detail_connect_number),
-                    explanation = libraryInfo.lib.tel?:"-",
-                    onExplanationTextClick = {}
-                )
-
-                TitleExplanationView1(
-                    modifier = Modifier,
-                    title = localContext.getString(R.string.select_library_list_detail_fax),
-                    explanation = libraryInfo.lib.fax?:"-",
-                    onExplanationTextClick = {}
-                )
-
-                TitleExplanationView1(
-                    modifier = Modifier,
-                    title = localContext.getString(R.string.select_library_list_detail_homepage),
-                    explanation = libraryInfo.lib.homepage?:"-",
-                    onExplanationTextClick = {
-                        try {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it))
-                            localContext.startActivity(intent)
-                        } catch (e: Exception) {
-                            LogUtil.e_dev("URL 열기 실패: ${e.message}")
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .verticalScroll(state = scrollState)
+                ) {
+                    TitleExplanationView1(
+                        modifier = Modifier,
+                        title = localContext.getString(R.string.select_library_list_detail_address),
+                        explanation = libraryInfo.lib.address?:"-",
+                        onExplanationTextClick = {
+                            // 구글 지도로 이동 및 좌표 찍기
                         }
+                    )
+
+                    TitleExplanationView1(
+                        modifier = Modifier,
+                        title = localContext.getString(R.string.select_library_list_detail_connect_number),
+                        explanation = libraryInfo.lib.tel?:"-",
+                        onExplanationTextClick = {}
+                    )
+
+                    TitleExplanationView1(
+                        modifier = Modifier,
+                        title = localContext.getString(R.string.select_library_list_detail_fax),
+                        explanation = libraryInfo.lib.fax?:"-",
+                        onExplanationTextClick = {}
+                    )
+
+                    TitleExplanationView1(
+                        modifier = Modifier,
+                        title = localContext.getString(R.string.select_library_list_detail_homepage),
+                        explanation = libraryInfo.lib.homepage?:"-",
+                        onExplanationTextClick = {
+                            try {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it))
+                                localContext.startActivity(intent)
+                            } catch (e: Exception) {
+                                LogUtil.e_dev("URL 열기 실패: ${e.message}")
+                            }
+                        }
+                    )
+
+                    TitleExplanationView1(
+                        modifier = Modifier,
+                        title = localContext.getString(R.string.select_library_list_detail_open),
+                        explanation = libraryInfo.lib.operatingTime?:"-",
+                        onExplanationTextClick = {}
+                    )
+
+                    TitleExplanationView1(
+                        modifier = Modifier,
+                        title = localContext.getString(R.string.select_library_list_detail_close),
+                        explanation = libraryInfo.lib.closed?:"-",
+                        onExplanationTextClick = {}
+                    )
+                }
+
+                bottomButtonView(
+                    title = localContext.getString(R.string.select_library_list_detail_register_button_title),
+                    onClick = {
+                        selectLibraryListDetailViewModelEvent.invoke(SelectLibraryListDetailViewModelEvent.RegisterRegionAndLibrary)
                     }
                 )
 
-                TitleExplanationView1(
-                    modifier = Modifier,
-                    title = localContext.getString(R.string.select_library_list_detail_open),
-                    explanation = libraryInfo.lib.operatingTime?:"-",
-                    onExplanationTextClick = {}
-                )
-
-                TitleExplanationView1(
-                    modifier = Modifier,
-                    title = localContext.getString(R.string.select_library_list_detail_close),
-                    explanation = libraryInfo.lib.closed?:"-",
-                    onExplanationTextClick = {}
-                )
-            }
-
-            bottomButtonView(
-                title = localContext.getString(R.string.select_library_list_detail_register_button_title),
-                onClick = {
-                    selectLibraryListDetailViewModelEvent.invoke(SelectLibraryListDetailViewModelEvent.RegisterRegionAndLibrary)
+                // 스크롤 위치 확인
+                LaunchedEffect(scrollState.value) {
+                    LogUtil.d_dev("현재 스크롤 위치: ${scrollState.value}")
                 }
-            )
 
-            // 스크롤 위치 확인
-            LaunchedEffect(scrollState.value) {
-                LogUtil.d_dev("현재 스크롤 위치: ${scrollState.value}")
             }
-
-        }
 
 //        // 하단에 붙을 뷰
 //        Column(
@@ -242,7 +245,9 @@ fun SelectLibraryListDetailContent(
 //                Text("시작하기")
 //            }
 //        }
+        }
     }
+
 }
 
 @Composable
