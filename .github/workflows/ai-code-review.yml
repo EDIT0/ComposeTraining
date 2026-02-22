@@ -45,8 +45,8 @@ jobs:
                   diff_content = f.read()
 
               payload = {
-                  "model": "claude-sonnet-4-5-20250929",
-                  "max_tokens": 1200,
+                  "model": "claude-haiku-4-5-20251001",
+                  "max_tokens": 2500,
                   "messages": [{
                       "role": "user",
                       "content": "다음 Kotlin PR diff를 한국어로 코드 리뷰해주세요:\n\n" + diff_content
