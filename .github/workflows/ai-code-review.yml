@@ -21,32 +21,38 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           python3 << 'EOF'
-          import json, urllib.request, os
+          import json, urllib.request, os, sys
 
-          with open('diff.txt', 'r') as f:
-              diff_content = f.read()
+          try:
+              with open('diff.txt', 'r') as f:
+                  diff_content = f.read()
 
-          payload = {
-              "model": "claude-3-5-sonnet-20241022",
-              "max_tokens": 1000,
-              "messages": [{
-                  "role": "user",
-                  "content": "You are a senior Android engineer. Review this Kotlin PR diff focusing on coroutine safety, lifecycle leaks, architecture violations, and performance issues:\n\n" + diff_content
-              }]
-          }
-
-          data = json.dumps(payload).encode('utf-8')
-          req = urllib.request.Request(
-              'https://api.anthropic.com/v1/messages',
-              data=data,
-              headers={
-                  'x-api-key': os.environ['ANTHROPIC_API_KEY'],
-                  'anthropic-version': '2023-06-01',
-                  'content-type': 'application/json'
+              payload = {
+                  "model": "claude-3-5-sonnet-latest",
+                  "max_tokens": 1000,
+                  "messages": [{
+                      "role": "user",
+                      "content": "You are a senior Android engineer. Review this Kotlin PR diff focusing on coroutine safety, lifecycle leaks, architecture violations, and performance issues:\n\n" + diff_content
+                  }]
               }
-          )
-          with urllib.request.urlopen(req) as res:
-              response = json.loads(res.read())
+
+              data = json.dumps(payload).encode('utf-8')
+
+              req = urllib.request.Request(
+                  'https://api.anthropic.com/v1/messages',
+                  data=data,
+                  headers={
+                      'x-api-key': os.environ['ANTHROPIC_API_KEY'],
+                      'anthropic-version': '2023-06-01',
+                      'content-type': 'application/json'
+                  }
+              )
+
+              with urllib.request.urlopen(req) as res:
+                  response = json.loads(res.read())
+
+          except Exception as e:
+              response = {"error": str(e)}
 
           with open('review.json', 'w') as f:
               json.dump(response, f)
@@ -63,9 +69,15 @@ jobs:
             const fs = require('fs');
             const review = JSON.parse(fs.readFileSync('review.json', 'utf8'));
 
+            if (review.error) {
+              console.log('Claude API error:', review.error);
+              core.setFailed('Claude API failed: ' + review.error);
+              return;
+            }
+
             if (!review.content || !review.content[0]) {
-              console.log('Claude API error:', JSON.stringify(review));
-              core.setFailed('Claude API did not return expected content: ' + JSON.stringify(review));
+              console.log('Unexpected response:', JSON.stringify(review));
+              core.setFailed('Claude API did not return expected content.');
               return;
             }
 
