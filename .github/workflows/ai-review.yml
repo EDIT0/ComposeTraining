@@ -31,7 +31,7 @@ jobs:
               "max_tokens": 1000,
               "messages": [{
                   "role": "user",
-                  "content": f"You are a senior Android engineer. Review this Kotlin PR diff focusing on coroutine safety, lifecycle leaks, architecture violations, and performance issues:\n\n{diff_content}"
+                  "content": "You are a senior Android engineer. Review this Kotlin PR diff focusing on coroutine safety, lifecycle leaks, architecture violations, and performance issues:\n\n" + diff_content
               }]
           }
 
@@ -75,5 +75,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## 🤖 AI Code Review\n\n${comment}`
+              body: '## 🤖 AI Code Review\n\n' + comment
             });
