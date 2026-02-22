@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,7 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.my.book.library.core.common.CommonMainViewModel
+import com.my.book.library.core.common.CommonViewModel
 import com.my.book.library.core.common.component.CommonActionBar
 import com.my.book.library.core.common.noRippleClickable
 import com.my.book.library.core.common.util.LogUtil
@@ -35,7 +36,7 @@ import com.my.book.library.feature.select_library.detail_region.viewmodel.Select
 
 @Composable
 fun SelectLibraryDetailRegionScreen(
-    commonMainViewModel: CommonMainViewModel,
+    commonViewModel: CommonViewModel,
     onMoveToLibrary: (LibraryData.DetailRegion) -> Unit,
     onBackPressed: () -> Unit,
     modifier: Modifier,
@@ -45,7 +46,7 @@ fun SelectLibraryDetailRegionScreen(
     LogUtil.d_dev("받은 데이터: ${region}")
     val context = LocalContext.current
 
-    val commonMainViewModel = commonMainViewModel
+    val commonMainViewModel = commonViewModel
     val selectLibraryDetailRegionViewModel = hiltViewModel<SelectLibraryDetailRegionViewModel>()
 
     val selectLibraryDetailRegionUiState = selectLibraryDetailRegionViewModel.selectLibraryDetailRegionUiState.collectAsStateWithLifecycle()
@@ -82,56 +83,60 @@ fun SelectLibraryDetailRegionContent(
     modifier: Modifier,
     selectLibraryDetailRegionUiState: State<SelectLibraryDetailRegionUiState>
 ) {
-    Box(
-        modifier = modifier
-    ){
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            CommonActionBar(
-                context = localContext,
-                modifier = Modifier
-                    .padding(horizontal = 10.dp),
-                actionBarTitle = localContext.getString(R.string.select_library_detail_region_title),
-                isShowBackButton = true,
-                onBackClick = {
-                    onBackPressed.invoke()
-                }
-            )
 
+    Scaffold() { innerPadding ->
+        Box(
+            modifier = modifier
+                .padding(innerPadding)
+        ){
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
+                    .fillMaxSize()
             ) {
-                val filteredItems = LibraryData.allDetailRegions.filter { it -> it.regionCode == selectLibraryDetailRegionUiState.value.region?.code }
-                LogUtil.d_dev("필터된 세부지역 개수: ${filteredItems.size}, regionCode: ${selectLibraryDetailRegionUiState.value.region?.code}")
-
-                LazyColumn(
+                CommonActionBar(
+                    context = localContext,
                     modifier = Modifier
-                        .weight(1f),
-                    content = {
-                        itemsIndexed(
-                            items = filteredItems,
-                        ) { index, item ->
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .noRippleClickable {
-                                        onMoveToLibrary.invoke(item)
-                                    }
-                                    .padding(horizontal = 10.dp, vertical = 20.dp),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    text = item.districtName
-                                )
-                            }
-                        }
+                        .padding(horizontal = 10.dp),
+                    actionBarTitle = localContext.getString(R.string.select_library_detail_region_title),
+                    isShowBackButton = true,
+                    onBackClick = {
+                        onBackPressed.invoke()
                     }
                 )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                ) {
+                    val filteredItems = LibraryData.allDetailRegions.filter { it -> it.regionCode == selectLibraryDetailRegionUiState.value.region?.code }
+                    LogUtil.d_dev("필터된 세부지역 개수: ${filteredItems.size}, regionCode: ${selectLibraryDetailRegionUiState.value.region?.code}")
+
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(1f),
+                        content = {
+                            itemsIndexed(
+                                items = filteredItems,
+                            ) { index, item ->
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .noRippleClickable {
+                                            onMoveToLibrary.invoke(item)
+                                        }
+                                        .padding(horizontal = 10.dp, vertical = 20.dp),
+                                    verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        text = item.districtName
+                                    )
+                                }
+                            }
+                        }
+                    )
+                }
             }
         }
     }
