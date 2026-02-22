@@ -21,15 +21,25 @@ jobs:
 
       - name: Get PR Diff
         run: |
-          git fetch origin ${{ github.base_ref }}
-          git diff origin/${{ github.base_ref }} > diff.txt
+          curl -L \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3.diff" \
+            ${{ github.event.pull_request.url }} \
+            > diff.txt
+
+      - name: Check Diff Empty
+        run: |
+          if [ ! -s diff.txt ]; then
+            echo "No changes detected in PR."
+            exit 1
+          fi
 
       - name: Call Claude API
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           python3 << 'EOF'
-          import json, urllib.request, os, sys
+          import json, urllib.request, os
 
           try:
               with open('diff.txt', 'r') as f:
