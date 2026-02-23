@@ -13,12 +13,13 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import com.my.book.library.core.common.CommonViewModel
 import com.my.book.library.core.resource.R
+import com.my.book.library.feature.main.viewmodel.MainViewModel
 import com.my.book.library.feature.main.viewmodel.save.SaveViewModel
 
 @Composable
 fun SaveScreen(
     commonViewModel: CommonViewModel,
-    mainViewModel: ViewModel
+    mainViewModel: MainViewModel
 ) {
 
     val localContext = LocalContext.current

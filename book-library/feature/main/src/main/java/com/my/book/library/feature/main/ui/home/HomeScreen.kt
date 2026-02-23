@@ -18,13 +18,14 @@ import com.my.book.library.core.resource.Gray300
 import com.my.book.library.core.resource.Green500
 import com.my.book.library.core.resource.R
 import com.my.book.library.feature.main.ui.component.FakeSearchBar
+import com.my.book.library.feature.main.viewmodel.MainViewModel
 import com.my.book.library.feature.main.viewmodel.home.HomeViewModel
 
 @Composable
 fun HomeScreen(
     onMoveToSearchLibrary: () -> Unit,
     commonViewModel: CommonViewModel,
-    mainViewModel: ViewModel
+    mainViewModel: MainViewModel
 ) {
 
     val localContext = LocalContext.current

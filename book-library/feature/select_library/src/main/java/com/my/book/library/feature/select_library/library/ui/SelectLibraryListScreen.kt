@@ -69,7 +69,7 @@ fun SelectLibraryListScreen(
     LogUtil.d_dev("받은 데이터: ${detailRegion}")
     val context = LocalContext.current
 
-    val commonMainViewModel = commonViewModel
+    val commonViewModel = commonViewModel
     val selectLibraryListViewModel = hiltViewModel<SelectLibraryListViewModel>()
 
     /**

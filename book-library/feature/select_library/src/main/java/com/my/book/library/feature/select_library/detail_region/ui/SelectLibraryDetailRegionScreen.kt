@@ -46,7 +46,7 @@ fun SelectLibraryDetailRegionScreen(
     LogUtil.d_dev("받은 데이터: ${region}")
     val context = LocalContext.current
 
-    val commonMainViewModel = commonViewModel
+    val commonViewModel = commonViewModel
     val selectLibraryDetailRegionViewModel = hiltViewModel<SelectLibraryDetailRegionViewModel>()
 
     val selectLibraryDetailRegionUiState = selectLibraryDetailRegionViewModel.selectLibraryDetailRegionUiState.collectAsStateWithLifecycle()

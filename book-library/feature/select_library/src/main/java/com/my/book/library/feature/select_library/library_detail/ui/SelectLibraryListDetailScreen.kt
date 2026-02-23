@@ -60,7 +60,7 @@ fun SelectLibraryListDetailScreen(
     LogUtil.d_dev("받은 데이터: ${detailRegion}\n${libraryInfo}")
     val localContext = LocalContext.current
 
-    val commonMainViewModel = commonViewModel
+    val commonViewModel = commonViewModel
     val selectLibraryListDetailViewModel = hiltViewModel<SelectLibraryListDetailViewModel>()
 
 
@@ -218,7 +218,6 @@ fun SelectLibraryListDetailContent(
                 LaunchedEffect(scrollState.value) {
                     LogUtil.d_dev("현재 스크롤 위치: ${scrollState.value}")
                 }
-
             }
 
 //        // 하단에 붙을 뷰
