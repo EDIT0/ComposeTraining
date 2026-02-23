@@ -49,7 +49,12 @@ jobs:
                   "max_tokens": 2500,
                   "messages": [{
                       "role": "user",
-                      "content": "다음 Kotlin PR diff를 한국어로 코드 리뷰해주세요:\n\n" + diff_content
+                      "content": "PR diff를 한국어로 코드 리뷰해주세요:\n" + 
+                      "기준.\n" + 
+                      "1. 구조 (아키텍처, 의존성, SOLID, Testable 등)\n" + 
+                      "2. 코드 안정성 (Memory Leak, 코드 위험성, 생명주기 등)\n" +
+                      "그 외 가독성, 성능 개선점 등 리뷰가 필요한 부분 캐치해서 알려주세요.\n\n" +
+                      diff_content
                   }]
               }
 
