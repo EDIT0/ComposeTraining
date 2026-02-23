@@ -5,12 +5,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
-import com.my.book.library.core.common.CommonMainViewModel
+import com.my.book.library.core.common.CommonViewModel
 import com.my.book.library.core.navigation.AppNavHost
 import com.my.book.library.ui.theme.BooklibraryTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -24,16 +22,13 @@ class MainActivity : ComponentActivity() {
             BooklibraryTheme {
 
                 val navController = rememberNavController()
-                val commonMainViewModel = hiltViewModel<CommonMainViewModel>()
+                val commonViewModel = hiltViewModel<CommonViewModel>()
 
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    AppNavHost(
-                        navHostController = navController,
-                        commonMainViewModel = commonMainViewModel,
-                        modifier = Modifier
-                            .padding(paddingValues = innerPadding)
-                    )
-                }
+                AppNavHost(
+                    navHostController = navController,
+                    commonViewModel = commonViewModel,
+                    modifier = Modifier.fillMaxSize()
+                )
             }
         }
     }

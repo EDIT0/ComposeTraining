@@ -13,21 +13,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.ViewModel
+import com.my.book.library.core.common.CommonViewModel
 import com.my.book.library.featrue.splash.intro.intent.SplashViewModelEvent
 import com.my.book.library.featrue.splash.intro.viewmodel.SplashViewModel
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
-    commonMainViewModel: ViewModel,
+    commonViewModel: CommonViewModel,
     onMoveToMain: () -> Unit,
     onMoveToSelectLibraryRegion: () -> Unit,
     modifier: Modifier
 ) {
     val localContext = LocalContext.current
 
-    val commonMainViewModel = commonMainViewModel
+    val commonViewModel = commonViewModel
     val splashViewModel = hiltViewModel<SplashViewModel>()
 
     LaunchedEffect(key1 = true) {

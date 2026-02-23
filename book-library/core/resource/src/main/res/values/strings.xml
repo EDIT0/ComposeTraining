@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="common_"></string>
-
     <string name="search_library_info">도서관 정보를 검색하세요</string>
     <string name="search_library_action_bar_title">도서관 정보 검색</string>
     <string name="search_library_selection_city_title">도시</string>
@@ -22,4 +20,7 @@
     <string name="select_library_list_detail_register_button_title">등록하기</string>
     <string name="select_library_list_detail_register_failure">등록 실패</string>
     <string name="select_library_list_detail_register_data_empty">등록 데이터가 없습니다.</string>
+
+    <string name="home_bottom_navigation_bar_menu_home">홈</string>
+    <string name="home_bottom_navigation_bar_menu_save">찜</string>
 </resources>
