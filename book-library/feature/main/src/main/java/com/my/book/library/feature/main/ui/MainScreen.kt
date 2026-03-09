@@ -1,8 +1,6 @@
 package com.my.book.library.feature.main.ui
 
 import android.content.Context
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -11,14 +9,20 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.my.book.library.core.common.CommonViewModel
+import com.my.book.library.core.common.component.LifecycleListener
+import com.my.book.library.core.common.component.LifecycleResult
 import com.my.book.library.feature.main.ui.home.HomeScreen
 import com.my.book.library.feature.main.ui.save.SaveScreen
 import com.my.book.library.feature.main.viewmodel.MainViewModel
@@ -31,6 +35,7 @@ fun MainScreen(
 ) {
 
     val localContext = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     val commonViewModel = commonViewModel
     val mainViewModel = hiltViewModel<MainViewModel>()
@@ -42,6 +47,31 @@ fun MainScreen(
         commonViewModel = commonViewModel,
         mainViewModel = mainViewModel
     )
+
+    LifecycleListener(
+        lifecycleOwner = lifecycleOwner,
+        screenName = object {}.javaClass.enclosingClass?.simpleName ?: "MainScreen",
+        lifecycleResult = object : LifecycleResult {
+            override fun onEnter() {
+
+            }
+            override fun onStart() {
+
+            }
+            override fun onResume() {
+
+            }
+            override fun onPause() {
+
+            }
+            override fun onStop() {
+
+            }
+            override fun onDispose() {
+
+            }
+        }
+    )
 }
 
 @Composable
@@ -52,18 +82,27 @@ fun MainContent(
     commonViewModel: CommonViewModel,
     mainViewModel: MainViewModel
 ) {
-    val startDestination = MainDestination.HOME
-    var selectedDestination by rememberSaveable { mutableIntStateOf(startDestination.ordinal) }
-
+    val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+    
     Scaffold(
         modifier = modifier,
         bottomBar = {
             NavigationBar {
                 MainDestination.entries.forEachIndexed { index, destination ->
                     NavigationBarItem(
-                        selected = selectedDestination == index,
+                        selected = currentDestination?.hierarchy?.any {
+                            it.route == destination.route
+                        } == true,
                         onClick = {
-                            selectedDestination = index
+                            navController.navigate(destination.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         },
                         icon = {
                             Icon(
@@ -79,25 +118,23 @@ fun MainContent(
             }
         }
     ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
+        NavHost(
+            modifier = Modifier.padding(innerPadding),
+            navController = navController,
+            startDestination = MainDestination.HOME.route,
         ) {
-            when (selectedDestination) {
-                MainDestination.HOME.ordinal -> {
-                    HomeScreen(
-                        onMoveToSearchLibrary = onMoveToSearchLibrary,
-                        commonViewModel = commonViewModel,
-                        mainViewModel = mainViewModel
-                    )
-                }
-                MainDestination.SAVE.ordinal -> {
-                    SaveScreen(
-                        commonViewModel = commonViewModel,
-                        mainViewModel = mainViewModel
-                    )
-                }
+            composable(MainDestination.HOME.route) {
+                HomeScreen(
+                    onMoveToSearchLibrary = onMoveToSearchLibrary,
+                    commonViewModel = commonViewModel,
+                    mainViewModel = mainViewModel
+                )
+            }
+            composable(MainDestination.SAVE.route) {
+                SaveScreen(
+                    commonViewModel = commonViewModel,
+                    mainViewModel = mainViewModel
+                )
             }
         }
     }

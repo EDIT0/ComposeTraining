@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.PagingData
@@ -40,6 +41,8 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.my.book.library.core.common.CommonViewModel
 import com.my.book.library.core.common.component.CommonActionBar
+import com.my.book.library.core.common.component.LifecycleListener
+import com.my.book.library.core.common.component.LifecycleResult
 import com.my.book.library.core.common.component.ListLoadingView
 import com.my.book.library.core.common.component.RetryView
 import com.my.book.library.core.common.dpToSp
@@ -68,6 +71,7 @@ fun SelectLibraryListScreen(
 
     LogUtil.d_dev("받은 데이터: ${detailRegion}")
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     val commonViewModel = commonViewModel
     val selectLibraryListViewModel = hiltViewModel<SelectLibraryListViewModel>()
@@ -112,6 +116,31 @@ fun SelectLibraryListScreen(
             selectLibraryListViewModel.intentAction(SelectLibraryListViewModelEvent.RequestLibraryList())
         }
     }
+
+    LifecycleListener(
+        lifecycleOwner = lifecycleOwner,
+        screenName = object {}.javaClass.enclosingClass?.simpleName ?: "SelectLibraryListScreen",
+        lifecycleResult = object : LifecycleResult {
+            override fun onEnter() {
+
+            }
+            override fun onStart() {
+
+            }
+            override fun onResume() {
+
+            }
+            override fun onPause() {
+
+            }
+            override fun onStop() {
+
+            }
+            override fun onDispose() {
+
+            }
+        }
+    )
 }
 
 @Composable
