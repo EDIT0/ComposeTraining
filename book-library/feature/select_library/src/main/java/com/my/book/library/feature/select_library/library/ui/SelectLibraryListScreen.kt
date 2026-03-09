@@ -96,6 +96,17 @@ fun SelectLibraryListScreen(
 
     LogUtil.d_dev("SelectLibraryListUiState: ${selectLibraryListUiState.value}")
 
+    val lifecycleResult = remember {
+        object : LifecycleResult {
+            override fun onEnter() {}
+            override fun onStart() {}
+            override fun onResume() {}
+            override fun onPause() {}
+            override fun onStop() {}
+            override fun onDispose() {}
+        }
+    }
+    
     SelectLibraryListContent(
         localContext = context,
         onMoveToLibraryDetail = onMoveToLibraryDetail,
@@ -120,26 +131,7 @@ fun SelectLibraryListScreen(
     LifecycleListener(
         lifecycleOwner = lifecycleOwner,
         screenName = object {}.javaClass.enclosingClass?.simpleName ?: "SelectLibraryListScreen",
-        lifecycleResult = object : LifecycleResult {
-            override fun onEnter() {
-
-            }
-            override fun onStart() {
-
-            }
-            override fun onResume() {
-
-            }
-            override fun onPause() {
-
-            }
-            override fun onStop() {
-
-            }
-            override fun onDispose() {
-
-            }
-        }
+        lifecycleResult = lifecycleResult
     )
 }
 

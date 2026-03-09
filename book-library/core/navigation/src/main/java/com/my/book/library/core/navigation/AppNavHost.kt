@@ -366,7 +366,7 @@ private fun onlyPopBackStack(navHostController: NavHostController) {
 }
 
 private fun onBackPressed(navHostController: NavHostController, onAppOff: () -> Unit) {
-    if(navHostController.previousBackStackEntry == null) {
+    if (!navHostController.popBackStack()) {
         onAppOff.invoke()
     } else {
         navHostController.popBackStack()

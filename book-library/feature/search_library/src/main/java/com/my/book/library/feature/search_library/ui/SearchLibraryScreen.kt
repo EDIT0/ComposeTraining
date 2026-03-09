@@ -44,6 +44,17 @@ fun SearchLibraryScreen(
     val searchLibraryViewModel = hiltViewModel<SearchLibraryViewModel>()
 
     val searchLibraryUiState = searchLibraryViewModel.searchLibraryUiState.collectAsStateWithLifecycle()
+
+    val lifecycleResult = remember {
+        object : LifecycleResult {
+            override fun onEnter() {}
+            override fun onStart() {}
+            override fun onResume() {}
+            override fun onPause() {}
+            override fun onStop() {}
+            override fun onDispose() {}
+        }
+    }
     
     SearchLibraryContent(
         localContext = localContext,
@@ -68,26 +79,7 @@ fun SearchLibraryScreen(
     LifecycleListener(
         lifecycleOwner = lifecycleOwner,
         screenName = object {}.javaClass.enclosingClass?.simpleName ?: "SearchLibraryScreen",
-        lifecycleResult = object : LifecycleResult {
-            override fun onEnter() {
-
-            }
-            override fun onStart() {
-
-            }
-            override fun onResume() {
-
-            }
-            override fun onPause() {
-
-            }
-            override fun onStop() {
-
-            }
-            override fun onDispose() {
-
-            }
-        }
+        lifecycleResult = lifecycleResult
     )
 }
 

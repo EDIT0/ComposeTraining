@@ -56,6 +56,17 @@ fun SelectLibraryDetailRegionScreen(
 
     val selectLibraryDetailRegionUiState = selectLibraryDetailRegionViewModel.selectLibraryDetailRegionUiState.collectAsStateWithLifecycle()
 
+    val lifecycleResult = remember {
+        object : LifecycleResult {
+            override fun onEnter() {}
+            override fun onStart() {}
+            override fun onResume() {}
+            override fun onPause() {}
+            override fun onStop() {}
+            override fun onDispose() {}
+        }
+    }
+    
     // Region 저장 - region이 변경될 때만 실행
     LaunchedEffect(region) {
         LogUtil.d_dev("LaunchedEffect 실행 - Region 저장: $region")
@@ -81,26 +92,7 @@ fun SelectLibraryDetailRegionScreen(
     LifecycleListener(
         lifecycleOwner = lifecycleOwner,
         screenName = object {}.javaClass.enclosingClass?.simpleName ?: "SelectLibraryDetailRegionScreen",
-        lifecycleResult = object : LifecycleResult {
-            override fun onEnter() {
-
-            }
-            override fun onStart() {
-
-            }
-            override fun onResume() {
-
-            }
-            override fun onPause() {
-
-            }
-            override fun onStop() {
-
-            }
-            override fun onDispose() {
-
-            }
-        }
+        lifecycleResult = lifecycleResult
     )
 
     BackHandler(

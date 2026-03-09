@@ -9,6 +9,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -39,6 +40,17 @@ fun MainScreen(
 
     val commonViewModel = commonViewModel
     val mainViewModel = hiltViewModel<MainViewModel>()
+    
+    val lifecycleResult = remember {
+        object : LifecycleResult {
+            override fun onEnter() {}
+            override fun onStart() {}
+            override fun onResume() {}
+            override fun onPause() {}
+            override fun onStop() {}
+            override fun onDispose() {}
+        }
+    }
 
     MainContent(
         localContext = localContext,
@@ -51,26 +63,7 @@ fun MainScreen(
     LifecycleListener(
         lifecycleOwner = lifecycleOwner,
         screenName = object {}.javaClass.enclosingClass?.simpleName ?: "MainScreen",
-        lifecycleResult = object : LifecycleResult {
-            override fun onEnter() {
-
-            }
-            override fun onStart() {
-
-            }
-            override fun onResume() {
-
-            }
-            override fun onPause() {
-
-            }
-            override fun onStop() {
-
-            }
-            override fun onDispose() {
-
-            }
-        }
+        lifecycleResult = lifecycleResult
     )
 }
 

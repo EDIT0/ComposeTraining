@@ -48,6 +48,17 @@ fun HomeScreen(
 
     val testState = homeViewModel.testState.collectAsStateWithLifecycle()
 
+    val lifecycleResult = remember {
+        object : LifecycleResult {
+            override fun onEnter() {}
+            override fun onStart() {}
+            override fun onResume() {}
+            override fun onPause() {}
+            override fun onStop() {}
+            override fun onDispose() {}
+        }
+    }
+
     HomeContent(
         localContext = localContext,
         onMoveToSearchLibrary = onMoveToSearchLibrary,
@@ -60,26 +71,7 @@ fun HomeScreen(
     LifecycleListener(
         lifecycleOwner = lifecycleOwner,
         screenName = object {}.javaClass.enclosingClass?.simpleName ?: "HomeScreen",
-        lifecycleResult = object : LifecycleResult {
-            override fun onEnter() {
-
-            }
-            override fun onStart() {
-
-            }
-            override fun onResume() {
-
-            }
-            override fun onPause() {
-
-            }
-            override fun onStop() {
-
-            }
-            override fun onDispose() {
-
-            }
-        }
+        lifecycleResult = lifecycleResult
     )
 }
 
