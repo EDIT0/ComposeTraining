@@ -27,6 +27,9 @@ class MainActivity : ComponentActivity() {
                 AppNavHost(
                     navHostController = navController,
                     commonViewModel = commonViewModel,
+                    onAppOff = {
+                        finishAffinity()
+                    },
                     modifier = Modifier.fillMaxSize()
                 )
             }

@@ -29,6 +29,7 @@ import java.nio.charset.StandardCharsets
 fun AppNavHost(
     navHostController: NavHostController,
     commonViewModel: CommonViewModel,
+    onAppOff: () -> Unit,
     modifier: Modifier
 ) {
 
@@ -51,11 +52,11 @@ fun AppNavHost(
                 SplashScreen(
                     commonViewModel = commonViewModel,
                     onMoveToMain = {
-                        navHostController.popBackStack()
+                        onlyPopBackStack(navHostController = navHostController)
                         navHostController.navigate(route = Screen.Main.name)
                     },
                     onMoveToSelectLibraryRegion = {
-                        navHostController.popBackStack()
+                        onlyPopBackStack(navHostController = navHostController)
                         navHostController.navigate(route = Screen.SelectLibraryRegion.name)
                     },
                     modifier = modifier,
@@ -92,7 +93,7 @@ fun AppNavHost(
                 SearchLibraryScreen(
                     commonViewModel = commonViewModel,
                     onBackPressed = {
-                        navHostController.popBackStack()
+                        onBackPressed(navHostController = navHostController, onAppOff = onAppOff)
                     },
                     modifier = modifier
                 )
@@ -142,7 +143,7 @@ fun AppNavHost(
                         navHostController.navigate(route = Screen.SelectLibraryDetailRegion.name + "/${regionString}")
                     },
                     onBackPressed = {
-                        navHostController.popBackStack()
+                        onBackPressed(navHostController = navHostController, onAppOff = onAppOff)
                     },
                     modifier = modifier
                 )
@@ -185,7 +186,7 @@ fun AppNavHost(
                 val region = Gson().fromJson(URLDecoder.decode(regionString, StandardCharsets.UTF_8.name()), LibraryData.Region::class.java)
 
                 if(region == null) {
-                    navHostController.popBackStack()
+                    onBackPressed(navHostController = navHostController, onAppOff = onAppOff)
                     return@composable
                 }
 
@@ -200,7 +201,7 @@ fun AppNavHost(
                         navHostController.navigate(route = Screen.SelectLibraryList.name + "/${detailRegionString}")
                     },
                     onBackPressed = {
-                        navHostController.popBackStack()
+                        onBackPressed(navHostController = navHostController, onAppOff = onAppOff)
                     },
                     modifier = modifier,
                     region = region
@@ -249,7 +250,7 @@ fun AppNavHost(
                 )
 
                 if(detailRegion == null) {
-                    navHostController.popBackStack()
+                    onBackPressed(navHostController = navHostController, onAppOff = onAppOff)
                     return@composable
                 }
 
@@ -269,7 +270,7 @@ fun AppNavHost(
                         navHostController.navigate(route = Screen.SelectLibraryListDetail.name + "/${detailRegionString}" + "/${libraryInfoString}")
                     },
                     onBackPressed = {
-                        navHostController.popBackStack()
+                        onBackPressed(navHostController = navHostController, onAppOff = onAppOff)
                     },
                     modifier = modifier,
                     detailRegion = detailRegion
@@ -318,7 +319,7 @@ fun AppNavHost(
                 )
 
                 if(detailRegion == null) {
-                    navHostController.popBackStack()
+                    onBackPressed(navHostController = navHostController, onAppOff = onAppOff)
                     return@composable
                 }
 
@@ -331,7 +332,7 @@ fun AppNavHost(
                 )
 
                 if(libraryInfo == null) {
-                    navHostController.popBackStack()
+                    onBackPressed(navHostController = navHostController, onAppOff = onAppOff)
                     return@composable
                 }
 
@@ -349,7 +350,7 @@ fun AppNavHost(
                         }
                     },
                     onBackPressed = {
-                        navHostController.popBackStack()
+                        onBackPressed(navHostController = navHostController, onAppOff = onAppOff)
                     },
                     modifier = modifier,
                     detailRegion = detailRegion,
@@ -358,5 +359,14 @@ fun AppNavHost(
             }
         )
     }
+}
 
+private fun onlyPopBackStack(navHostController: NavHostController) {
+    navHostController.popBackStack()
+}
+
+private fun onBackPressed(navHostController: NavHostController, onAppOff: () -> Unit) {
+    if (!navHostController.popBackStack()) {
+        onAppOff.invoke()
+    }
 }

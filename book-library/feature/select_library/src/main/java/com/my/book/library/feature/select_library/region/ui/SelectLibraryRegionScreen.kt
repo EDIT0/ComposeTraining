@@ -1,6 +1,7 @@
 package com.my.book.library.feature.select_library.region.ui
 
 import android.content.Context
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,15 +13,20 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.my.book.library.core.common.CommonViewModel
 import com.my.book.library.core.common.component.CommonActionBar
+import com.my.book.library.core.common.component.LifecycleListener
+import com.my.book.library.core.common.component.LifecycleResult
 import com.my.book.library.core.common.noRippleClickable
+import com.my.book.library.core.common.util.LogUtil
 import com.my.book.library.core.resource.LibraryData
 import com.my.book.library.core.resource.R
 import com.my.book.library.feature.select_library.region.intent.SelectLibraryRegionViewModelEvent
@@ -34,10 +40,22 @@ fun SelectLibraryRegionScreen(
     modifier: Modifier
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     val commonViewModel = commonViewModel
     val selectLibraryRegionViewModel = hiltViewModel<SelectLibraryRegionViewModel>()
 
+    val lifecycleResult = remember {
+        object : LifecycleResult {
+            override fun onEnter() {}
+            override fun onStart() {}
+            override fun onResume() {}
+            override fun onPause() {}
+            override fun onStop() {}
+            override fun onDispose() {}
+        }
+    }
+    
     SelectLibraryRegionContent(
         localContext = context,
         onMoveToDetailRegion = onMoveToDetailRegion,
@@ -49,6 +67,20 @@ fun SelectLibraryRegionScreen(
             when(it) {
                 else -> {}
             }
+        }
+    )
+
+    LifecycleListener(
+        lifecycleOwner = lifecycleOwner,
+        screenName = object {}.javaClass.enclosingClass?.simpleName ?: "SelectLibraryRegionScreen",
+        lifecycleResult = lifecycleResult
+    )
+
+    BackHandler(
+        enabled = true,
+        onBack = {
+            LogUtil.i_dev("${object {}.javaClass.enclosingClass?.simpleName} BackHandler")
+            onBackPressed.invoke()
         }
     )
 }

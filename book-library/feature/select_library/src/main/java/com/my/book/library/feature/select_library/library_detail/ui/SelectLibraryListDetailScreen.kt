@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -32,9 +34,12 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.my.book.library.core.common.CommonViewModel
 import com.my.book.library.core.common.component.CommonActionBar
+import com.my.book.library.core.common.component.LifecycleListener
+import com.my.book.library.core.common.component.LifecycleResult
 import com.my.book.library.core.common.component.TitleExplanationView1
 import com.my.book.library.core.common.dpToSp
 import com.my.book.library.core.common.noRippleClickable
@@ -59,6 +64,7 @@ fun SelectLibraryListDetailScreen(
 
     LogUtil.d_dev("받은 데이터: ${detailRegion}\n${libraryInfo}")
     val localContext = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     val commonViewModel = commonViewModel
     val selectLibraryListDetailViewModel = hiltViewModel<SelectLibraryListDetailViewModel>()
@@ -75,6 +81,17 @@ fun SelectLibraryListDetailScreen(
     val selectLibraryListDetailUiState = selectLibraryListDetailViewModel.selectLibraryListDetailUiState.collectAsStateWithLifecycle()
 
     LogUtil.d_dev("SelectLibraryListDetailUiState: ${selectLibraryListDetailUiState.value}")
+
+    val lifecycleResult = remember {
+        object : LifecycleResult {
+            override fun onEnter() {}
+            override fun onStart() {}
+            override fun onResume() {}
+            override fun onPause() {}
+            override fun onStop() {}
+            override fun onDispose() {}
+        }
+    }
 
     /**
      * 최초 실행 분기
@@ -114,6 +131,20 @@ fun SelectLibraryListDetailScreen(
         libraryInfo = libraryInfo,
         selectLibraryListDetailViewModelEvent = {
             selectLibraryListDetailViewModel.intentAction(it)
+        }
+    )
+
+    LifecycleListener(
+        lifecycleOwner = lifecycleOwner,
+        screenName = object {}.javaClass.enclosingClass?.simpleName ?: "SelectLibraryListDetailScreen",
+        lifecycleResult = lifecycleResult
+    )
+
+    BackHandler(
+        enabled = true,
+        onBack = {
+            LogUtil.i_dev("${object {}.javaClass.enclosingClass?.simpleName} BackHandler")
+            onBackPressed.invoke()
         }
     )
 }

@@ -1,6 +1,7 @@
 package com.my.book.library.feature.select_library.detail_region.ui
 
 import android.content.Context
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,9 +24,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.my.book.library.core.common.CommonViewModel
 import com.my.book.library.core.common.component.CommonActionBar
+import com.my.book.library.core.common.component.LifecycleListener
+import com.my.book.library.core.common.component.LifecycleResult
 import com.my.book.library.core.common.noRippleClickable
 import com.my.book.library.core.common.util.LogUtil
 import com.my.book.library.core.resource.LibraryData
@@ -45,12 +49,24 @@ fun SelectLibraryDetailRegionScreen(
 
     LogUtil.d_dev("받은 데이터: ${region}")
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     val commonViewModel = commonViewModel
     val selectLibraryDetailRegionViewModel = hiltViewModel<SelectLibraryDetailRegionViewModel>()
 
     val selectLibraryDetailRegionUiState = selectLibraryDetailRegionViewModel.selectLibraryDetailRegionUiState.collectAsStateWithLifecycle()
 
+    val lifecycleResult = remember {
+        object : LifecycleResult {
+            override fun onEnter() {}
+            override fun onStart() {}
+            override fun onResume() {}
+            override fun onPause() {}
+            override fun onStop() {}
+            override fun onDispose() {}
+        }
+    }
+    
     // Region 저장 - region이 변경될 때만 실행
     LaunchedEffect(region) {
         LogUtil.d_dev("LaunchedEffect 실행 - Region 저장: $region")
@@ -73,6 +89,19 @@ fun SelectLibraryDetailRegionScreen(
         selectLibraryDetailRegionUiState = selectLibraryDetailRegionUiState
     )
 
+    LifecycleListener(
+        lifecycleOwner = lifecycleOwner,
+        screenName = object {}.javaClass.enclosingClass?.simpleName ?: "SelectLibraryDetailRegionScreen",
+        lifecycleResult = lifecycleResult
+    )
+
+    BackHandler(
+        enabled = true,
+        onBack = {
+            LogUtil.i_dev("${object {}.javaClass.enclosingClass?.simpleName} BackHandler")
+            onBackPressed.invoke()
+        }
+    )
 }
 
 @Composable

@@ -16,18 +16,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.my.book.library.core.common.CommonViewModel
-import com.my.book.library.feature.search_library.intent.SearchLibraryViewModelEvent
-import com.my.book.library.feature.search_library.state.SearchLibraryUiState
-import com.my.book.library.feature.search_library.viewmodel.SearchLibraryViewModel
 import com.my.book.library.core.common.component.CommonActionBar
+import com.my.book.library.core.common.component.LifecycleListener
+import com.my.book.library.core.common.component.LifecycleResult
 import com.my.book.library.core.common.component.MenuBoxView
 import com.my.book.library.core.common.component.SelectionChipView
 import com.my.book.library.core.common.util.LogUtil
 import com.my.book.library.core.resource.LibraryData
 import com.my.book.library.core.resource.R
+import com.my.book.library.feature.search_library.intent.SearchLibraryViewModelEvent
+import com.my.book.library.feature.search_library.state.SearchLibraryUiState
+import com.my.book.library.feature.search_library.viewmodel.SearchLibraryViewModel
 
 @Composable
 fun SearchLibraryScreen(
@@ -36,11 +38,23 @@ fun SearchLibraryScreen(
     modifier: Modifier
 ) {
     val localContext = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     val commonViewModel = commonViewModel
     val searchLibraryViewModel = hiltViewModel<SearchLibraryViewModel>()
 
     val searchLibraryUiState = searchLibraryViewModel.searchLibraryUiState.collectAsStateWithLifecycle()
+
+    val lifecycleResult = remember {
+        object : LifecycleResult {
+            override fun onEnter() {}
+            override fun onStart() {}
+            override fun onResume() {}
+            override fun onPause() {}
+            override fun onStop() {}
+            override fun onDispose() {}
+        }
+    }
     
     SearchLibraryContent(
         localContext = localContext,
@@ -60,6 +74,12 @@ fun SearchLibraryScreen(
             }
         },
         searchLibraryUiState = searchLibraryUiState
+    )
+
+    LifecycleListener(
+        lifecycleOwner = lifecycleOwner,
+        screenName = object {}.javaClass.enclosingClass?.simpleName ?: "SearchLibraryScreen",
+        lifecycleResult = lifecycleResult
     )
 }
 
