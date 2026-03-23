@@ -1,116 +1,115 @@
-⏺ name: AI Code Review                                                                                                            
-                                                                                                                                
+name: AI Code Review                                                                                                            
+                                                                                                                                  
   on:                                                                                                                             
     pull_request:                                                                                                                 
-      types: [opened, synchronize, reopened]                                                                                      
+      types: [opened, synchronize, reopened]
                                                                                                                                   
-  permissions:
-    contents: read                                                                                                                
+  permissions:    
+    contents: read
     pull-requests: write
-    issues: write                                                                                                                 
-                  
-  jobs:
-    review:
-      runs-on: ubuntu-latest                  
+    issues: write                             
                                           
-      steps:
-        - uses: actions/checkout@v4                                                                                               
-   
-        - name: Get PR Diff                                                                                                       
-          run: |  
-            curl -L \                         
-              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+  jobs:
+    review:                                                                                                                       
+      runs-on: ubuntu-latest
+                                                                                                                                  
+      steps:      
+        - uses: actions/checkout@v4
+
+        - name: Get PR Diff                   
+          run: |                          
+            curl -L \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \                                                            
               -H "Accept: application/vnd.github.v3.diff" \
               ${{ github.event.pull_request.url }} \                                                                              
-              > diff.txt                  
-                                                                                                                                  
-        - name: Check Diff Empty                                                                                                  
-          run: |
-            if [ ! -s diff.txt ]; then                                                                                            
-              echo "No changes detected in PR."
-              exit 1                                                                                                              
-            fi                            
+              > diff.txt                      
+                                          
+        - name: Check Diff Empty
+          run: |                                                                                                                  
+            if [ ! -s diff.txt ]; then
+              echo "No changes detected in PR."                                                                                   
+              exit 1
+            fi
 
-        - name: Call Claude API                                                                                                   
-          env:
-            ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}                                                                   
-          run: |                              
-            python3 << 'EOF'              
-            import json, urllib.request, os, sys
-                                                                                                                                  
-            try:                          
-                with open('diff.txt', 'r') as f:                                                                                  
-                    diff_content = f.read()                                                                                       
-                                              
-                MAX_DIFF_LENGTH = 50000                                                                                           
-                truncated = len(diff_content) > MAX_DIFF_LENGTH
-                if truncated:                                                                                                     
+        - name: Call Claude API               
+          env:                            
+            ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          run: |                                                                                                                  
+            python3 << 'EOF'
+            import json, urllib.request, os, sys                                                                                  
+                  
+            try:
+                with open('diff.txt', 'r') as f:
+                    diff_content = f.read()   
+                                          
+                MAX_DIFF_LENGTH = 50000
+                if len(diff_content) > MAX_DIFF_LENGTH:                                                                           
                     diff_content = diff_content[:MAX_DIFF_LENGTH] + "\n\n[diff가 너무 커서 일부만 리뷰합니다]"
                                                                                                                                   
-                payload = {                                                                                                       
+                payload = {               
                     "model": "claude-haiku-4-5-20251001",
                     "max_tokens": 2500,                                                                                           
-                    "messages": [{
+                    "messages": [{            
                         "role": "user",                                                                                           
                         "content": "PR diff를 한국어로 코드 리뷰해주세요:\n" +
-                        "기준.\n" +           
-                        "1. 구조 (아키텍처, 의존성, SOLID, Testable 등)\n" +                                                      
-                        "2. 코드 안정성 (Memory Leak, 코드 위험성, 생명주기 등)\n" +
-                        "그 외 가독성, 성능 개선점 등 리뷰가 필요한 부분 캐치해서 알려주세요.\n\n" +                              
+                        "기준.\n" +                                                                                               
+                        "1. 구조 (아키텍처, 의존성, SOLID, Testable 등)\n" +
+                        "2. 코드 안정성 (Memory Leak, 코드 위험성, 생명주기 등)\n" +                                              
+                        "그 외 가독성, 성능 개선점 등 리뷰가 필요한 부분 캐치해서 알려주세요.\n\n" +
                         diff_content                                                                                              
-                    }]                                                                                                            
+                    }]                        
                 }                                                                                                                 
-                                                                                                                                  
-                data = json.dumps(payload).encode('utf-8')                                                                        
-                                                                                                                                  
-                req = urllib.request.Request(
-                    'https://api.anthropic.com/v1/messages',
-                    data=data,                
-                    headers={             
-                        'x-api-key': os.environ['ANTHROPIC_API_KEY'],
-                        'anthropic-version': '2023-06-01',                                                                        
-                        'content-type': 'application/json'
-                    }                                                                                                             
-                ) 
-                                                                                                                                  
-                with urllib.request.urlopen(req) as res:
-                    response = json.loads(res.read())                                                                             
                   
-            except Exception as e:                                                                                                
-                print(f"Error: {e}", file=sys.stderr)
-                response = {"error": str(e)}                                                                                      
-                                          
-            with open('review.json', 'w') as f:
-                json.dump(response, f)                                                                                            
-            EOF
+                data = json.dumps(payload).encode('utf-8')                                                                        
+                  
+                req = urllib.request.Request(                                                                                     
+                    'https://api.anthropic.com/v1/messages',
+                    data=data,
+                    headers={                 
+                        'x-api-key': os.environ['ANTHROPIC_API_KEY'],
+                        'anthropic-version': '2023-06-01',
+                        'content-type': 'application/json'                                                                        
+                    }
+                )                                                                                                                 
+                                              
+                with urllib.request.urlopen(req) as res:
+                    response = json.loads(res.read())
                                                                                                                                   
-        - name: Post Review Comment
-          uses: actions/github-script@v7                                                                                          
-          with:   
-            script: |
-              const fs = require('fs');       
-              const review = JSON.parse(fs.readFileSync('review.json', 'utf8'));
-
-              if (review.error) {                                                                                                 
-                core.setFailed(`Claude API error: ${review.error}`);
-                return;                                                                                                           
-              }                                                                                                                   
+            except Exception as e:
+                print(f"Error: {e}", file=sys.stderr)                                                                             
+                response = {"error": str(e)}
+                                              
+            with open('review.json', 'w') as f:
+                json.dump(response, f)
+            EOF                                                                                                                   
    
-              if (!review.content || !review.content[0]) {                                                                        
+        - name: Post Review Comment                                                                                               
+          uses: actions/github-script@v7
+          with:
+            script: |
+              const fs = require('fs');
+              const review = JSON.parse(fs.readFileSync('review.json', 'utf8'));
+                                          
+              if (review.error) {
+                core.setFailed(`Claude API error: ${review.error}`);                                                              
+                return;
+              }                                                                                                                   
+                  
+              if (!review.content || !review.content[0]) {
                 core.setFailed('Claude API did not return expected content.');
                 return;
               }                                                                                                                   
-                                              
-              const comment = '## AI 코드 리뷰\n\n' + review.content[0].text;                                                  
-                  
-              const comments = await github.rest.issues.listComments({                                                            
-                issue_number: context.issue.number,
-                owner: context.repo.owner,                                                                                        
+   
+              const comment = '## 🤖 AI 코드 리뷰\n\n' + review.content[0].text;                                                  
+                                          
+              const comments = await github.rest.issues.listComments({
+                issue_number: context.issue.number,                                                                               
+                owner: context.repo.owner,
                 repo: context.repo.repo,                                                                                          
-              });
-                                                                                                                                  
+              }); 
+
               const botComment = comments.data.find(c =>
-                c.user.type === 'Bot' && c.body.startsWith('## AI 코드 리뷰')
+                c.user.type === 'Bot' && c.body.startsWith('## 🤖 AI 코드 리뷰')
               );
                                                                                                                                   
               if (botComment) {
@@ -123,8 +122,8 @@
               } else {                                                                                                            
                 await github.rest.issues.createComment({
                   issue_number: context.issue.number,
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,                                                                                        
+                  owner: context.repo.owner,  
+                  repo: context.repo.repo,
                   body: comment
                 });                                                                                                               
               }
