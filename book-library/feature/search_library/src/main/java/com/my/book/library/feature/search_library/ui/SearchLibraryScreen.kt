@@ -3,7 +3,11 @@ package com.my.book.library.feature.search_library.ui
 import android.content.Context
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
@@ -25,6 +29,9 @@ import com.my.book.library.core.common.component.LifecycleResult
 import com.my.book.library.core.common.component.MenuBoxView
 import com.my.book.library.core.common.component.SelectionChipView
 import com.my.book.library.core.common.util.LogUtil
+import com.my.book.library.core.common.util.SystemBarConfig
+import com.my.book.library.core.common.util.SystemBarController
+import com.my.book.library.core.resource.Black
 import com.my.book.library.core.resource.LibraryData
 import com.my.book.library.core.resource.R
 import com.my.book.library.feature.search_library.intent.SearchLibraryViewModelEvent
@@ -92,59 +99,74 @@ fun SearchLibraryContent(
     searchLibraryUiState: State<SearchLibraryUiState>
 ) {
 
-    Box(
-        modifier = modifier
-    ) {
-        Column {
-            CommonActionBar(
-                context = localContext,
-                modifier = Modifier,
-                actionBarTitle = localContext.getString(R.string.search_library_action_bar_title),
-                isShowBackButton = true,
-                onBackClick = {
-                    onBackPressed.invoke()
-                }
-            )
-
-            Column(
-                modifier = Modifier
-                    .verticalScroll(state = rememberScrollState())
-            ) {
-
-                MenuBoxView(
+    SystemBarController.Setup(
+        config = SystemBarConfig(
+            statusBarColor = Black,
+            statusBarDarkIcons = false,
+            useStatusBarSpace = true,
+            navigationBarColor = Black,
+            navigationBarDarkIcons = false,
+            useNavigationBarSpace = true
+        )
+    ) { state ->
+        Box(
+            modifier = modifier
+                .padding(top = state.statusBarHeight, bottom = state.navigationBarHeight)
+                .consumeWindowInsets(WindowInsets.statusBars)
+                .consumeWindowInsets(WindowInsets.navigationBars)
+        ) {
+            Column {
+                CommonActionBar(
+                    context = localContext,
                     modifier = Modifier,
-                    title = localContext.getString(R.string.search_library_filter_title),
-                    isFilterOpen = searchLibraryUiState.value.isFilterOpen,
-                    onClick = {
-                        searchLibraryViewModelEvent.invoke(SearchLibraryViewModelEvent.SetIsFilterOpen(isFilterOpen = !searchLibraryUiState.value.isFilterOpen))
+                    actionBarTitle = localContext.getString(R.string.search_library_action_bar_title),
+                    isShowBackButton = true,
+                    onBackClick = {
+                        onBackPressed.invoke()
                     }
                 )
 
-                if(searchLibraryUiState.value.isFilterOpen) {
-                    Column(
-                        modifier = Modifier
-                            .padding(horizontal = 20.dp)
-                    ) {
-                        Text(
-                            text = localContext.getString(R.string.search_library_selection_city_title)
-                        )
+                Column(
+                    modifier = Modifier
+                        .verticalScroll(state = rememberScrollState())
+                ) {
 
-                        SelectionChipView(
-                            options = LibraryData.regionList,
-                            selected = searchLibraryUiState.value.selectionRegion,
-                            labelMapper = {
-                                it.name
-                            },
-                            onSelectedChange = {
-                                searchLibraryViewModelEvent.invoke(SearchLibraryViewModelEvent.SetSelectionRegion(selectionRegion = it))
-                                LogUtil.d_dev("Selected region: ${it}")
-                            }
-                        )
+                    MenuBoxView(
+                        modifier = Modifier,
+                        title = localContext.getString(R.string.search_library_filter_title),
+                        isFilterOpen = searchLibraryUiState.value.isFilterOpen,
+                        onClick = {
+                            searchLibraryViewModelEvent.invoke(SearchLibraryViewModelEvent.SetIsFilterOpen(isFilterOpen = !searchLibraryUiState.value.isFilterOpen))
+                        }
+                    )
+
+                    if(searchLibraryUiState.value.isFilterOpen) {
+                        Column(
+                            modifier = Modifier
+                                .padding(horizontal = 20.dp)
+                        ) {
+                            Text(
+                                text = localContext.getString(R.string.search_library_selection_city_title)
+                            )
+
+                            SelectionChipView(
+                                options = LibraryData.regionList,
+                                selected = searchLibraryUiState.value.selectionRegion,
+                                labelMapper = {
+                                    it.name
+                                },
+                                onSelectedChange = {
+                                    searchLibraryViewModelEvent.invoke(SearchLibraryViewModelEvent.SetSelectionRegion(selectionRegion = it))
+                                    LogUtil.d_dev("Selected region: ${it}")
+                                }
+                            )
+                        }
                     }
                 }
             }
         }
     }
+
 }
 
 @Preview(showBackground = true)

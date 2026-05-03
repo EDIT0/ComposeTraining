@@ -5,10 +5,14 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Scaffold
@@ -32,6 +36,9 @@ import com.my.book.library.core.common.component.LifecycleListener
 import com.my.book.library.core.common.component.LifecycleResult
 import com.my.book.library.core.common.noRippleClickable
 import com.my.book.library.core.common.util.LogUtil
+import com.my.book.library.core.common.util.SystemBarConfig
+import com.my.book.library.core.common.util.SystemBarController
+import com.my.book.library.core.resource.Black
 import com.my.book.library.core.resource.LibraryData
 import com.my.book.library.core.resource.R
 import com.my.book.library.feature.select_library.detail_region.intent.SelectLibraryDetailRegionViewModelEvent
@@ -113,58 +120,75 @@ fun SelectLibraryDetailRegionContent(
     selectLibraryDetailRegionUiState: State<SelectLibraryDetailRegionUiState>
 ) {
 
-    Scaffold() { innerPadding ->
-        Box(
-            modifier = modifier
-                .padding(innerPadding)
-        ){
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
+    SystemBarController.Setup(
+        config = SystemBarConfig(
+            statusBarColor = Black,
+            statusBarDarkIcons = false,
+            useStatusBarSpace = true,
+            navigationBarColor = Black,
+            navigationBarDarkIcons = false,
+            useNavigationBarSpace = true
+        )
+    ) { state ->
+        Scaffold(
+            modifier = Modifier
+                .padding(top = state.statusBarHeight, bottom = state.navigationBarHeight)
+                .consumeWindowInsets(WindowInsets.statusBars)
+                .consumeWindowInsets(WindowInsets.navigationBars)
+        ) { innerPadding ->
+            Box(
+                modifier = modifier
+                    .padding(innerPadding)
             ) {
-                CommonActionBar(
-                    context = localContext,
-                    modifier = Modifier
-                        .padding(horizontal = 10.dp),
-                    actionBarTitle = localContext.getString(R.string.select_library_detail_region_title),
-                    isShowBackButton = true,
-                    onBackClick = {
-                        onBackPressed.invoke()
-                    }
-                )
-
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
+                        .fillMaxSize()
                 ) {
-                    val filteredItems = LibraryData.allDetailRegions.filter { it -> it.regionCode == selectLibraryDetailRegionUiState.value.region?.code }
-                    LogUtil.d_dev("필터된 세부지역 개수: ${filteredItems.size}, regionCode: ${selectLibraryDetailRegionUiState.value.region?.code}")
-
-                    LazyColumn(
+                    CommonActionBar(
+                        context = localContext,
                         modifier = Modifier
-                            .weight(1f),
-                        content = {
-                            itemsIndexed(
-                                items = filteredItems,
-                            ) { index, item ->
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .noRippleClickable {
-                                            onMoveToLibrary.invoke(item)
-                                        }
-                                        .padding(horizontal = 10.dp, vertical = 20.dp),
-                                    verticalArrangement = Arrangement.Center,
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Text(
-                                        text = item.districtName
-                                    )
-                                }
-                            }
+                            .padding(horizontal = 10.dp),
+                        actionBarTitle = localContext.getString(R.string.select_library_detail_region_title),
+                        isShowBackButton = true,
+                        onBackClick = {
+                            onBackPressed.invoke()
                         }
                     )
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                    ) {
+                        val filteredItems =
+                            LibraryData.allDetailRegions.filter { it -> it.regionCode == selectLibraryDetailRegionUiState.value.region?.code }
+                        LogUtil.d_dev("필터된 세부지역 개수: ${filteredItems.size}, regionCode: ${selectLibraryDetailRegionUiState.value.region?.code}")
+
+                        LazyColumn(
+                            modifier = Modifier
+                                .weight(1f),
+                            content = {
+                                itemsIndexed(
+                                    items = filteredItems,
+                                ) { index, item ->
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .noRippleClickable {
+                                                onMoveToLibrary.invoke(item)
+                                            }
+                                            .padding(horizontal = 10.dp, vertical = 20.dp),
+                                        verticalArrangement = Arrangement.Center,
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(
+                                            text = item.districtName
+                                        )
+                                    }
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }

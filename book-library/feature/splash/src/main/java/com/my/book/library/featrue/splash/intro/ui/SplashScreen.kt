@@ -4,7 +4,12 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -14,6 +19,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.my.book.library.core.common.CommonViewModel
+import com.my.book.library.core.common.util.SystemBarConfig
+import com.my.book.library.core.common.util.SystemBarController
+import com.my.book.library.core.resource.Transparent
 import com.my.book.library.featrue.splash.intro.intent.SplashViewModelEvent
 import com.my.book.library.featrue.splash.intro.viewmodel.SplashViewModel
 import kotlinx.coroutines.delay
@@ -66,20 +74,35 @@ fun SplashContent(
     splashViewModelEvent: (SplashViewModelEvent) -> Unit
 ) {
 
-    Box(
-        modifier = modifier
-    ) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .fillMaxSize()
+    SystemBarController.Setup(
+        config = SystemBarConfig(
+            statusBarColor = Transparent,
+            statusBarDarkIcons = true,
+            useStatusBarSpace = true,
+            navigationBarColor = Transparent,
+            navigationBarDarkIcons = true,
+            useNavigationBarSpace = true
+        )
+    ) { state ->
+        Box(
+            modifier = modifier
+                .padding(top = state.statusBarHeight, bottom = state.navigationBarHeight)
+                .consumeWindowInsets(WindowInsets.statusBars)
+                .consumeWindowInsets(WindowInsets.navigationBars)
         ) {
-            Text(
-                text = "Splash"
-            )
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                Text(
+                    text = "Splash"
+                )
+            }
         }
     }
+
 
     // TODO 임의 코드
     LaunchedEffect(Unit) {

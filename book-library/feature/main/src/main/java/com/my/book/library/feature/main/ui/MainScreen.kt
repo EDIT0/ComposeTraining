@@ -1,7 +1,11 @@
 package com.my.book.library.feature.main.ui
 
 import android.content.Context
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -24,6 +28,9 @@ import androidx.navigation.compose.rememberNavController
 import com.my.book.library.core.common.CommonViewModel
 import com.my.book.library.core.common.component.LifecycleListener
 import com.my.book.library.core.common.component.LifecycleResult
+import com.my.book.library.core.common.util.SystemBarConfig
+import com.my.book.library.core.common.util.SystemBarController
+import com.my.book.library.core.resource.Black
 import com.my.book.library.feature.main.ui.home.HomeScreen
 import com.my.book.library.feature.main.ui.save.SaveScreen
 import com.my.book.library.feature.main.viewmodel.MainViewModel
@@ -78,59 +85,74 @@ fun MainContent(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-    
-    Scaffold(
-        modifier = modifier,
-        bottomBar = {
-            NavigationBar {
-                MainDestination.entries.forEachIndexed { index, destination ->
-                    NavigationBarItem(
-                        selected = currentDestination?.hierarchy?.any {
-                            it.route == destination.route
-                        } == true,
-                        onClick = {
-                            navController.navigate(destination.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+
+    SystemBarController.Setup(
+        config = SystemBarConfig(
+            statusBarColor = Black,
+            statusBarDarkIcons = false,
+            useStatusBarSpace = true,
+            navigationBarColor = Black,
+            navigationBarDarkIcons = false,
+            useNavigationBarSpace = true
+        )
+    ) { state ->
+        Scaffold(
+            modifier = modifier
+                .padding(top = state.statusBarHeight, bottom = state.navigationBarHeight)
+                .consumeWindowInsets(WindowInsets.statusBars)
+                .consumeWindowInsets(WindowInsets.navigationBars),
+            bottomBar = {
+                NavigationBar {
+                    MainDestination.entries.forEachIndexed { index, destination ->
+                        NavigationBarItem(
+                            selected = currentDestination?.hierarchy?.any {
+                                it.route == destination.route
+                            } == true,
+                            onClick = {
+                                navController.navigate(destination.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
+                            },
+                            icon = {
+                                Icon(
+                                    destination.icon,
+                                    contentDescription = stringResource(destination.contentDescriptionResId)
+                                )
+                            },
+                            label = {
+                                Text(stringResource(destination.labelResId))
                             }
-                        },
-                        icon = {
-                            Icon(
-                                destination.icon,
-                                contentDescription = stringResource(destination.contentDescriptionResId)
-                            )
-                        },
-                        label = {
-                            Text(stringResource(destination.labelResId))
-                        }
+                        )
+                    }
+                }
+            }
+        ) { innerPadding ->
+            NavHost(
+                modifier = Modifier.padding(innerPadding),
+                navController = navController,
+                startDestination = MainDestination.HOME.route,
+            ) {
+                composable(MainDestination.HOME.route) {
+                    HomeScreen(
+                        onMoveToSearchLibrary = onMoveToSearchLibrary,
+                        commonViewModel = commonViewModel,
+                        mainViewModel = mainViewModel
+                    )
+                }
+                composable(MainDestination.SAVE.route) {
+                    SaveScreen(
+                        commonViewModel = commonViewModel,
+                        mainViewModel = mainViewModel
                     )
                 }
             }
         }
-    ) { innerPadding ->
-        NavHost(
-            modifier = Modifier.padding(innerPadding),
-            navController = navController,
-            startDestination = MainDestination.HOME.route,
-        ) {
-            composable(MainDestination.HOME.route) {
-                HomeScreen(
-                    onMoveToSearchLibrary = onMoveToSearchLibrary,
-                    commonViewModel = commonViewModel,
-                    mainViewModel = mainViewModel
-                )
-            }
-            composable(MainDestination.SAVE.route) {
-                SaveScreen(
-                    commonViewModel = commonViewModel,
-                    mainViewModel = mainViewModel
-                )
-            }
-        }
     }
+
 }
 
 //@Preview(showBackground = true)

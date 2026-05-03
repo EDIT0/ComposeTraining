@@ -9,11 +9,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -44,8 +48,11 @@ import com.my.book.library.core.common.component.TitleExplanationView1
 import com.my.book.library.core.common.dpToSp
 import com.my.book.library.core.common.noRippleClickable
 import com.my.book.library.core.common.util.LogUtil
+import com.my.book.library.core.common.util.SystemBarConfig
+import com.my.book.library.core.common.util.SystemBarController
 import com.my.book.library.core.model.res.ResSearchBookLibrary
 import com.my.book.library.core.model.res.ResSearchBookLibrary.ResponseData.LibraryWrapper.LibraryInfo
+import com.my.book.library.core.resource.Black
 import com.my.book.library.core.resource.Gray500
 import com.my.book.library.core.resource.LibraryData
 import com.my.book.library.core.resource.R
@@ -160,96 +167,113 @@ fun SelectLibraryListDetailContent(
 ) {
     val scrollState = rememberScrollState()
 
-    Scaffold() { innerPadding ->
-        Box(
-            modifier = modifier
-                .padding(innerPadding)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
+    SystemBarController.Setup(
+        config = SystemBarConfig(
+            statusBarColor = Black,
+            statusBarDarkIcons = false,
+            useStatusBarSpace = true,
+            navigationBarColor = Black,
+            navigationBarDarkIcons = false,
+            useNavigationBarSpace = true
+        )
+    ) { state ->
+        Scaffold(
+            modifier = Modifier
+                .padding(top = state.statusBarHeight, bottom = state.navigationBarHeight)
+                .consumeWindowInsets(WindowInsets.statusBars)
+                .consumeWindowInsets(WindowInsets.navigationBars)
+        ) { innerPadding ->
+            Box(
+                modifier = modifier
+                    .padding(innerPadding)
             ) {
-                CommonActionBar(
-                    context = localContext,
-                    modifier = Modifier
-                        .padding(horizontal = 10.dp),
-                    actionBarTitle = libraryInfo.lib.libName?:"",
-                    isShowBackButton = true,
-                    onBackClick = {
-                        onBackPressed.invoke()
-                    }
-                )
-
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .verticalScroll(state = scrollState)
+                        .fillMaxSize()
                 ) {
-                    TitleExplanationView1(
-                        modifier = Modifier,
-                        title = localContext.getString(R.string.select_library_list_detail_address),
-                        explanation = libraryInfo.lib.address?:"-",
-                        onExplanationTextClick = {
-                            // 구글 지도로 이동 및 좌표 찍기
+                    CommonActionBar(
+                        context = localContext,
+                        modifier = Modifier
+                            .padding(horizontal = 10.dp),
+                        actionBarTitle = libraryInfo.lib.libName ?: "",
+                        isShowBackButton = true,
+                        onBackClick = {
+                            onBackPressed.invoke()
                         }
                     )
 
-                    TitleExplanationView1(
-                        modifier = Modifier,
-                        title = localContext.getString(R.string.select_library_list_detail_connect_number),
-                        explanation = libraryInfo.lib.tel?:"-",
-                        onExplanationTextClick = {}
-                    )
-
-                    TitleExplanationView1(
-                        modifier = Modifier,
-                        title = localContext.getString(R.string.select_library_list_detail_fax),
-                        explanation = libraryInfo.lib.fax?:"-",
-                        onExplanationTextClick = {}
-                    )
-
-                    TitleExplanationView1(
-                        modifier = Modifier,
-                        title = localContext.getString(R.string.select_library_list_detail_homepage),
-                        explanation = libraryInfo.lib.homepage?:"-",
-                        onExplanationTextClick = {
-                            try {
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it))
-                                localContext.startActivity(intent)
-                            } catch (e: Exception) {
-                                LogUtil.e_dev("URL 열기 실패: ${e.message}")
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .verticalScroll(state = scrollState)
+                    ) {
+                        TitleExplanationView1(
+                            modifier = Modifier,
+                            title = localContext.getString(R.string.select_library_list_detail_address),
+                            explanation = libraryInfo.lib.address ?: "-",
+                            onExplanationTextClick = {
+                                // 구글 지도로 이동 및 좌표 찍기
                             }
+                        )
+
+                        TitleExplanationView1(
+                            modifier = Modifier,
+                            title = localContext.getString(R.string.select_library_list_detail_connect_number),
+                            explanation = libraryInfo.lib.tel ?: "-",
+                            onExplanationTextClick = {}
+                        )
+
+                        TitleExplanationView1(
+                            modifier = Modifier,
+                            title = localContext.getString(R.string.select_library_list_detail_fax),
+                            explanation = libraryInfo.lib.fax ?: "-",
+                            onExplanationTextClick = {}
+                        )
+
+                        TitleExplanationView1(
+                            modifier = Modifier,
+                            title = localContext.getString(R.string.select_library_list_detail_homepage),
+                            explanation = libraryInfo.lib.homepage ?: "-",
+                            onExplanationTextClick = {
+                                try {
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it))
+                                    localContext.startActivity(intent)
+                                } catch (e: Exception) {
+                                    LogUtil.e_dev("URL 열기 실패: ${e.message}")
+                                }
+                            }
+                        )
+
+                        TitleExplanationView1(
+                            modifier = Modifier,
+                            title = localContext.getString(R.string.select_library_list_detail_open),
+                            explanation = libraryInfo.lib.operatingTime ?: "-",
+                            onExplanationTextClick = {}
+                        )
+
+                        TitleExplanationView1(
+                            modifier = Modifier,
+                            title = localContext.getString(R.string.select_library_list_detail_close),
+                            explanation = libraryInfo.lib.closed ?: "-",
+                            onExplanationTextClick = {}
+                        )
+                    }
+
+                    bottomButtonView(
+                        title = localContext.getString(R.string.select_library_list_detail_register_button_title),
+                        onClick = {
+                            selectLibraryListDetailViewModelEvent.invoke(
+                                SelectLibraryListDetailViewModelEvent.RegisterRegionAndLibrary
+                            )
                         }
                     )
 
-                    TitleExplanationView1(
-                        modifier = Modifier,
-                        title = localContext.getString(R.string.select_library_list_detail_open),
-                        explanation = libraryInfo.lib.operatingTime?:"-",
-                        onExplanationTextClick = {}
-                    )
-
-                    TitleExplanationView1(
-                        modifier = Modifier,
-                        title = localContext.getString(R.string.select_library_list_detail_close),
-                        explanation = libraryInfo.lib.closed?:"-",
-                        onExplanationTextClick = {}
-                    )
-                }
-
-                bottomButtonView(
-                    title = localContext.getString(R.string.select_library_list_detail_register_button_title),
-                    onClick = {
-                        selectLibraryListDetailViewModelEvent.invoke(SelectLibraryListDetailViewModelEvent.RegisterRegionAndLibrary)
+                    // 스크롤 위치 확인
+                    LaunchedEffect(scrollState.value) {
+                        LogUtil.d_dev("현재 스크롤 위치: ${scrollState.value}")
                     }
-                )
-
-                // 스크롤 위치 확인
-                LaunchedEffect(scrollState.value) {
-                    LogUtil.d_dev("현재 스크롤 위치: ${scrollState.value}")
                 }
-            }
 
 //        // 하단에 붙을 뷰
 //        Column(
@@ -275,9 +299,9 @@ fun SelectLibraryListDetailContent(
 //                Text("시작하기")
 //            }
 //        }
+            }
         }
     }
-
 }
 
 @Composable

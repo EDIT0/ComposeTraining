@@ -2,6 +2,11 @@ package com.my.book.library.core.resource
 
 import androidx.compose.ui.graphics.Color
 
+// 기본 색상
+val Transparent = Color(0x00000000)
+val White = Color(0xFFFFFFFF)
+val Black = Color(0xFF000000)
+
 // Primary 색상
 val Red50 = Color(0xFFFFEBEE)
 val Red100 = Color(0xFFFFCDD2)
