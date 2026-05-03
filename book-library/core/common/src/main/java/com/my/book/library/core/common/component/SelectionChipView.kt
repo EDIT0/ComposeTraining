@@ -14,7 +14,7 @@ fun <T>SelectionChipView(
     modifier: Modifier = Modifier,
     options: List<T>,
     selected: T?,
-    labelMapper: (T) -> String,
+    labelMapper: @Composable (T) -> String,
     onSelectedChange: (T?) -> Unit
 ) {
 

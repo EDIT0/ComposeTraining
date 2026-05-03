@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -182,7 +183,7 @@ fun SelectLibraryDetailRegionContent(
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
                                         Text(
-                                            text = item.districtName
+                                            text = stringResource(id = item.districtNameRes)
                                         )
                                     }
                                 }
@@ -205,7 +206,7 @@ fun SelectLibraryDetailRegionUiPreview() {
         modifier = Modifier,
         selectLibraryDetailRegionUiState = remember {
             mutableStateOf(
-                SelectLibraryDetailRegionUiState(region = LibraryData.Region(code = 11, name = "서울"))
+                SelectLibraryDetailRegionUiState(region = LibraryData.Region(code = 11, nameRes = R.string.region_seoul))
             )
         }
     )
