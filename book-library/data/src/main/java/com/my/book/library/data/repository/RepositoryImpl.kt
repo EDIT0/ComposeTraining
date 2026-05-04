@@ -3,9 +3,11 @@ package com.my.book.library.data.repository
 import androidx.paging.PagingData
 import com.my.book.library.core.common.Constant
 import com.my.book.library.core.model.network.RequestResult
+import com.my.book.library.core.model.req.ReqSearchBookWithKeyword
 import com.my.book.library.core.model.req.ReqSearchDetailRegionBookLibrary
 import com.my.book.library.core.model.req.ReqSearchLibCodeBookLibrary
 import com.my.book.library.core.model.req.ReqSearchRegionBookLibrary
+import com.my.book.library.core.model.res.ResSearchBook
 import com.my.book.library.core.model.res.ResSearchBookLibrary
 import com.my.book.library.data.BuildConfig
 import com.my.book.library.data.repository.remote.RemoteDataSource
@@ -88,5 +90,12 @@ class RepositoryImpl @Inject constructor(
             }
         }
     }
-    
+
+    override suspend fun getSearchBookPaging(reqSearchBookWithKeyword: ReqSearchBookWithKeyword): Flow<PagingData<ResSearchBook.ResponseData.BookWrapper>> {
+        return remoteDataSource.getSearchBookWithKeywordPaging(
+            authToken = BuildConfig.BOOK_LIBRARY_API_KEY,
+            format = Constant.JSON,
+            reqSearchBookWithKeyword = reqSearchBookWithKeyword
+        )
+    }
 }

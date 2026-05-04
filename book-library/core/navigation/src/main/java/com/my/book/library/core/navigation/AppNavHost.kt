@@ -15,12 +15,15 @@ import com.my.book.library.feature.search_library.ui.SearchLibraryScreen
 import com.my.book.library.core.common.CommonViewModel
 import com.my.book.library.core.model.res.ResSearchBookLibrary
 import com.my.book.library.core.resource.LibraryData
-import com.my.book.library.featrue.splash.intro.ui.SplashScreen
+import com.my.book.library.feature.splash.intro.ui.SplashScreen
 import com.my.book.library.feature.main.ui.MainScreen
 import com.my.book.library.feature.select_library.detail_region.ui.SelectLibraryDetailRegionScreen
 import com.my.book.library.feature.select_library.library.ui.SelectLibraryListScreen
 import com.my.book.library.feature.select_library.library_detail.ui.SelectLibraryListDetailScreen
 import com.my.book.library.feature.select_library.region.ui.SelectLibraryRegionScreen
+import com.my.book.library.feature.select_region.complete.ui.RegionSelectionCompleteScreen
+import com.my.book.library.feature.select_region.guide.ui.RegionSelectGuideScreen
+import com.my.book.library.feature.select_region.selection.ui.RegionSelectionScreen
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -57,9 +60,95 @@ fun AppNavHost(
                     },
                     onMoveToSelectLibraryRegion = {
                         onlyPopBackStack(navHostController = navHostController)
-                        navHostController.navigate(route = Screen.SelectLibraryRegion.name)
+                        navHostController.navigate(route = Screen.RegionSelectGuide.name)
                     },
                     modifier = modifier,
+                )
+            }
+        )
+
+        // Region Select Guide
+        composable(
+            route = Screen.RegionSelectGuide.name,
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None },
+            content = {
+                RegionSelectGuideScreen(
+                    commonViewModel = commonViewModel,
+                    onBackPressed = {
+                        onBackPressed(navHostController = navHostController, onAppOff = onAppOff)
+                    },
+                    onMoveToRegionSelection = {
+                        navHostController.navigate(route = Screen.RegionSelection.name)
+                    },
+                    modifier = modifier
+                )
+            }
+        )
+
+        // Region Selection
+        composable(
+            route = Screen.RegionSelection.name,
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None },
+            content = {
+                RegionSelectionScreen(
+                    commonViewModel = commonViewModel,
+                    onBackPressed = {
+                        onlyPopBackStack(navHostController = navHostController)
+                    },
+                    onMoveToRegionSelectionComplete = { detailRegion ->
+                        val detailRegionString = URLEncoder.encode(
+                            Gson().toJson(detailRegion),
+                            StandardCharsets.UTF_8.name()
+                        )
+
+                        navHostController.navigate(route = Screen.RegionSelectionComplete.name + "/${detailRegionString}")
+                    },
+                    modifier = modifier
+                )
+            }
+        )
+
+        // Region Selection Complete
+        composable(
+            route = Screen.RegionSelectionComplete.name + "/{${Data.DetailRegion.name}}",
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None },
+            content = {
+                val detailRegionString = it.arguments?.getString(Data.DetailRegion.name)
+                val detailRegion = Gson().fromJson(
+                    URLDecoder.decode(
+                        detailRegionString,
+                        StandardCharsets.UTF_8.name()),
+                    LibraryData.DetailRegion::class.java
+                )
+
+                if(detailRegion == null) {
+                    onBackPressed(navHostController = navHostController, onAppOff = onAppOff)
+                    return@composable
+                }
+
+                RegionSelectionCompleteScreen(
+                    commonViewModel = commonViewModel,
+                    onBackPressed = {
+                        onlyPopBackStack(navHostController = navHostController)
+                    },
+                    onMoveToMain = {
+                        navHostController.navigate(route = Screen.Main.name) {
+                            popUpTo(Screen.RegionSelectGuide.name) {
+                                inclusive = true
+                            }
+                        }
+                    },
+                    modifier = modifier,
+                    detailRegion = detailRegion,
                 )
             }
         )
