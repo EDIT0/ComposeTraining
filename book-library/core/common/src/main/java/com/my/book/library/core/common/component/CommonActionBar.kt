@@ -89,13 +89,15 @@ fun CommonActionBar(
                 )
             }
 
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width(64.dp)
-                    .padding(horizontal = 12.dp),
-                verticalArrangement = Arrangement.Center
-            ) {
+            if(isShowBackButton) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(64.dp)
+                        .padding(horizontal = 12.dp),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                }
             }
         }
     }

@@ -199,6 +199,9 @@ fun RegionSelectionContent(
                             modifier = Modifier
                                 .width(128.dp)
                                 .fillMaxHeight()
+                                .background(
+                                    color = colorResource(R.color.color_F9FAFB)
+                                )
                         ) {
                             LazyColumn(
                                 modifier = Modifier
