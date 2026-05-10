@@ -5,5 +5,5 @@ import com.my.book.library.core.resource.LibraryData
 
 data class MyRegionAndLibrary(
     val detailRegion: LibraryData.DetailRegion,
-    val library: ResSearchBookLibrary.ResponseData.LibraryWrapper
+    val library: ResSearchBookLibrary.ResponseData.LibraryWrapper?
 )

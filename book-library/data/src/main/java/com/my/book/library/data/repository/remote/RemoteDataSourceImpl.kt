@@ -3,11 +3,14 @@ package com.my.book.library.data.repository.remote
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import com.my.book.library.core.model.req.ReqSearchBookWithKeyword
 import com.my.book.library.core.model.req.ReqSearchDetailRegionBookLibrary
 import com.my.book.library.core.model.req.ReqSearchLibCodeBookLibrary
 import com.my.book.library.core.model.req.ReqSearchRegionBookLibrary
+import com.my.book.library.core.model.res.ResSearchBook
 import com.my.book.library.core.model.res.ResSearchBookLibrary
 import com.my.book.library.data.api.ApiService
+import com.my.book.library.data.repository.remote.paging.GetSearchBookWithKeywordPagingSource
 import com.my.book.library.data.repository.remote.paging.GetSearchDetailRegionBookLibraryPagingSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -89,4 +92,32 @@ class RemoteDataSourceImpl @Inject constructor(
         )
     }
 
+    override suspend fun getSearchBookWithKeywordPaging(
+        authToken: String,
+        format: String,
+        reqSearchBookWithKeyword: ReqSearchBookWithKeyword
+    ): Flow<PagingData<ResSearchBook.ResponseData.BookWrapper>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 10,
+                prefetchDistance = 5,
+                enablePlaceholders = false,
+                initialLoadSize = 20,
+                maxSize = 10000,
+//                jumpThreshold =
+            ),
+
+            // 사용할 메소드 선언
+            pagingSourceFactory = {
+                GetSearchBookWithKeywordPagingSource(
+                    apiService = apiService,
+                    authToken = authToken,
+                    format = format,
+                    reqSearchBookWithKeyword = reqSearchBookWithKeyword
+                )
+            }
+        ).flow.catch {
+            throw Exception(it)
+        }
+    }
 }

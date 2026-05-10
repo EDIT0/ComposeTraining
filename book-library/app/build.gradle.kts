@@ -55,6 +55,7 @@ dependencies {
     implementation(project(":feature:main"))
     implementation(project(":feature:search_library"))
     implementation(project(":feature:select_library"))
+    implementation(project(":feature:select_region"))
     implementation(project(":feature:splash"))
 
     implementation(libs.androidx.core.ktx)

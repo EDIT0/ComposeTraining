@@ -5,9 +5,7 @@ import androidx.paging.PagingState
 import com.my.book.library.core.model.req.ReqSearchDetailRegionBookLibrary
 import com.my.book.library.core.model.res.ResSearchBookLibrary
 import com.my.book.library.data.api.ApiService
-import kotlinx.coroutines.delay
 import java.io.IOException
-import java.util.Random
 
 private const val STARTING_PAGE_INDEX = 1
 

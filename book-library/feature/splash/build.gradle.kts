@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "com.my.book.library.featrue.splash"
+    namespace = "com.my.book.library.feature.splash"
     compileSdk = 36
 
     defaultConfig {

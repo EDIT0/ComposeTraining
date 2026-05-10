@@ -1,6 +1,7 @@
 package com.my.book.library.data.api
 
 import com.my.book.library.core.common.Constant
+import com.my.book.library.core.model.res.ResSearchBook
 import com.my.book.library.core.model.res.ResSearchBookLibrary
 import retrofit2.Response
 import retrofit2.http.GET
@@ -65,4 +66,22 @@ interface ApiService {
         @Query("libCode") libCode: Int
     ): Response<ResSearchBookLibrary>
 
+    /**
+     * 도서 검색
+     *
+     * @param authKey
+     * @param format
+     * @param pageNo
+     * @param pageSize
+     * @param keyword 책 제목
+     * @return
+     */
+    @GET("${Constant.URL_PATH_API}/srchBooks")
+    suspend fun getSearchBookWithKeyword(
+        @Query("authKey") authKey: String,
+        @Query("format") format: String = Constant.JSON,
+        @Query("pageNo") pageNo: Int,
+        @Query("pageSize") pageSize: Int,
+        @Query("keyword") keyword: String
+    ): Response<ResSearchBook>
 }
