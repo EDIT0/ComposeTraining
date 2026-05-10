@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <string name="select_region_title">어느 지역에서\n책을 찾을까요?</string>
+    <string name="select_region_subtitle">시·군·구를 선택하면\n해당 지역의 도서관 소장 정보를 보여드려요.</string>
+    <string name="select_region_next_button_title">지역 선택 시작</string>
+
     <string name="search_library_info">Search for library information</string>
     <string name="search_library_action_bar_title">Search Library Information</string>
     <string name="search_library_selection_city_title">City</string>
