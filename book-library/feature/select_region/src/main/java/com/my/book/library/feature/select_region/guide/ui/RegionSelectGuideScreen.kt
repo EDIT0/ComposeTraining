@@ -143,14 +143,14 @@ fun RegionSelectGuideContent(
                             .padding(horizontal = 20.dp)
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.ic_point_marker_blue),
+                            painter = painterResource(id = R.drawable.ic_point_marker_blue_38x43),
                             contentDescription = null,
                             modifier = Modifier
                                 .padding(top = 44.dp + if(useNavigationBarSpace) {state.navigationBarHeight} else {0.dp})
                         )
                         Spacer(modifier = Modifier.height(5.dp))
                         Text(
-                            text = stringResource(R.string.select_region_title),
+                            text = stringResource(R.string.select_region_guide_title),
                             style = TextStyle(
                                 color = colorResource(R.color.color_191F28),
                                 fontSize = dpToSp(26.dp),
@@ -161,7 +161,7 @@ fun RegionSelectGuideContent(
                         )
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
-                            text = stringResource(R.string.select_region_subtitle),
+                            text = stringResource(R.string.select_region_guide_subtitle),
                             style = TextStyle(
                                 color = colorResource(R.color.color_6B7684),
                                 fontSize = dpToSp(16.dp),
@@ -179,7 +179,7 @@ fun RegionSelectGuideContent(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(start = 20.dp, top = 16.dp, end = 20.dp, bottom = 24.dp),
-                            text = stringResource(R.string.select_region_next_button_title),
+                            text = stringResource(R.string.select_region_guide_next_button_title),
                             textColorRes = R.color.color_FFFFFFFF,
                             backgroundColorRes = R.color.color_3182F6,
                             cornerRadius = 12.dp,

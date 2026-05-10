@@ -2,10 +2,13 @@ package com.my.book.library.feature.select_region.selection.ui
 
 import android.content.Context
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -16,6 +19,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -28,7 +32,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -36,14 +45,16 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.my.book.library.core.common.CommonViewModel
 import com.my.book.library.core.common.component.CommonActionBar
+import com.my.book.library.core.common.component.CommonButton
 import com.my.book.library.core.common.component.LifecycleListener
 import com.my.book.library.core.common.component.LifecycleResult
+import com.my.book.library.core.common.dpToSp
 import com.my.book.library.core.common.noRippleClickable
 import com.my.book.library.core.common.util.LogUtil
 import com.my.book.library.core.common.util.SystemBarConfig
 import com.my.book.library.core.common.util.SystemBarController
-import com.my.book.library.core.resource.Black
 import com.my.book.library.core.resource.LibraryData
+import com.my.book.library.core.resource.NotoSansKR
 import com.my.book.library.core.resource.R
 import com.my.book.library.feature.select_region.selection.intent.RegionSelectionViewModelEvent
 import com.my.book.library.feature.select_region.selection.state.RegionSelectionUiState
@@ -114,14 +125,17 @@ fun RegionSelectionContent(
     regionSelectionUiState: State<RegionSelectionUiState>
 ) {
 
+    val useStatusBarSpace = false
+    val useNavigationBarSpace = true
+
     SystemBarController.Setup(
         config = SystemBarConfig(
-            statusBarColor = Black,
-            statusBarDarkIcons = false,
-            useStatusBarSpace = true,
-            navigationBarColor = Black,
-            navigationBarDarkIcons = false,
-            useNavigationBarSpace = true
+            statusBarColor = colorResource(R.color.color_FFFFFFFF),
+            statusBarDarkIcons = true,
+            useStatusBarSpace = useStatusBarSpace,
+            navigationBarColor = colorResource(R.color.color_FFFFFFFF),
+            navigationBarDarkIcons = true,
+            useNavigationBarSpace = useNavigationBarSpace
         )
     ) { state ->
         Scaffold(
@@ -137,15 +151,43 @@ fun RegionSelectionContent(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
+                        .background(color = colorResource(R.color.color_FFFFFFFF))
                 ) {
                     CommonActionBar(
                         context = localContext,
                         modifier = Modifier,
-                        actionBarTitle = localContext.getString(R.string.select_library_region_title),
+                        actionBarTitle = localContext.getString(R.string.select_region_selection_title),
                         isShowBackButton = true,
                         onBackClick = {
                             onBackPressed.invoke()
                         }
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.select_region_selection_subtitle),
+                            style = TextStyle(
+                                color = colorResource(R.color.color_191F28),
+                                fontSize = dpToSp(16.dp),
+                                lineHeight = dpToSp(24.dp),
+                                fontFamily = NotoSansKR,
+                                fontWeight = FontWeight.Medium
+                            ),
+                            modifier = Modifier
+                                .padding(vertical = 16.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(
+                            color = colorResource(R.color.color_E5E8EB)
+                        )
                     )
 
                     Row(
@@ -155,7 +197,7 @@ fun RegionSelectionContent(
                     ) {
                         Column(
                             modifier = Modifier
-                                .width(120.dp)
+                                .width(128.dp)
                                 .fillMaxHeight()
                         ) {
                             LazyColumn(
@@ -169,6 +211,7 @@ fun RegionSelectionContent(
                                         Column(
                                             modifier = Modifier
                                                 .fillMaxWidth()
+                                                .height(56.dp)
                                                 .noRippleClickable {
                                                     regionSelectionViewModelEvent.invoke(
                                                         RegionSelectionViewModelEvent.SetSelectionRegion(item)
@@ -177,16 +220,42 @@ fun RegionSelectionContent(
                                                         RegionSelectionViewModelEvent.SetSelectionDetailRegion(detailRegion = null)
                                                     )
                                                 }
-                                                .padding(horizontal = 10.dp, vertical = 20.dp),
+                                                .padding(horizontal = 16.dp),
                                             verticalArrangement = Arrangement.Center,
                                             horizontalAlignment = Alignment.Start
                                         ) {
                                             Text(
-                                                text = stringResource(id = item.nameRes)
+                                                text = stringResource(id = item.nameRes),
+                                                style = TextStyle(
+                                                    color = colorResource(
+                                                        if (item == regionSelectionUiState.value.region) {
+                                                            R.color.color_3182F6
+                                                        }
+                                                        else {
+                                                            R.color.color_6B7684
+                                                        }
+                                                    ),
+                                                    fontSize = dpToSp(16.dp),
+                                                    lineHeight = dpToSp(24.dp),
+                                                    fontFamily = NotoSansKR,
+                                                    fontWeight = FontWeight.Medium
+                                                )
                                             )
                                         }
                                     }
                                 }
+                            )
+                        }
+
+                        Column(
+                            modifier = Modifier
+                        ) {
+                            Spacer(modifier = Modifier
+                                .fillMaxHeight()
+                                .width(1.dp)
+                                .background(
+                                    color = colorResource(R.color.color_E5E8EB)
+                                )
                             )
                         }
 
@@ -199,11 +268,16 @@ fun RegionSelectionContent(
                         ) {
                             if(regionSelectionUiState.value.region == null) {
                                 Text(
-                                    text = "지역을 선택해주세요",
+                                    text = stringResource(R.string.select_region_selection_city_not_selected_notice),
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .fillMaxHeight()
-                                        .wrapContentSize(Alignment.Center)
+                                        .wrapContentSize(Alignment.Center),
+                                    textAlign = TextAlign.Center,
+                                    style = TextStyle(
+                                        lineHeight = dpToSp(25.dp),
+                                        fontSize = dpToSp(16.dp)
+                                    )
                                 )
                             } else {
                                 LazyColumn(
@@ -216,15 +290,56 @@ fun RegionSelectionContent(
                                             Column(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
+                                                    .height(56.dp)
                                                     .noRippleClickable {
                                                         regionSelectionViewModelEvent.invoke(RegionSelectionViewModelEvent.SetSelectionDetailRegion(item))
                                                     }
-                                                    .padding(horizontal = 10.dp, vertical = 20.dp),
+                                                    .padding(horizontal = 20.dp, vertical = 16.dp),
                                                 verticalArrangement = Arrangement.Center,
                                                 horizontalAlignment = Alignment.Start
                                             ) {
-                                                Text(
-                                                    text = stringResource(id = item.districtNameRes)
+                                                Row(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .fillMaxHeight(),
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Text(
+                                                        text = stringResource(id = item.districtNameRes),
+                                                        style = TextStyle(
+                                                            color = colorResource(
+                                                                if (item == regionSelectionUiState.value.detailRegion) {
+                                                                    R.color.color_3182F6
+                                                                }
+                                                                else {
+                                                                    R.color.color_6B7684
+                                                                }
+                                                            ),
+                                                            fontSize = dpToSp(16.dp),
+                                                            lineHeight = dpToSp(24.dp),
+                                                            fontFamily = NotoSansKR,
+                                                            fontWeight = FontWeight.Medium,
+                                                            textAlign = TextAlign.Start
+                                                        ),
+                                                        modifier = Modifier
+                                                            .weight(1f)
+                                                    )
+
+                                                    if(item == regionSelectionUiState.value.detailRegion) {
+                                                        Image(
+                                                            painter = painterResource(R.drawable.ic_check_blue_17x13),
+                                                            contentDescription = null,
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                            if (index < filteredItems.lastIndex) {
+                                                Spacer(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .height(1.dp)
+                                                        .padding(horizontal = 20.dp)
+                                                        .background(color = colorResource(R.color.color_F2F4F6)),
                                                 )
                                             }
                                         }
@@ -234,32 +349,53 @@ fun RegionSelectionContent(
                         }
                     }
 
+                    // 선택된 도시
                     val region = if(regionSelectionUiState.value.region?.nameRes != null) {
                         stringResource(regionSelectionUiState.value.region!!.nameRes)
                     } else {
                         ""
                     }
+                    // 선택된 구
                     val detailRegion = if(regionSelectionUiState.value.detailRegion?.districtNameRes != null) {
                         stringResource(regionSelectionUiState.value.detailRegion!!.districtNameRes)
                     } else {
                         ""
                     }
+                    // 모두 선택되었는지 확인
+                    val isNextStepAvailable = if(region.isNotBlank() && detailRegion.isNotBlank()) {
+                        true
+                    } else {
+                        false
+                    }
 
                     Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp)
-                            .noRippleClickable {
+                            .wrapContentHeight()
+                    ) {
+                        CommonButton(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 20.dp, top = 16.dp, end = 20.dp, bottom = 24.dp),
+                            text = stringResource(R.string.common_next),
+                            textColorRes = if(isNextStepAvailable) {
+                                R.color.color_FFFFFFFF
+                            } else {
+                                R.color.color_191F28
+                            },
+                            backgroundColorRes = if(isNextStepAvailable) {
+                                R.color.color_3182F6
+                            } else {
+                                R.color.color_6B7684
+                            },
+                            cornerRadius = 12.dp,
+                            isBorderEnabled = false,
+                            isEnabled = isNextStepAvailable,
+                            textSize = 16.dp,
+                            onClick = {
                                 if(region.isNotEmpty() && detailRegion.isNotEmpty() && regionSelectionUiState.value.detailRegion != null) {
                                     onMoveToRegionSelectionComplete.invoke(regionSelectionUiState.value.detailRegion!!)
                                 }
-                            },
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = "${region} ${detailRegion}",
-                            modifier = Modifier
+                            }
                         )
                     }
                 }
@@ -281,7 +417,8 @@ fun RegionSelectionUIPreview() {
         regionSelectionUiState = remember {
             mutableStateOf(
                 RegionSelectionUiState(
-//                    region = LibraryData.Region(code = 11, nameRes = R.string.region_seoul)
+                    region = LibraryData.Region(code = 11, nameRes = R.string.region_seoul),
+                    detailRegion = LibraryData.DetailRegion(11010, 11, R.string.region_full_seoul, R.string.district_11010)
                 )
             )
         }

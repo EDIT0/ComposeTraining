@@ -55,15 +55,15 @@ fun CommonButton(
         colors = ButtonDefaults.buttonColors(
             containerColor = backgroundColor,
             contentColor = textColor,
-            disabledContainerColor = backgroundColor.copy(alpha = 0.3f),
-            disabledContentColor = textColor.copy(alpha = 0.3f)
+//            disabledContainerColor = backgroundColor.copy(alpha = 0.3f),
+//            disabledContentColor = textColor.copy(alpha = 0.3f)
         ),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp)
     ) {
         Text(
             text = text,
             style = TextStyle(
-                color = if (isEnabled) textColor else textColor.copy(alpha = 0.3f),
+                color = textColor, // if (isEnabled) textColor else textColor.copy(alpha = 0.3f),
                 fontSize = dpToSp(textSize)
             )
         )
