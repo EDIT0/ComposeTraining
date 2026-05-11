@@ -359,11 +359,9 @@ fun RegionSelectionContent(
                         ""
                     }
                     // 선택된 구
-                    val detailRegion = if(regionSelectionUiState.value.detailRegion?.districtNameRes != null) {
-                        stringResource(regionSelectionUiState.value.detailRegion!!.districtNameRes)
-                    } else {
-                        ""
-                    }
+                    val detailRegion = regionSelectionUiState.value.detailRegion?.let { region ->
+                        stringResource(region.regionNameRes)
+                    } ?: ""
                     // 모두 선택되었는지 확인
                     val isNextStepAvailable = if(region.isNotBlank() && detailRegion.isNotBlank()) {
                         true
