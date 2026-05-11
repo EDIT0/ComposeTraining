@@ -3,11 +3,15 @@ package com.my.book.library.data.repository
 import androidx.paging.PagingData
 import com.my.book.library.core.common.Constant
 import com.my.book.library.core.model.network.RequestResult
+import com.my.book.library.core.model.req.ReqBookDetail
+import com.my.book.library.core.model.req.ReqSearchBookHoldingLibrary
 import com.my.book.library.core.model.req.ReqSearchBookWithKeyword
 import com.my.book.library.core.model.req.ReqSearchDetailRegionBookLibrary
 import com.my.book.library.core.model.req.ReqSearchLibCodeBookLibrary
 import com.my.book.library.core.model.req.ReqSearchRegionBookLibrary
+import com.my.book.library.core.model.res.ResBookDetail
 import com.my.book.library.core.model.res.ResSearchBook
+import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
 import com.my.book.library.core.model.res.ResSearchBookLibrary
 import com.my.book.library.data.BuildConfig
 import com.my.book.library.data.repository.remote.RemoteDataSource
@@ -96,6 +100,35 @@ class RepositoryImpl @Inject constructor(
             authToken = BuildConfig.BOOK_LIBRARY_API_KEY,
             format = Constant.JSON,
             reqSearchBookWithKeyword = reqSearchBookWithKeyword
+        )
+    }
+
+    override suspend fun getBookDetail(reqBookDetail: ReqBookDetail): Flow<RequestResult<ResBookDetail>> {
+        return flow {
+            val response = remoteDataSource.getBookDetail(
+                authToken = BuildConfig.BOOK_LIBRARY_API_KEY,
+                format = Constant.JSON,
+                reqBookDetail = reqBookDetail
+            )
+
+            if (response.isSuccessful) {
+                val body = response.body()
+                if (body != null && body.response != null && body.response.detail.isNotEmpty()) {
+                    emit(RequestResult.Success(data = body))
+                } else {
+                    emit(RequestResult.DataEmpty())
+                }
+            } else {
+                emit(RequestResult.Error(code = response.code(), message = response.message()))
+            }
+        }
+    }
+
+    override suspend fun getSearchBookHoldingLibraryPaging(reqSearchBookHoldingLibrary: ReqSearchBookHoldingLibrary): Flow<PagingData<ResSearchBookHoldingLibrary.ResponseData.LibraryWrapper>> {
+        return remoteDataSource.getSearchBookHoldingLibraryPaging(
+            authToken = BuildConfig.BOOK_LIBRARY_API_KEY,
+            format = Constant.JSON,
+            reqSearchBookHoldingLibrary = reqSearchBookHoldingLibrary
         )
     }
 }

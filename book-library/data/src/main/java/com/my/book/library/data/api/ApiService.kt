@@ -1,7 +1,9 @@
 package com.my.book.library.data.api
 
 import com.my.book.library.core.common.Constant
+import com.my.book.library.core.model.res.ResBookDetail
 import com.my.book.library.core.model.res.ResSearchBook
+import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
 import com.my.book.library.core.model.res.ResSearchBookLibrary
 import retrofit2.Response
 import retrofit2.http.GET
@@ -84,4 +86,44 @@ interface ApiService {
         @Query("pageSize") pageSize: Int,
         @Query("keyword") keyword: String
     ): Response<ResSearchBook>
+
+    /**
+     * 도서 상세 조회
+     *
+     * @param authKey
+     * @param isbn13
+     * @param loaninfoYN
+     * @param format
+     * @return
+     */
+    @GET("${Constant.URL_PATH_API}/srchDtlList")
+    suspend fun getBookDetail(
+        @Query("authKey") authKey: String,
+        @Query("isbn13") isbn13: String,
+        @Query("loaninfoYN") loaninfoYN: String = "N",
+        @Query("format") format: String = Constant.JSON
+    ): Response<ResBookDetail>
+
+    /**
+     * 도서 소장 도서관 조회
+     *
+     * @param authKey
+     * @param isbn
+     * @param region
+     * @param dtlRegion
+     * @param format
+     * @param pageNo
+     * @param pageSize
+     * @return
+     */
+    @GET("${Constant.URL_PATH_API}/libSrchByBook")
+    suspend fun getSearchBookHoldingLibrary(
+        @Query("authKey") authKey: String,
+        @Query("isbn") isbn: String,
+        @Query("region") region: Int,
+        @Query("dtl_region") dtlRegion: Int,
+        @Query("format") format: String = Constant.JSON,
+        @Query("pageNo") pageNo: Int,
+        @Query("pageSize") pageSize: Int
+    ): Response<ResSearchBookHoldingLibrary>
 }
