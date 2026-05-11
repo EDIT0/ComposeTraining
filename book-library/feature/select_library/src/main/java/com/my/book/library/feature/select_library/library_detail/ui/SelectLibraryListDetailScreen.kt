@@ -113,7 +113,7 @@ fun SelectLibraryListDetailScreen(
         }
     }
 
-    LaunchedEffect(key1 = true) {
+    LaunchedEffect(key1 = Unit) {
         selectLibraryListDetailViewModel.sideEffectEvent.collect {
             when(it) {
                 is SelectLibraryListDetailViewModel.SideEffectEvent.ShowToast -> {

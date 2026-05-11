@@ -83,7 +83,7 @@ fun RegionSelectionCompleteScreen(
         )
     }
 
-    LaunchedEffect(key1 = true) {
+    LaunchedEffect(key1 = Unit) {
         regionSelectionCompleteViewModel.sideEffectEvent.collect {
             when(it) {
                 is RegionSelectionCompleteViewModel.SideEffectEvent.ShowToast -> {
@@ -123,7 +123,7 @@ fun RegionSelectionCompleteContent(
 
     val useStatusBarSpace = false
     val useNavigationBarSpace = true
-    
+
     SystemBarController.Setup(
         config = SystemBarConfig(
             statusBarColor = colorResource(R.color.color_FFFFFFFF),
@@ -166,16 +166,13 @@ fun RegionSelectionCompleteContent(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        val region = if(regionSelectionCompleteUiState.value.detailRegion?.regionNameRes != null) {
-                            stringResource(regionSelectionCompleteUiState.value.detailRegion!!.regionNameRes)
-                        } else {
-                            ""
-                        }
-                        val detailRegion = if(regionSelectionCompleteUiState.value.detailRegion?.districtNameRes != null) {
-                            stringResource(regionSelectionCompleteUiState.value.detailRegion!!.districtNameRes)
-                        } else {
-                            ""
-                        }
+                        val region = regionSelectionCompleteUiState.value.detailRegion?.let { region ->
+                            stringResource(region.regionNameRes)
+                        } ?: ""
+
+                        val detailRegion = regionSelectionCompleteUiState.value.detailRegion?.let { region ->
+                            stringResource(region.districtNameRes)
+                        } ?: ""
 
                         Box(
                             modifier = Modifier

@@ -38,7 +38,7 @@ fun SplashScreen(
     val commonViewModel = commonViewModel
     val splashViewModel = hiltViewModel<SplashViewModel>()
 
-    LaunchedEffect(key1 = true) {
+    LaunchedEffect(key1 = Unit) {
         splashViewModel.sideEffectEvent.collect {
             when(it) {
                 is SplashViewModel.SideEffectEvent.ShowToast -> {
