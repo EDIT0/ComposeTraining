@@ -44,6 +44,8 @@ dependencies {
     // Module
     implementation(project(":core:common"))
     implementation(project(":core:resource"))
+    implementation(project(":core:model"))
+    implementation(project(":domain"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

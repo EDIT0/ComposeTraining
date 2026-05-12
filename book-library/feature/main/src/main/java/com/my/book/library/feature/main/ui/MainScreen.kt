@@ -86,21 +86,22 @@ fun MainContent(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    SystemBarController.Setup(
-        config = SystemBarConfig(
-            statusBarColor = Black,
-            statusBarDarkIcons = false,
-            useStatusBarSpace = true,
-            navigationBarColor = Black,
-            navigationBarDarkIcons = false,
-            useNavigationBarSpace = true
-        )
-    ) { state ->
+//    SystemBarController.Setup(
+//        config = SystemBarConfig(
+//            statusBarColor = Black,
+//            statusBarDarkIcons = false,
+//            useStatusBarSpace = true,
+//            navigationBarColor = Black,
+//            navigationBarDarkIcons = false,
+//            useNavigationBarSpace = true
+//        )
+//    ) { state ->
         Scaffold(
             modifier = modifier
-                .padding(top = state.statusBarHeight, bottom = state.navigationBarHeight)
-                .consumeWindowInsets(WindowInsets.statusBars)
-                .consumeWindowInsets(WindowInsets.navigationBars),
+//                .padding(top = state.statusBarHeight, bottom = state.navigationBarHeight)
+//                .consumeWindowInsets(WindowInsets.statusBars)
+//                .consumeWindowInsets(WindowInsets.navigationBars),
+                    ,
             bottomBar = {
                 NavigationBar {
                     MainDestination.entries.forEachIndexed { index, destination ->
@@ -132,7 +133,7 @@ fun MainContent(
             }
         ) { innerPadding ->
             NavHost(
-                modifier = Modifier.padding(innerPadding),
+                modifier = Modifier,
                 navController = navController,
                 startDestination = MainDestination.HOME.route,
             ) {
@@ -151,7 +152,7 @@ fun MainContent(
                 }
             }
         }
-    }
+//    }
 
 }
 
