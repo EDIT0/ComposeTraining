@@ -191,6 +191,7 @@ fun HomeContent(
                         onSearchClick = {},
                         onCancelClick = {},
                         onFakeBarClick = {
+                            // TODO 검색창으로 이동
                             LogUtil.i_dev("Fake SearchBar 클릭")
                         }
                     )
