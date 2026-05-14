@@ -17,6 +17,7 @@ import com.my.book.library.core.model.res.ResSearchBookLibrary
 import com.my.book.library.core.resource.LibraryData
 import com.my.book.library.feature.splash.intro.ui.SplashScreen
 import com.my.book.library.feature.main.ui.MainScreen
+import com.my.book.library.feature.search.book.ui.SearchScreen
 import com.my.book.library.feature.select_library.detail_region.ui.SelectLibraryDetailRegionScreen
 import com.my.book.library.feature.select_library.library.ui.SelectLibraryListScreen
 import com.my.book.library.feature.select_library.library_detail.ui.SelectLibraryListDetailScreen
@@ -164,7 +165,25 @@ fun AppNavHost(
                 MainScreen(
                     commonViewModel = commonViewModel,
                     onMoveToSearchLibrary = {
-                        navHostController.navigate(route = Screen.SearchLibrary.name)
+                        navHostController.navigate(route = Screen.Search.name)
+                    },
+                    modifier = modifier
+                )
+            }
+        )
+
+        // SearchScreen
+        composable(
+            route = Screen.Search.name,
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None },
+            content = {
+                SearchScreen(
+                    commonViewModel = commonViewModel,
+                    onBackPressed = {
+                        onBackPressed(navHostController = navHostController, onAppOff = onAppOff)
                     },
                     modifier = modifier
                 )
