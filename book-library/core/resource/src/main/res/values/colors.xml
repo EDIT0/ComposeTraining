@@ -2,6 +2,7 @@
 <resources>
     <color name="color_FF000000">#FF000000</color>
     <color name="color_00000000">#00000000</color>
+    <color name="color_1A000000">#1A000000</color>
     <color name="color_FFFFFFFF">#FFFFFFFF</color>
     <color name="color_191F28">#191F28</color>
     <color name="color_6B7684">#6B7684</color>
@@ -11,4 +12,5 @@
     <color name="color_F2F4F6">#F2F4F6</color>
     <color name="color_E8F3FF">#E8F3FF</color>
     <color name="color_8B95A1">#8B95A1</color>
+    <color name="color_F3F4F6">#F3F4F6</color>
 </resources>
