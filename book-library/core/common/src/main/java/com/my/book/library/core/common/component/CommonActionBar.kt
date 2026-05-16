@@ -41,7 +41,7 @@ fun CommonActionBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(70.dp)
+            .height(72.dp)
             .background(color = colorResource(R.color.color_FFFFFFFF))
     ) {
         Row(
