@@ -13,7 +13,8 @@ class GetSearchBookWithKeywordPagingSource(
     private val apiService: ApiService,
     private val authToken: String,
     private val format: String,
-    private val reqSearchBookWithKeyword: ReqSearchBookWithKeyword
+    private val reqSearchBookWithKeyword: ReqSearchBookWithKeyword,
+    private val onResponseData: (ResSearchBook.ResponseData) -> Unit = {}
 ): PagingSource<Int, ResSearchBook.ResponseData.BookWrapper>() {
 
     // 데이터가 새로고침되거나 첫 로드 후 무효화되었을 때 키를 반환하여 load()로 전달
@@ -42,6 +43,7 @@ class GetSearchBookWithKeywordPagingSource(
             post = response.body()
 
             post?.let {
+                onResponseData(post.response)
                 LoadResult.Page(
                     data = post.response.docs,
                     prevKey = if (position == STARTING_PAGE_INDEX) null else position - 1,

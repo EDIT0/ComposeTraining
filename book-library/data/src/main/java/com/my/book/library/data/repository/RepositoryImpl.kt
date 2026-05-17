@@ -95,11 +95,12 @@ class RepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getSearchBookPaging(reqSearchBookWithKeyword: ReqSearchBookWithKeyword): Flow<PagingData<ResSearchBook.ResponseData.BookWrapper>> {
+    override suspend fun getSearchBookPaging(reqSearchBookWithKeyword: ReqSearchBookWithKeyword, onResponseData: (ResSearchBook.ResponseData) -> Unit): Flow<PagingData<ResSearchBook.ResponseData.BookWrapper>> {
         return remoteDataSource.getSearchBookWithKeywordPaging(
             authToken = BuildConfig.BOOK_LIBRARY_API_KEY,
             format = Constant.JSON,
-            reqSearchBookWithKeyword = reqSearchBookWithKeyword
+            reqSearchBookWithKeyword = reqSearchBookWithKeyword,
+            onResponseData = onResponseData
         )
     }
 

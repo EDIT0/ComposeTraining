@@ -15,6 +15,14 @@
     
     <string name="main_home_fake_search_hint">책 제목, 저자 검색</string>
 
+    <string name="search_book_no_result_title">No results found</string>
+    <string name="search_book_no_result_subtitle">Please check your search term</string>
+    <string name="search_book_empty_title">Enter a search term</string>
+    <string name="search_book_empty_subtitle">You can search by book title, author, or ISBN</string>
+    <string name="search_book_authors">written by %s</string>
+    <string name="search_book_publisher_year">%s ∙ %s</string>
+    <string name="search_book_result_count">\"%s\" results %s found</string>
+
     <string name="search_library_info">Search for library information</string>
     <string name="search_library_action_bar_title">Search Library Information</string>
     <string name="search_library_selection_city_title">City</string>

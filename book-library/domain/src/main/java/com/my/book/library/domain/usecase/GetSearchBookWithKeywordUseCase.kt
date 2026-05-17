@@ -11,8 +11,12 @@ class GetSearchBookWithKeywordUseCase @Inject constructor(
     val repository: Repository
 ) {
     suspend fun invokePaging(
-        reqSearchBookWithKeyword: ReqSearchBookWithKeyword
+        reqSearchBookWithKeyword: ReqSearchBookWithKeyword,
+        onResponseData: (ResSearchBook.ResponseData) -> Unit = {}
     ): Flow<PagingData<ResSearchBook.ResponseData.BookWrapper>> {
-        return repository.getSearchBookPaging(reqSearchBookWithKeyword = reqSearchBookWithKeyword)
+        return repository.getSearchBookPaging(
+            reqSearchBookWithKeyword = reqSearchBookWithKeyword,
+            onResponseData = onResponseData
+        )
     }
 }

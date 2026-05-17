@@ -15,6 +15,14 @@
 
     <string name="main_home_fake_search_hint">책 제목, 저자 검색</string>
 
+    <string name="search_book_no_result_title">검색 결과가 없습니다</string>
+    <string name="search_book_no_result_subtitle">검색어를 확인해보세요</string>
+    <string name="search_book_empty_title">검색어를 입력해보세요</string>
+    <string name="search_book_empty_subtitle">책 제목, 저자, ISBN 코드를 검색해볼 수 있어요</string>
+    <string name="search_book_authors">%s 지음</string>
+    <string name="search_book_publisher_year">%s ∙ %s</string>
+    <string name="search_book_result_count">\"%s\" 검색 결과 %s 건</string>
+
     <string name="search_library_info">도서관 정보를 검색하세요</string>
     <string name="search_library_action_bar_title">도서관 정보 검색</string>
     <string name="search_library_selection_city_title">도시</string>

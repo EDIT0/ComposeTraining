@@ -64,18 +64,30 @@ class SearchViewModel @Inject constructor(
                     is SearchUiEvent.UpdateBookList -> {
                         state.copy(bookList = MutableStateFlow(value = event.bookList!!))
                     }
+                    is SearchUiEvent.UpdateSearchInfo -> {
+                        state.copy(searchInfo = event.searchInfo)
+                    }
                 }
             }
         )
         .stateIn(viewModelScope, SharingStarted.Eagerly, SearchUiState())
 
     private suspend fun requestSearchBook(keyword: String) {
+        if (keyword.length < 2 || keyword.length > 50) {
+            _sideEffectEvent.send(SearchViewModel.SideEffectEvent.ShowToast("짧다.."))
+            return
+        }
         getSearchBookWithKeywordUseCase.invokePaging(
             reqSearchBookWithKeyword = ReqSearchBookWithKeyword(
                 pageNo = 0,
                 pageSize = 0,
                 keyword = keyword
-            )
+            ),
+            onResponseData = {
+                viewModelScope.launch {
+                    _searchUiEvent.send(SearchUiEvent.UpdateSearchInfo(searchInfo = it))
+                }
+            }
         )
             .map { it ->
                 it.map {

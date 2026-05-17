@@ -11,4 +11,5 @@ sealed interface SearchViewModelEvent {
 sealed interface SearchUiEvent {
     data class UpdateKeyword(val keyword: String): SearchUiEvent
     data class UpdateBookList(val bookList: PagingData<ResSearchBook.ResponseData.BookWrapper>?): SearchUiEvent
+    data class UpdateSearchInfo(val searchInfo: ResSearchBook.ResponseData): SearchUiEvent
 }

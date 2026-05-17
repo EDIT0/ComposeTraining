@@ -1,11 +1,13 @@
 package com.my.book.library.feature.search.book.ui
 
 import android.content.Context
+import android.widget.Toast
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,9 +27,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -36,6 +41,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -52,11 +60,13 @@ import com.my.book.library.core.common.component.LifecycleListener
 import com.my.book.library.core.common.component.LifecycleResult
 import com.my.book.library.core.common.component.ListLoadingView
 import com.my.book.library.core.common.component.RetryView
+import com.my.book.library.core.common.dpToSp
 import com.my.book.library.core.common.noRippleClickable
 import com.my.book.library.core.common.util.LogUtil
 import com.my.book.library.core.common.util.SystemBarConfig
 import com.my.book.library.core.common.util.SystemBarController
 import com.my.book.library.core.model.res.ResSearchBook
+import com.my.book.library.core.resource.NotoSansKR
 import com.my.book.library.core.resource.R
 import com.my.book.library.feature.search.book.intent.SearchViewModelEvent
 import com.my.book.library.feature.search.book.state.SearchUiState
@@ -86,6 +96,16 @@ fun SearchScreen(
             override fun onPause() {}
             override fun onStop() {}
             override fun onDispose() {}
+        }
+    }
+
+    LaunchedEffect(key1 = Unit) {
+        searchViewModel.sideEffectEvent.collect {
+            when(it) {
+                is SearchViewModel.SideEffectEvent.ShowToast -> {
+                    Toast.makeText(localContext, it.message, Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
@@ -207,102 +227,159 @@ fun SearchContent(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center
                             ) {
-                                Text(text = localContext.getString(R.string.common_component_no_item))
+                                SearchStateView(
+                                    modifier = Modifier
+                                        .fillMaxHeight()
+                                        .padding(horizontal = 20.dp),
+                                    drawableRes = R.drawable.ic_search_fail_grey_27x26,
+                                    title = "\"${searchUiState.value.searchInfo?.request?.keyword}\"에 대한\n" + stringResource(R.string.search_book_no_result_title),
+                                    subtitle = stringResource(R.string.search_book_no_result_subtitle)
+                                )
                             }
                         }
 
-                        LazyColumn(
-                            modifier = Modifier
-                                .weight(1f),
-                            content = {
-                                items(bookListPaging?.itemCount ?: 0) { index ->
-                                    bookListPaging?.get(index).let { book ->
-                                        BookItemView(
-                                            data = book!!
-                                        )
+                        /**
+                         * LazyColumn 안의 item에서는 fillMaxSize()나 fillMaxHeight()가 동작하지 않습니다.
+                         * LazyColumn은 자식의 높이를 측정하지 않고 무한히 스크롤 가능한 구조이기 때문입니다.
+                         * BoxWithConstraints를 사용하면 현재 레이아웃에서 사용 가능한 최대 높이(maxHeight)를 측정할 수 있고,
+                         * 이 값을 item 내부에 .height(maxHeight)로 직접 전달해서 화면 전체 높이를 차지하게 만들 수 있습니다.
+                         * 즉, fillMaxHeight() 대신 실제 픽셀 값으로 높이를 지정하기 위한 용도입니다.
+                         */
+                        BoxWithConstraints(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            val maxHeight = this.maxHeight
+
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxSize(),
+                                content = {
+
+                                    if(searchUiState.value.searchInfo != null) {
+                                        item {
+                                            Column(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .background(
+                                                        color = colorResource(R.color.color_F9FAFB)
+                                                    )
+                                                    .padding(horizontal = 20.dp, vertical = 16.dp)
+                                            ) {
+                                                Text(
+                                                    text = stringResource(R.string.search_book_result_count, searchUiState.value.searchInfo?.request?.keyword ?: "", searchUiState.value.searchInfo?.numFound ?: 0),
+                                                    style = TextStyle(
+                                                        color = colorResource(R.color.color_6B7684),
+                                                        fontSize = dpToSp(13.dp),
+                                                        lineHeight = dpToSp(20.dp),
+                                                        fontFamily = NotoSansKR,
+                                                        fontWeight = FontWeight.Medium
+                                                    )
+                                                )
+                                            }
+                                        }
+
+                                        items(bookListPaging?.itemCount ?: 0) { index ->
+                                            bookListPaging?.get(index).let { book ->
+                                                BookItemView(
+                                                    data = book!!,
+                                                    onItemClick = {
+                                                        LogUtil.d_dev("클릭된 책: ${it.doc.bookName}")
+                                                    }
+                                                )
+                                            }
+                                        }
+
+                                        bookListPaging?.loadState?.let { loadStatus ->
+                                            LogUtil.i_dev("MYTAG addLoadStateListener ${loadStatus}")
+
+                                            when (loadStatus.source.append) {
+                                                is LoadState.Error -> {
+                                                    LogUtil.e_dev("MYTAG append LoadState.Error")
+                                                    item {
+                                                        RetryView(
+                                                            localContext = localContext,
+                                                            retry = {
+                                                                bookListPaging.retry()
+                                                            },
+                                                            message = (loadStatus.source.refresh as LoadState.Error).error.localizedMessage
+                                                        )
+                                                    }
+                                                }
+
+                                                is LoadState.Loading -> {
+                                                    LogUtil.d_dev("MYTAG append LoadState.Loading")
+                                                    item {
+                                                        ListLoadingView()
+                                                    }
+                                                }
+
+                                                is LoadState.NotLoading -> {
+                                                    LogUtil.d_dev("MYTAG append LoadState.NotLoading")
+                                                }
+                                            }
+
+                                            when (loadStatus.source.prepend) {
+                                                is LoadState.Error -> {
+                                                    LogUtil.e_dev("MYTAG prepend LoadState.Error")
+                                                    item {
+                                                        RetryView(
+                                                            localContext = localContext,
+                                                            retry = {
+                                                                bookListPaging.retry()
+                                                            },
+                                                            message = (loadStatus.source.refresh as LoadState.Error).error.localizedMessage
+                                                        )
+                                                    }
+                                                }
+
+                                                is LoadState.Loading -> {
+                                                    LogUtil.d_dev("MYTAG prepend LoadState.Loading")
+                                                }
+
+                                                is LoadState.NotLoading -> {
+                                                    LogUtil.d_dev("MYTAG prepend LoadState.NotLoading")
+                                                }
+                                            }
+
+                                            when (loadStatus.source.refresh) {
+                                                is LoadState.Error -> {
+                                                    LogUtil.e_dev("MYTAG refresh LoadState.Error")
+                                                    item {
+                                                        RetryView(
+                                                            localContext = localContext,
+                                                            retry = {
+                                                                bookListPaging.retry()
+                                                            },
+                                                            message = (loadStatus.source.refresh as LoadState.Error).error.localizedMessage
+                                                        )
+                                                    }
+                                                }
+
+                                                is LoadState.Loading -> {
+                                                    LogUtil.d_dev("MYTAG refresh LoadState.Loading")
+                                                    item {
+                                                        ListLoadingView()
+                                                    }
+                                                }
+
+                                                is LoadState.NotLoading -> {
+                                                    LogUtil.d_dev("MYTAG refresh LoadState.NotLoading")
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        item {
+                                            SearchStateView(
+                                                modifier = Modifier.height(maxHeight),
+                                                drawableRes = R.drawable.ic_search_grey_27x28,
+                                                title = stringResource(R.string.search_book_empty_title),
+                                                subtitle = stringResource(R.string.search_book_empty_subtitle)
+                                            )
+                                        }
                                     }
                                 }
-
-                                bookListPaging?.loadState?.let { loadStatus ->
-                                    LogUtil.i_dev("MYTAG addLoadStateListener ${loadStatus}")
-
-                                    when (loadStatus.source.append) {
-                                        is LoadState.Error -> {
-                                            LogUtil.e_dev("MYTAG append LoadState.Error")
-                                            item {
-                                                RetryView(
-                                                    localContext = localContext,
-                                                    retry = {
-                                                        bookListPaging.retry()
-                                                    },
-                                                    message = (loadStatus.source.refresh as LoadState.Error).error.localizedMessage
-                                                )
-                                            }
-                                        }
-
-                                        is LoadState.Loading -> {
-                                            LogUtil.d_dev("MYTAG append LoadState.Loading")
-                                            item {
-                                                ListLoadingView()
-                                            }
-                                        }
-
-                                        is LoadState.NotLoading -> {
-                                            LogUtil.d_dev("MYTAG append LoadState.NotLoading")
-                                        }
-                                    }
-
-                                    when (loadStatus.source.prepend) {
-                                        is LoadState.Error -> {
-                                            LogUtil.e_dev("MYTAG prepend LoadState.Error")
-                                            item {
-                                                RetryView(
-                                                    localContext = localContext,
-                                                    retry = {
-                                                        bookListPaging.retry()
-                                                    },
-                                                    message = (loadStatus.source.refresh as LoadState.Error).error.localizedMessage
-                                                )
-                                            }
-                                        }
-
-                                        is LoadState.Loading -> {
-                                            LogUtil.d_dev("MYTAG prepend LoadState.Loading")
-                                        }
-
-                                        is LoadState.NotLoading -> {
-                                            LogUtil.d_dev("MYTAG prepend LoadState.NotLoading")
-                                        }
-                                    }
-
-                                    when (loadStatus.source.refresh) {
-                                        is LoadState.Error -> {
-                                            LogUtil.e_dev("MYTAG refresh LoadState.Error")
-                                            item {
-                                                RetryView(
-                                                    localContext = localContext,
-                                                    retry = {
-                                                        bookListPaging.retry()
-                                                    },
-                                                    message = (loadStatus.source.refresh as LoadState.Error).error.localizedMessage
-                                                )
-                                            }
-                                        }
-
-                                        is LoadState.Loading -> {
-                                            LogUtil.d_dev("MYTAG refresh LoadState.Loading")
-                                            item {
-                                                ListLoadingView()
-                                            }
-                                        }
-
-                                        is LoadState.NotLoading -> {
-                                            LogUtil.d_dev("MYTAG refresh LoadState.NotLoading")
-                                        }
-                                    }
-                                }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
             }
@@ -312,45 +389,48 @@ fun SearchContent(
 
 @Composable
 fun BookItemView(
-    data: ResSearchBook.ResponseData.BookWrapper
+    data: ResSearchBook.ResponseData.BookWrapper,
+    onItemClick: (ResSearchBook.ResponseData.BookWrapper) -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 20.dp, end = 20.dp, bottom = 12.dp)
+            .noRippleClickable {
+                onItemClick.invoke(data)
+            }
             .background(
                 color = colorResource(R.color.color_FFFFFFFF),
-                shape = RoundedCornerShape(12.dp)
             )
-            .border(
-                width = 1.dp,
-                color = colorResource(R.color.color_8B95A1),
-                shape = RoundedCornerShape(12.dp)
-            )
-            .padding(12.dp)
+            .padding(start = 20.dp, top = 16.dp, end = 20.dp, bottom = 16.dp)
     ) {
         Box(
             modifier = Modifier
-                .width(72.dp)
-                .height(104.dp)
+                .width(56.dp)
+                .height(80.dp)
                 .background(
-                    color = colorResource(R.color.color_E8F3FF),
+                    color = colorResource(R.color.color_FFFFFFFF),
                     shape = RoundedCornerShape(12.dp)
                 )
         ) {
+            var contentScale by remember {
+                mutableStateOf<ContentScale>(ContentScale.Inside)
+            }
+
             AsyncImage(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
+                    .fillMaxSize(),
                 model = data.doc.bookImageUrl,
                 contentDescription = null,
-                contentScale = ContentScale.Crop,
-                placeholder = painterResource(R.drawable.ic_search_grey_18x18),
-                error = painterResource(R.drawable.ic_search_grey_18x18),
+                alignment = Alignment.Center,
+                contentScale = contentScale,
+                placeholder = painterResource(R.drawable.ic_book_grey_21x18),
+                error = painterResource(R.drawable.ic_book_grey_21x18),
                 onError = { error ->
-                    LogUtil.e_dev("book iamge load error: ${error.result.throwable}")
+                    contentScale = ContentScale.Inside
+                    LogUtil.e_dev("book image load error: ${error.result.throwable}")
                 },
                 onSuccess = {
+                    contentScale = ContentScale.Crop
                     LogUtil.d_dev("book image success, url: ${data.doc.bookImageUrl}")
                 }
             )
@@ -360,14 +440,136 @@ fun BookItemView(
 
         Column(
             modifier = Modifier
-                .fillMaxWidth()
+                .weight(1f)
                 .align(Alignment.CenterVertically),
             horizontalAlignment = Alignment.Start,
         ) {
-            Text(text = data.doc.bookName?:"Abc")
+            Text(
+                text = "${data.doc.bookName}",
+                style = TextStyle(
+                    color = colorResource(R.color.color_191F28),
+                    fontSize = dpToSp(16.dp),
+                    lineHeight = dpToSp(24.dp),
+                    fontFamily = NotoSansKR,
+                    fontWeight = FontWeight.Medium
+                )
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = stringResource(R.string.search_book_authors, data.doc.authors ?: ""),
+                style = TextStyle(
+                    color = colorResource(R.color.color_6B7684),
+                    fontSize = dpToSp(13.dp),
+                    lineHeight = dpToSp(20.dp),
+                    fontFamily = NotoSansKR,
+                    fontWeight = FontWeight.Medium
+                )
+            )
+
+            Spacer(modifier = Modifier.height(2.dp))
+
+            Text(
+                text = stringResource(R.string.search_book_publisher_year, data.doc.publisher ?: "", data.doc.publicationYear ?: ""),
+                style = TextStyle(
+                    color = colorResource(R.color.color_6B7684),
+                    fontSize = dpToSp(13.dp),
+                    lineHeight = dpToSp(20.dp),
+                    fontFamily = NotoSansKR,
+                    fontWeight = FontWeight.Medium
+                )
+            )
         }
 
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Image(
+            painter = painterResource(R.drawable.ic_arrow_right_grey_7x10),
+            contentDescription = null,
+            modifier = Modifier
+                .align(Alignment.CenterVertically)
+        )
     }
+}
+
+@Composable
+fun SearchStateView(
+    modifier: Modifier = Modifier,
+    @DrawableRes drawableRes: Int,
+    title: String,
+    subtitle: String
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+
+        Image(
+            painter = painterResource(drawableRes),
+            contentDescription = null,
+            modifier = Modifier
+                .background(
+                    color = colorResource(R.color.color_F9FAFB),
+                    shape = RoundedCornerShape(9999.dp)
+                )
+                .padding(horizontal = 18.dp, vertical = 19.dp)
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = title,
+            style = TextStyle(
+                color = colorResource(R.color.color_191F28),
+                fontSize = dpToSp(20.dp),
+                lineHeight = dpToSp(28.dp),
+                fontFamily = NotoSansKR,
+                fontWeight = FontWeight.Medium
+            ),
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = subtitle,
+            style = TextStyle(
+                color = colorResource(R.color.color_8B95A1),
+                fontSize = dpToSp(13.dp),
+                lineHeight = dpToSp(20.dp),
+                fontFamily = NotoSansKR,
+                fontWeight = FontWeight.Normal
+            ),
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun BookItemViewPreview() {
+    BookItemView(
+        data = ResSearchBook.ResponseData.BookWrapper(
+            doc = ResSearchBook.ResponseData.BookWrapper.BookInfo(
+                bookName = "코틀린 완벽 가이드",
+                authors = "지은이: 조세핀 홍",
+                publisher = "한빛미디어",
+                publicationYear = "2023",
+                isbn13 = "9791162245678",
+                additionSymbol = null,
+                vol = null,
+                classNo = "005.133",
+                classNm = "프로그래밍 언어",
+                bookImageUrl = null,
+                bookDtlUrl = null,
+                loanCount = "120"
+            )
+        ),
+        onItemClick = {}
+    )
 }
 
 @Preview(showBackground = true)
