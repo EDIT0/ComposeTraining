@@ -301,7 +301,7 @@ fun SearchContent(
                                                             retry = {
                                                                 bookListPaging.retry()
                                                             },
-                                                            message = (loadStatus.source.refresh as LoadState.Error).error.localizedMessage
+                                                            message = (loadStatus.source.append as LoadState.Error).error.localizedMessage
                                                         )
                                                     }
                                                 }
@@ -327,7 +327,7 @@ fun SearchContent(
                                                             retry = {
                                                                 bookListPaging.retry()
                                                             },
-                                                            message = (loadStatus.source.refresh as LoadState.Error).error.localizedMessage
+                                                            message = (loadStatus.source.prepend as LoadState.Error).error.localizedMessage
                                                         )
                                                     }
                                                 }

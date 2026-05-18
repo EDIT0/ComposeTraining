@@ -7,6 +7,7 @@ import androidx.paging.cachedIn
 import androidx.paging.map
 import com.my.book.library.core.common.util.LogUtil
 import com.my.book.library.core.model.req.ReqSearchBookWithKeyword
+import com.my.book.library.core.resource.R
 import com.my.book.library.domain.usecase.GetSearchBookWithKeywordUseCase
 import com.my.book.library.feature.search.book.intent.SearchUiEvent
 import com.my.book.library.feature.search.book.intent.SearchViewModelEvent
@@ -74,7 +75,7 @@ class SearchViewModel @Inject constructor(
 
     private suspend fun requestSearchBook(keyword: String) {
         if (keyword.length < 2 || keyword.length > 50) {
-            _sideEffectEvent.send(SearchViewModel.SideEffectEvent.ShowToast("짧다.."))
+            _sideEffectEvent.send(SearchViewModel.SideEffectEvent.ShowToast(app.getString(R.string.search_book_letter_count_warning_notice)))
             return
         }
         getSearchBookWithKeywordUseCase.invokePaging(

@@ -1,9 +1,12 @@
 package com.my.book.library.core.di
 
+import android.content.Context
 import com.my.book.library.core.common.util.DataStoreUtil
+import com.my.book.library.core.common.util.NetworkConnectivityUtil
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -15,6 +18,14 @@ object UtilModule {
     @Provides
     fun providesDataStoreUtil(): DataStoreUtil {
         return DataStoreUtil()
+    }
+
+    @Singleton
+    @Provides
+    fun providesNetworkConnectivityUtil(
+        @ApplicationContext context: Context
+    ): NetworkConnectivityUtil {
+        return NetworkConnectivityUtil(context)
     }
 
 }
