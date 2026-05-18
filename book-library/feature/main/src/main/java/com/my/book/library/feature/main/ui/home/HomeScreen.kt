@@ -3,7 +3,6 @@ package com.my.book.library.feature.main.ui.home
 import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -25,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -49,12 +46,9 @@ import com.my.book.library.core.common.noRippleClickable
 import com.my.book.library.core.common.util.LogUtil
 import com.my.book.library.core.common.util.SystemBarConfig
 import com.my.book.library.core.common.util.SystemBarController
-import com.my.book.library.core.resource.Gray300
-import com.my.book.library.core.resource.Green500
 import com.my.book.library.core.resource.NotoSansKR
 import com.my.book.library.core.resource.R
 import com.my.book.library.feature.main.state.home.HomeUiState
-import com.my.book.library.feature.main.ui.component.FakeSearchBar
 import com.my.book.library.feature.main.viewmodel.MainViewModel
 import com.my.book.library.feature.main.viewmodel.home.HomeViewModel
 
@@ -191,8 +185,7 @@ fun HomeContent(
                         onSearchClick = {},
                         onCancelClick = {},
                         onFakeBarClick = {
-                            // TODO 검색창으로 이동
-                            LogUtil.i_dev("Fake SearchBar 클릭")
+                            onMoveToSearchLibrary.invoke()
                         }
                     )
 

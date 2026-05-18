@@ -41,7 +41,7 @@ fun FakeSearchBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(70.dp)
+            .height(72.dp)
             .noRippleClickable(
                 onClick = {
                     onClick.invoke()

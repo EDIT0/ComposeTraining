@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.android.application)
+    alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 
@@ -8,17 +8,16 @@ plugins {
 }
 
 android {
-    namespace = "com.my.book.library"
-    compileSdk = 36
+    namespace = "com.my.book.library.feature.search"
+    compileSdk {
+        version = release(36)
+    }
 
     defaultConfig {
-        applicationId = "com.my.book.library"
         minSdk = 26
-        targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
@@ -43,21 +42,11 @@ android {
 }
 
 dependencies {
-
-    // Module
-    implementation(project(":core:common"))
-    implementation(project(":core:di"))
+// Module
     implementation(project(":core:model"))
-    implementation(project(":core:navigation"))
+    implementation(project(":core:common"))
     implementation(project(":core:resource"))
-    implementation(project(":data"))
     implementation(project(":domain"))
-    implementation(project(":feature:main"))
-    implementation(project(":feature:search"))
-    implementation(project(":feature:search_library"))
-    implementation(project(":feature:select_library"))
-    implementation(project(":feature:select_region"))
-    implementation(project(":feature:splash"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -76,11 +65,16 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
-    // Navigation
-    implementation(libs.androidx.navigation.compose)
-
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
+
+    // Paging3
+    implementation(libs.androidx.paging.runtime)
+    implementation(libs.androidx.paging.compose)
+
+    // Coil
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
 }

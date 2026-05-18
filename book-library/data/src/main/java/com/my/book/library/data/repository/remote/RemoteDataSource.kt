@@ -20,7 +20,7 @@ interface RemoteDataSource {
     suspend fun getSearchDetailRegionBookLibrary(authToken: String, format: String, reqSearchDetailRegionBookLibrary: ReqSearchDetailRegionBookLibrary): Response<ResSearchBookLibrary>
     suspend fun getSearchDetailRegionBookLibraryPaging(authToken: String, format: String, reqSearchDetailRegionBookLibrary: ReqSearchDetailRegionBookLibrary): Flow<PagingData<ResSearchBookLibrary.ResponseData.LibraryWrapper>>
     suspend fun getSearchLibCodeBookLibrary(authToken: String, format: String, reqSearchLibCodeBookLibrary: ReqSearchLibCodeBookLibrary): Response<ResSearchBookLibrary>
-    suspend fun getSearchBookWithKeywordPaging(authToken: String, format: String, reqSearchBookWithKeyword: ReqSearchBookWithKeyword): Flow<PagingData<ResSearchBook.ResponseData.BookWrapper>>
+    suspend fun getSearchBookWithKeywordPaging(authToken: String, format: String, reqSearchBookWithKeyword: ReqSearchBookWithKeyword, onResponseData: (ResSearchBook.ResponseData) -> Unit): Flow<PagingData<ResSearchBook.ResponseData.BookWrapper>>
     suspend fun getBookDetail(authToken: String, format: String, reqBookDetail: ReqBookDetail): Response<ResBookDetail>
     suspend fun getSearchBookHoldingLibraryPaging(authToken: String, format: String, reqSearchBookHoldingLibrary: ReqSearchBookHoldingLibrary): Flow<PagingData<ResSearchBookHoldingLibrary.ResponseData.LibraryWrapper>>
 }

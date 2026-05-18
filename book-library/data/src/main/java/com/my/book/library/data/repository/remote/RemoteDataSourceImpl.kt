@@ -100,7 +100,8 @@ class RemoteDataSourceImpl @Inject constructor(
     override suspend fun getSearchBookWithKeywordPaging(
         authToken: String,
         format: String,
-        reqSearchBookWithKeyword: ReqSearchBookWithKeyword
+        reqSearchBookWithKeyword: ReqSearchBookWithKeyword,
+        onResponseData: (ResSearchBook.ResponseData) -> Unit
     ): Flow<PagingData<ResSearchBook.ResponseData.BookWrapper>> {
         return Pager(
             config = PagingConfig(
@@ -118,7 +119,8 @@ class RemoteDataSourceImpl @Inject constructor(
                     apiService = apiService,
                     authToken = authToken,
                     format = format,
-                    reqSearchBookWithKeyword = reqSearchBookWithKeyword
+                    reqSearchBookWithKeyword = reqSearchBookWithKeyword,
+                    onResponseData = onResponseData
                 )
             }
         ).flow.catch {
