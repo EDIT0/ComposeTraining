@@ -8,6 +8,7 @@ enum class Screen {
     RegionSelectionComplete,
     Main,
     Search,
+    LibraryMap,
     SearchLibrary,
     SelectLibraryRegion,
     SelectLibraryDetailRegion,

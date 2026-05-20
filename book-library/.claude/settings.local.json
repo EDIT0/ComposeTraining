@@ -6,7 +6,9 @@
       "Bash(mv \"NotoSansKR-Bold.ttf\" \"noto_sans_kr_bold.ttf\")",
       "Bash(mv \"NotoSansKR-ExtraBold.ttf\" \"noto_sans_kr_extra_bold.ttf\")",
       "Bash(mv \"NotoSansKR-ExtraLight.ttf\" \"noto_sans_kr_extra_light.ttf\")",
-      "Bash(mv \"NotoSansKR-Light.ttf\" \"noto_sans_kr_light.ttf\")"
+      "Bash(mv \"NotoSansKR-Light.ttf\" \"noto_sans_kr_light.ttf\")",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:navermaps.github.io)"
     ],
     "deny": [],
     "ask": []

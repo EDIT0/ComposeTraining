@@ -77,4 +77,7 @@ dependencies {
     // Coil
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
+
+    // 네이버 지도
+    implementation(libs.naver.map.compose)
 }
