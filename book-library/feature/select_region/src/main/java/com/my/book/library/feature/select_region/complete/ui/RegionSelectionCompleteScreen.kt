@@ -121,7 +121,7 @@ fun RegionSelectionCompleteContent(
     regionSelectionCompleteUiState: State<RegionSelectionCompleteUiState>
 ) {
 
-    val useStatusBarSpace = false
+    val useStatusBarSpace = true
     val useNavigationBarSpace = true
 
     SystemBarController.Setup(

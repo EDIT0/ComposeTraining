@@ -100,7 +100,7 @@ fun HomeContent(
 ) {
     val scrollState = rememberScrollState()
 
-    val useStatusBarSpace = false
+    val useStatusBarSpace = true
     val useNavigationBarSpace = true
 
     SystemBarController.Setup(

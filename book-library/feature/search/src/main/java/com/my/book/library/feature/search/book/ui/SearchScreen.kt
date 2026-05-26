@@ -140,7 +140,7 @@ fun SearchContent(
     bookListPaging: LazyPagingItems<ResSearchBook.ResponseData.BookWrapper>?
 ) {
 
-    val useStatusBarSpace = false
+    val useStatusBarSpace = true
     val useNavigationBarSpace = true
 
     SystemBarController.Setup(
