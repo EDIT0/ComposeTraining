@@ -6,10 +6,11 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import androidx.paging.map
 import com.my.book.library.core.common.util.LogUtil
-import com.my.book.library.core.model.req.ReqSearchDetailRegionBookLibrary
-import com.my.book.library.core.model.req.ReqSearchRegionBookLibrary
-import com.my.book.library.core.resource.LibraryData
-import com.my.book.library.domain.usecase.GetSearchDetailRegionBookLibraryUseCase
+import com.my.book.library.core.model.network.RequestResult
+import com.my.book.library.core.model.req.ReqSearchBookHoldingLibrary
+import com.my.book.library.core.common.util.LocationUtil
+import com.my.book.library.domain.usecase.GetSearchBookHoldingLibraryUseCase
+import com.my.book.library.domain.usecase.data_store.GetMyLibraryInfoUseCase
 import com.my.book.library.feature.search.library.intent.LibraryMapUiEvent
 import com.my.book.library.feature.search.library.intent.LibraryMapViewModelEvent
 import com.my.book.library.feature.search.library.state.LibraryMapUiState
@@ -29,7 +30,9 @@ import javax.inject.Inject
 @HiltViewModel
 class LibraryMapViewModel @Inject constructor(
     private val app: Application,
-    private val getSearchDetailRegionBookLibraryUseCase: GetSearchDetailRegionBookLibraryUseCase
+    private val getSearchBookHoldingLibraryUseCase: GetSearchBookHoldingLibraryUseCase,
+    private val getMyLibraryInfoUseCase: GetMyLibraryInfoUseCase,
+    private val locationUtil: LocationUtil
 ): AndroidViewModel(application = app) {
 
     sealed interface SideEffectEvent {
@@ -45,45 +48,106 @@ class LibraryMapViewModel @Inject constructor(
             initial = LibraryMapUiState(),
             operation = { state, event ->
                 when(event) {
+                    is LibraryMapUiEvent.UpdateDetailRegion -> {
+                        state.copy(currentDetailRegion = event.detailRegion)
+                    }
+                    is LibraryMapUiEvent.UpdateUserLocation -> {
+                        state.copy(userLatitude = event.latitude, userLongitude = event.longitude)
+                    }
                     is LibraryMapUiEvent.UpdateLibraryList -> {
                         state.copy(libraryList = MutableStateFlow(value = event.libraryList!!))
+                    }
+                    is LibraryMapUiEvent.UpdateHoldingLibraryList -> {
+                        state.copy(holdingLibraryList = MutableStateFlow(value = event.holdingLibraryList!!))
                     }
                 }
             }
         )
         .stateIn(viewModelScope, SharingStarted.Eagerly, LibraryMapUiState())
 
+    private var currentIsbn: String = ""
+
     fun intentAction(libraryMapViewModelEvent: LibraryMapViewModelEvent) {
         when(libraryMapViewModelEvent) {
-            is LibraryMapViewModelEvent.RequestLibraryList -> {
+            is LibraryMapViewModelEvent.RequestInit -> {
+                currentIsbn = libraryMapViewModelEvent.isbn
                 viewModelScope.launch {
-                    requestLibrary(detailRegion = libraryMapViewModelEvent.detailRegion)
+                    requestInit(isbn = libraryMapViewModelEvent.isbn)
                 }
+            }
+            is LibraryMapViewModelEvent.UpdateRegion -> {
+                viewModelScope.launch {
+                    val detailRegion = libraryMapViewModelEvent.detailRegion
+                    _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateDetailRegion(detailRegion))
+                    requestHoldingLibrary(
+                        isbn = currentIsbn,
+                        region = detailRegion.regionCode,
+                        dtlRegion = detailRegion.code
+                    )
+                }
+            }
+            is LibraryMapViewModelEvent.RequestHoldingLibraryList -> {
+                viewModelScope.launch {
+                    requestHoldingLibrary(
+                        isbn = libraryMapViewModelEvent.isbn,
+                        region = libraryMapViewModelEvent.region,
+                        dtlRegion = libraryMapViewModelEvent.dtlRegion
+                    )
+                }
+            }
+            else -> {}
+        }
+    }
+
+    private suspend fun requestInit(isbn: String) {
+        locationUtil.getLastKnownLocation()?.let { location ->
+            _libraryMapUiEvent.send(
+                LibraryMapUiEvent.UpdateUserLocation(latitude = location.latitude, longitude = location.longitude)
+            )
+        }
+        getMyLibraryInfoUseCase.invoke().collect { result ->
+            when (result) {
+                is RequestResult.Success -> {
+                    val detailRegion = result.resultData!!.detailRegion
+                    _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateDetailRegion(detailRegion))
+                    requestHoldingLibrary(
+                        isbn = isbn,
+                        region = detailRegion.regionCode,
+                        dtlRegion = detailRegion.code
+                    )
+                }
+                is RequestResult.Error -> {
+                    _sideEffectEvent.send(SideEffectEvent.ShowToast(message = result.message ?: ""))
+                }
+                else -> {}
             }
         }
     }
 
-    private suspend fun requestLibrary(detailRegion: LibraryData.DetailRegion) {
-        getSearchDetailRegionBookLibraryUseCase.invokePaging(
-            reqSearchDetailRegionBookLibrary = ReqSearchDetailRegionBookLibrary(
+    private suspend fun requestHoldingLibrary(isbn: String, region: Int, dtlRegion: Int) {
+        getSearchBookHoldingLibraryUseCase.invokePaging(
+            reqSearchBookHoldingLibrary = ReqSearchBookHoldingLibrary(
+                isbn = isbn,
+                region = region,
+                dtlRegion = dtlRegion,
                 pageNo = 0,
-                pageSize = 0,
-                dtlRegion = detailRegion.code
+                pageSize = 0
             )
         )
             .map { it ->
                 it.map {
-                    LogUtil.d_dev("페이징 데이터: ${it}")
+                    LogUtil.d_dev("소장 도서관 페이징 데이터: ${it}")
                     it
                 }
             }
             .cachedIn(viewModelScope)
             .catch { e ->
-                _sideEffectEvent.send(SideEffectEvent.ShowToast(message = e.message?:""))
+                _sideEffectEvent.send(SideEffectEvent.ShowToast(message = e.message ?: ""))
             }
             .collect {
-                _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateLibraryList(libraryList = it))
+                _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateHoldingLibraryList(holdingLibraryList = it))
             }
     }
+
 
 }
