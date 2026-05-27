@@ -54,11 +54,14 @@ class LibraryMapViewModel @Inject constructor(
                     is LibraryMapUiEvent.UpdateUserLocation -> {
                         state.copy(userLatitude = event.latitude, userLongitude = event.longitude)
                     }
-                    is LibraryMapUiEvent.UpdateLibraryList -> {
-                        state.copy(libraryList = MutableStateFlow(value = event.libraryList!!))
-                    }
                     is LibraryMapUiEvent.UpdateHoldingLibraryList -> {
                         state.copy(holdingLibraryList = MutableStateFlow(value = event.holdingLibraryList!!))
+                    }
+                    is LibraryMapUiEvent.UpdateSelectedLibCode -> {
+                        state.copy(selectedLibCode = event.libCode)
+                    }
+                    is LibraryMapUiEvent.UpdateSheetOffsetRatio -> {
+                        state.copy(sheetOffsetRatio = event.ratio)
                     }
                 }
             }
@@ -93,6 +96,16 @@ class LibraryMapViewModel @Inject constructor(
                         region = libraryMapViewModelEvent.region,
                         dtlRegion = libraryMapViewModelEvent.dtlRegion
                     )
+                }
+            }
+            is LibraryMapViewModelEvent.SelectMarker -> {
+                viewModelScope.launch {
+                    _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateSelectedLibCode(libraryMapViewModelEvent.libCode))
+                }
+            }
+            is LibraryMapViewModelEvent.UpdateSheetOffsetRatio -> {
+                viewModelScope.launch {
+                    _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateSheetOffsetRatio(libraryMapViewModelEvent.ratio))
                 }
             }
             else -> {}

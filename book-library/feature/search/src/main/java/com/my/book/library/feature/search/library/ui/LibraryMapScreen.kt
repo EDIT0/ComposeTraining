@@ -5,7 +5,9 @@ import android.content.Intent
 import android.location.Location
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
@@ -36,6 +38,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -43,18 +48,24 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.layout.boundsInParent
+import androidx.compose.ui.layout.onGloballyPositioned
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -77,8 +88,12 @@ import com.my.book.library.core.resource.R
 import com.my.book.library.feature.search.library.intent.LibraryMapViewModelEvent
 import com.my.book.library.feature.search.library.state.LibraryMapUiState
 import com.my.book.library.feature.search.library.viewmodel.LibraryMapViewModel
+import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.compose.ExperimentalNaverMapApi
+import com.naver.maps.map.compose.Marker
 import com.naver.maps.map.compose.NaverMap
+import com.naver.maps.map.compose.rememberUpdatedMarkerState
+import com.naver.maps.map.overlay.OverlayImage
 
 @Composable
 fun LibraryMapScreen(
@@ -128,6 +143,7 @@ fun LibraryMapScreen(
         localContext = localContext,
         onBackPressed = onBackPressed,
         modifier = Modifier,
+        bookTitle = book.doc.bookName ?: "",
         libraryMapViewModelEvent = {
             libraryMapViewModel.intentAction(it)
         },
@@ -150,6 +166,7 @@ fun LibraryMapContent(
     localContext: Context,
     onBackPressed: () -> Unit,
     modifier: Modifier,
+    bookTitle: String = "",
     libraryMapViewModelEvent: (LibraryMapViewModelEvent) -> Unit,
     libraryMapUiState: State<LibraryMapUiState>,
     holdingLibraryListPaging: LazyPagingItems<ResSearchBookHoldingLibrary.ResponseData.LibraryWrapper>?,
@@ -189,17 +206,19 @@ fun LibraryMapContent(
                     modifier = Modifier
                         .fillMaxSize()
                 ) {
+                    val coroutineScope = rememberCoroutineScope()
                     val screenHeightPx = constraints.maxHeight.toFloat()
+                    var titleBarTopPx by remember { mutableFloatStateOf(0f) }
+                    var titleBarBottomPx by remember { mutableFloatStateOf(0f) }
                     val initialOffsetPx = remember(screenHeightPx) {
                         screenHeightPx - with(density) { screenHeightPx / 4 }
                     }
-                    val minOffsetPx = 0f
+                    val minOffsetPx = (titleBarTopPx + titleBarBottomPx) / 2f
                     val maxOffsetPx = remember(screenHeightPx) {
                         screenHeightPx - with(density) { screenHeightPx / 4 }
                     }
 
-                    // configuration change 후 시트 위치 복원을 위해 비율(0~1)로 저장
-                    var savedOffsetRatio by rememberSaveable { mutableFloatStateOf(-1f) }
+                    val savedOffsetRatio = libraryMapUiState.value.sheetOffsetRatio
                     val sheetOffsetState = remember(screenHeightPx) {
                         val initial = if (savedOffsetRatio >= 0f) {
                             (savedOffsetRatio * screenHeightPx).coerceIn(minOffsetPx, maxOffsetPx)
@@ -212,7 +231,7 @@ fun LibraryMapContent(
 
                     LaunchedEffect(sheetOffsetState) {
                         snapshotFlow { sheetOffsetState.floatValue }
-                            .collect { savedOffsetRatio = it / screenHeightPx }
+                            .collect { libraryMapViewModelEvent(LibraryMapViewModelEvent.UpdateSheetOffsetRatio(it / screenHeightPx)) }
                     }
 
                     val nestedScrollConnection = remember(minOffsetPx, maxOffsetPx) {
@@ -240,7 +259,62 @@ fun LibraryMapContent(
                         }
                     }
 
+                    // Detail sheet 스냅 포인트
+                    val detailExpandOffsetPx = (titleBarTopPx + titleBarBottomPx) / 2f
+                    val detailCollapsedOffsetPx = remember(screenHeightPx) {
+                        screenHeightPx - with(density) { 160.dp.toPx() }
+                    }
+                    val detailHalfOffsetPx = detailExpandOffsetPx + (screenHeightPx - detailExpandOffsetPx) * 0.5f
+
+                    val detailSheetAnim = remember(screenHeightPx) {
+                        Animatable(screenHeightPx)
+                    }
+
+                    val selectedLibCode = libraryMapUiState.value.selectedLibCode
+
+                    LaunchedEffect(selectedLibCode) {
+                        if (selectedLibCode != null) {
+                            detailSheetAnim.snapTo(screenHeightPx)
+                            detailSheetAnim.animateTo(
+                                targetValue = detailCollapsedOffsetPx,
+                                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)
+                            )
+                        } else {
+                            detailSheetAnim.animateTo(
+                                targetValue = screenHeightPx,
+                                animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium)
+                            )
+                        }
+                    }
+
+                    val detailNestedScrollConnection = remember(detailExpandOffsetPx, detailCollapsedOffsetPx, screenHeightPx) {
+                        object : NestedScrollConnection {
+                            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                                val delta = available.y
+                                if (delta < 0 && detailSheetAnim.value > detailExpandOffsetPx) {
+                                    val newOffset = (detailSheetAnim.value + delta).coerceIn(detailExpandOffsetPx, screenHeightPx)
+                                    val consumed = newOffset - detailSheetAnim.value
+                                    coroutineScope.launch { detailSheetAnim.snapTo(newOffset) }
+                                    return Offset(0f, consumed)
+                                }
+                                return Offset.Zero
+                            }
+                            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+                                val delta = available.y
+                                if (delta > 0 && detailSheetAnim.value < detailCollapsedOffsetPx) {
+                                    val newOffset = (detailSheetAnim.value + delta).coerceIn(detailExpandOffsetPx, screenHeightPx)
+                                    val consumed2 = newOffset - detailSheetAnim.value
+                                    coroutineScope.launch { detailSheetAnim.snapTo(newOffset) }
+                                    return Offset(0f, consumed2)
+                                }
+                                return Offset.Zero
+                            }
+                        }
+                    }
+
                     // 지도
+                    val markerItems = holdingLibraryListPaging?.itemSnapshotList?.items ?: emptyList()
+
                     if (isPreview) {
                         Box(
                             modifier = Modifier
@@ -260,17 +334,38 @@ fun LibraryMapContent(
                         }
                     } else {
                         NaverMap(
-                            modifier = Modifier
-                                .fillMaxSize()
-                        )
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            markerItems.forEach { item ->
+                                val lat = item.lib.latitude?.toDoubleOrNull()
+                                val lon = item.lib.longitude?.toDoubleOrNull()
+                                if (lat != null && lon != null) {
+                                    val isSelected = selectedLibCode == item.lib.libCode
+                                    Marker(
+                                        state = rememberUpdatedMarkerState(
+                                            position = LatLng(lat, lon)
+                                        ),
+                                        icon = OverlayImage.fromResource(
+                                            if (isSelected) R.drawable.ic_point_marker_blue_40x50
+                                            else R.drawable.ic_point_marker_blue_28x35
+                                        ),
+                                        captionText = item.lib.libName ?: "",
+                                        onClick = {
+                                            libraryMapViewModelEvent(LibraryMapViewModelEvent.SelectMarker(item.lib.libCode))
+                                            true
+                                        }
+                                    )
+                                }
+                            }
+                        }
                     }
 
-                    // 자유 드래그 바텀시트
+                    // 자유 드래그 바텀시트 (마커 선택 시 숨김)
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .fillMaxHeight()
-                            .offset { IntOffset(x = 0, y = sheetOffsetY.roundToInt()) }
+                            .offset { IntOffset(x = 0, y = if (selectedLibCode == null) sheetOffsetY.roundToInt() else screenHeightPx.toInt()) }
                             .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
                             .background(colorResource(R.color.color_FFFFFFFF))
                     ) {
@@ -334,6 +429,130 @@ fun LibraryMapContent(
                                 }
                             }
                         }
+                    }
+
+                    // 마커 선택 시 detail 바텀시트
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight()
+                            .offset { IntOffset(x = 0, y = detailSheetAnim.value.roundToInt()) }
+                            .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                            .background(colorResource(R.color.color_FFFFFFFF))
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .nestedScroll(detailNestedScrollConnection)
+                        ) {
+                            // 드래그 핸들
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .draggable(
+                                        orientation = Orientation.Vertical,
+                                        state = rememberDraggableState { delta ->
+                                            coroutineScope.launch {
+                                                val newOffset = (detailSheetAnim.value + delta)
+                                                    .coerceIn(detailExpandOffsetPx, detailCollapsedOffsetPx)
+                                                detailSheetAnim.snapTo(newOffset)
+                                            }
+                                        },
+                                        onDragStopped = { velocity ->
+                                            coroutineScope.launch {
+                                                val snapPoints = listOf(detailExpandOffsetPx, detailHalfOffsetPx, detailCollapsedOffsetPx)
+                                                val current = detailSheetAnim.value
+                                                val target: Float = when {
+                                                    velocity > 800f -> snapPoints.firstOrNull { it > current } ?: (detailCollapsedOffsetPx + 1f)
+                                                    velocity < -800f -> snapPoints.lastOrNull { it < current } ?: detailExpandOffsetPx
+                                                    else -> snapPoints.minByOrNull { kotlin.math.abs(it - current) } ?: detailCollapsedOffsetPx
+                                                }
+                                                if (target > detailCollapsedOffsetPx) {
+                                                    detailSheetAnim.animateTo(screenHeightPx, spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium))
+                                                    libraryMapViewModelEvent(LibraryMapViewModelEvent.SelectMarker(null))
+                                                } else {
+                                                    detailSheetAnim.animateTo(target, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium))
+                                                }
+                                            }
+                                        }
+                                    )
+                                    .padding(top = 12.dp, bottom = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .width(40.dp)
+                                        .height(4.dp)
+                                        .background(
+                                            color = colorResource(R.color.color_E5E8EB),
+                                            shape = RoundedCornerShape(2.dp)
+                                        )
+                                )
+                            }
+
+                            // Detail 콘텐츠
+                            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                                item {
+                                    Spacer(modifier = Modifier.height(20.dp))
+                                }
+                            }
+                        }
+                    }
+
+                    // 바텀시트가 타이틀 바에 닿을 때 하얀 배경 오버레이
+                    val coverThresholdPx = with(density) { 60.dp.toPx() }
+                    val mainCoverAlpha = ((titleBarBottomPx + coverThresholdPx - sheetOffsetY) / coverThresholdPx)
+                        .coerceIn(0f, 1f)
+                    val detailCoverAlpha = ((titleBarBottomPx + coverThresholdPx - detailSheetAnim.value) / coverThresholdPx)
+                        .coerceIn(0f, 1f)
+                    val coverAlpha = maxOf(mainCoverAlpha, detailCoverAlpha)
+
+                    if (coverAlpha > 0f) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(with(density) { titleBarBottomPx.toDp() })
+                                .alpha(coverAlpha)
+                                .background(colorResource(R.color.color_FFFFFFFF))
+                        )
+                    }
+
+                    // 상단 타이틀 바
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 10.dp + state.statusBarHeight, start = 10.dp, end = 10.dp)
+                            .clip(RoundedCornerShape(999.dp))
+                            .onGloballyPositioned { coords ->
+                                titleBarTopPx = coords.boundsInParent().top
+                                titleBarBottomPx = coords.boundsInParent().bottom
+                            }
+                            .background(colorResource(R.color.color_FFFFFFFF))
+                            .padding(horizontal = 4.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.ic_arrow_left_black_40x40),
+                            contentDescription = "뒤로가기",
+                            modifier = Modifier.clickable {
+                                if (selectedLibCode != null) {
+                                    libraryMapViewModelEvent(LibraryMapViewModelEvent.SelectMarker(null))
+                                } else {
+                                    onBackPressed()
+                                }
+                            }
+                        )
+                        Text(
+                            text = bookTitle,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            style = TextStyle(
+                                color = colorResource(R.color.color_191F28),
+                                fontSize = dpToSp(16.dp),
+                                fontFamily = NotoSansKR,
+                                fontWeight = FontWeight.Medium
+                            )
+                        )
                     }
                 }
             }
@@ -519,6 +738,7 @@ fun SearchContentUiPreview() {
         localContext = LocalContext.current,
         onBackPressed = {},
         modifier = Modifier,
+        bookTitle = "미움받을 용기 - 자유롭고 행복한 삶을 위한 아들러의 가르침",
         libraryMapViewModelEvent = {},
         libraryMapUiState = remember { mutableStateOf(LibraryMapUiState()) },
         holdingLibraryListPaging = null,
