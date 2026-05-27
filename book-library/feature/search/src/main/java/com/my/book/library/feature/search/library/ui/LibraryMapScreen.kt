@@ -34,6 +34,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -173,149 +174,166 @@ fun LibraryMapContent(
     ) { state ->
         val density = LocalDensity.current
 
-        BoxWithConstraints(
+        Scaffold(
             modifier = Modifier
-                .fillMaxSize()
-
-        ) {
-            val screenHeightPx = constraints.maxHeight.toFloat()
-            val initialOffsetPx = remember(screenHeightPx) {
-                screenHeightPx - with(density) { 160.dp.toPx() }
-            }
-            val minOffsetPx = 0f
-            val maxOffsetPx = remember(screenHeightPx) {
-                screenHeightPx - with(density) { 160.dp.toPx() }
-            }
-
-            // configuration change 후 시트 위치 복원을 위해 비율(0~1)로 저장
-            var savedOffsetRatio by rememberSaveable { mutableFloatStateOf(-1f) }
-            val sheetOffsetState = remember(screenHeightPx) {
-                val initial = if (savedOffsetRatio >= 0f) {
-                    (savedOffsetRatio * screenHeightPx).coerceIn(minOffsetPx, maxOffsetPx)
-                } else {
-                    initialOffsetPx
-                }
-                mutableFloatStateOf(initial)
-            }
-            var sheetOffsetY by sheetOffsetState
-
-            LaunchedEffect(sheetOffsetState) {
-                snapshotFlow { sheetOffsetState.floatValue }
-                    .collect { savedOffsetRatio = it / screenHeightPx }
-            }
-
-            val nestedScrollConnection = remember(minOffsetPx, maxOffsetPx) {
-                object : NestedScrollConnection {
-                    override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                        val delta = available.y
-                        if (delta < 0 && sheetOffsetState.floatValue > minOffsetPx) {
-                            val newOffset = (sheetOffsetState.floatValue + delta).coerceIn(minOffsetPx, maxOffsetPx)
-                            val consumed = newOffset - sheetOffsetState.floatValue
-                            sheetOffsetState.floatValue = newOffset
-                            return Offset(0f, consumed)
-                        }
-                        return Offset.Zero
-                    }
-                    override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
-                        val delta = available.y
-                        if (delta > 0 && sheetOffsetState.floatValue < maxOffsetPx) {
-                            val newOffset = (sheetOffsetState.floatValue + delta).coerceIn(minOffsetPx, maxOffsetPx)
-                            val consumed2 = newOffset - sheetOffsetState.floatValue
-                            sheetOffsetState.floatValue = newOffset
-                            return Offset(0f, consumed2)
-                        }
-                        return Offset.Zero
-                    }
-                }
-            }
-
-            // 지도
-            if (isPreview) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(colorResource(R.color.color_E5E8EB)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "지도 영역",
-                        style = TextStyle(
-                            color = colorResource(R.color.color_6B7684),
-                            fontSize = dpToSp(16.dp),
-                            fontFamily = NotoSansKR,
-                            fontWeight = FontWeight.Medium
-                        )
-                    )
-                }
-            } else {
-                NaverMap(
-                    modifier = Modifier
-                        .fillMaxSize()
-                )
-            }
-
-            // 자유 드래그 바텀시트
+                .padding(top = if(useStatusBarSpace) {state.statusBarHeight} else {0.dp}, bottom = if(useNavigationBarSpace) {state.navigationBarHeight} else {0.dp})
+                .consumeWindowInsets(WindowInsets.statusBars)
+                .consumeWindowInsets(WindowInsets.navigationBars)
+        ) { innerPadding ->
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight()
-                    .offset { IntOffset(x = 0, y = sheetOffsetY.roundToInt()) }
-                    .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
-                    .background(colorResource(R.color.color_FFFFFFFF))
+                modifier = modifier
+                    .padding(innerPadding)
+                    .background(color = colorResource(R.color.color_FFFFFFFF))
             ) {
-                Column(
+                BoxWithConstraints(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .nestedScroll(nestedScrollConnection)
+                        .fillMaxSize()
                 ) {
-                    // 드래그 핸들
+                    val screenHeightPx = constraints.maxHeight.toFloat()
+                    val initialOffsetPx = remember(screenHeightPx) {
+                        screenHeightPx - with(density) { screenHeightPx / 4 }
+                    }
+                    val minOffsetPx = 0f
+                    val maxOffsetPx = remember(screenHeightPx) {
+                        screenHeightPx - with(density) { screenHeightPx / 4 }
+                    }
+
+                    // configuration change 후 시트 위치 복원을 위해 비율(0~1)로 저장
+                    var savedOffsetRatio by rememberSaveable { mutableFloatStateOf(-1f) }
+                    val sheetOffsetState = remember(screenHeightPx) {
+                        val initial = if (savedOffsetRatio >= 0f) {
+                            (savedOffsetRatio * screenHeightPx).coerceIn(minOffsetPx, maxOffsetPx)
+                        } else {
+                            initialOffsetPx
+                        }
+                        mutableFloatStateOf(initial)
+                    }
+                    var sheetOffsetY by sheetOffsetState
+
+                    LaunchedEffect(sheetOffsetState) {
+                        snapshotFlow { sheetOffsetState.floatValue }
+                            .collect { savedOffsetRatio = it / screenHeightPx }
+                    }
+
+                    val nestedScrollConnection = remember(minOffsetPx, maxOffsetPx) {
+                        object : NestedScrollConnection {
+                            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                                val delta = available.y
+                                if (delta < 0 && sheetOffsetState.floatValue > minOffsetPx) {
+                                    val newOffset = (sheetOffsetState.floatValue + delta).coerceIn(minOffsetPx, maxOffsetPx)
+                                    val consumed = newOffset - sheetOffsetState.floatValue
+                                    sheetOffsetState.floatValue = newOffset
+                                    return Offset(0f, consumed)
+                                }
+                                return Offset.Zero
+                            }
+                            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+                                val delta = available.y
+                                if (delta > 0 && sheetOffsetState.floatValue < maxOffsetPx) {
+                                    val newOffset = (sheetOffsetState.floatValue + delta).coerceIn(minOffsetPx, maxOffsetPx)
+                                    val consumed2 = newOffset - sheetOffsetState.floatValue
+                                    sheetOffsetState.floatValue = newOffset
+                                    return Offset(0f, consumed2)
+                                }
+                                return Offset.Zero
+                            }
+                        }
+                    }
+
+                    // 지도
+                    if (isPreview) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(colorResource(R.color.color_E5E8EB)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "지도 영역",
+                                style = TextStyle(
+                                    color = colorResource(R.color.color_6B7684),
+                                    fontSize = dpToSp(16.dp),
+                                    fontFamily = NotoSansKR,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            )
+                        }
+                    } else {
+                        NaverMap(
+                            modifier = Modifier
+                                .fillMaxSize()
+                        )
+                    }
+
+                    // 자유 드래그 바텀시트
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .draggable(
-                                orientation = Orientation.Vertical,
-                                state = rememberDraggableState { delta ->
-                                    sheetOffsetY = (sheetOffsetY + delta)
-                                        .coerceIn(minOffsetPx, maxOffsetPx)
-                                }
-                            )
-                            .padding(top = 12.dp, bottom = 8.dp),
-                        contentAlignment = Alignment.Center
+                            .fillMaxHeight()
+                            .offset { IntOffset(x = 0, y = sheetOffsetY.roundToInt()) }
+                            .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                            .background(colorResource(R.color.color_FFFFFFFF))
                     ) {
-                        Box(
+                        Column(
                             modifier = Modifier
-                                .width(40.dp)
-                                .height(4.dp)
-                                .background(
-                                    color = colorResource(R.color.color_E5E8EB),
-                                    shape = RoundedCornerShape(2.dp)
-                                )
-                        )
-                    }
-
-                    // 리스트
-                    LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                        if (isPreview) {
-                            items(previewHoldingLibraryItems.size) { index ->
-                                LibraryListItem(
-                                    item = previewHoldingLibraryItems[index],
-                                    userLatitude = userLatitude,
-                                    userLongitude = userLongitude
+                                .fillMaxWidth()
+                                .nestedScroll(nestedScrollConnection)
+                        ) {
+                            // 드래그 핸들
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .draggable(
+                                        orientation = Orientation.Vertical,
+                                        state = rememberDraggableState { delta ->
+                                            sheetOffsetY = (sheetOffsetY + delta)
+                                                .coerceIn(minOffsetPx, maxOffsetPx)
+                                        }
+                                    )
+                                    .padding(top = 12.dp, bottom = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .width(40.dp)
+                                        .height(4.dp)
+                                        .background(
+                                            color = colorResource(R.color.color_E5E8EB),
+                                            shape = RoundedCornerShape(2.dp)
+                                        )
                                 )
                             }
-                        } else {
-                            holdingLibraryListPaging?.let { pagingItems ->
-                                items(pagingItems.itemCount) { index ->
-                                    val item = pagingItems[index] ?: return@items
-                                    LibraryListItem(
-                                        item = item,
-                                        userLatitude = userLatitude,
-                                        userLongitude = userLongitude
-                                    )
+
+                            // 리스트
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                            ) {
+                                if (isPreview) {
+                                    items(count = previewHoldingLibraryItems.size) { index ->
+                                        LibraryListItem(
+                                            item = previewHoldingLibraryItems[index],
+                                            userLatitude = userLatitude,
+                                            userLongitude = userLongitude
+                                        )
+                                    }
+                                } else {
+                                    holdingLibraryListPaging?.let { pagingItems ->
+                                        items(count = pagingItems.itemCount) { index ->
+                                            val item = pagingItems[index] ?: return@items
+                                            LibraryListItem(
+                                                item = item,
+                                                userLatitude = userLatitude,
+                                                userLongitude = userLongitude
+                                            )
+                                        }
+                                    }
+                                }
+                                item {
+                                    Spacer(modifier = Modifier.height(20.dp))
                                 }
                             }
                         }
-                        item { Spacer(modifier = Modifier.height(20.dp)) }
                     }
                 }
             }
