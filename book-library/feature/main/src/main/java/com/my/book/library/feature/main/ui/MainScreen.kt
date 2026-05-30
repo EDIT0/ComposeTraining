@@ -42,6 +42,7 @@ import com.my.book.library.feature.main.viewmodel.MainViewModel
 fun MainScreen(
     commonViewModel: CommonViewModel,
     onMoveToSearchLibrary: () -> Unit,
+    onMoveToSelectLibraryRegion: () -> Unit,
     modifier: Modifier
 ) {
 
@@ -65,6 +66,7 @@ fun MainScreen(
     MainContent(
         localContext = localContext,
         onMoveToSearchLibrary = onMoveToSearchLibrary,
+        onMoveToSelectLibraryRegion = onMoveToSelectLibraryRegion,
         modifier = modifier,
         commonViewModel = commonViewModel,
         mainViewModel = mainViewModel
@@ -81,6 +83,7 @@ fun MainScreen(
 fun MainContent(
     localContext: Context,
     onMoveToSearchLibrary: () -> Unit,
+    onMoveToSelectLibraryRegion: () -> Unit,
     modifier: Modifier,
     commonViewModel: CommonViewModel,
     mainViewModel: MainViewModel
@@ -161,6 +164,7 @@ fun MainContent(
                 composable(MainDestination.HOME.route) {
                     HomeScreen(
                         onMoveToSearchLibrary = onMoveToSearchLibrary,
+                        onMoveToSelectLibraryRegion = onMoveToSelectLibraryRegion,
                         commonViewModel = commonViewModel,
                         mainViewModel = mainViewModel
                     )

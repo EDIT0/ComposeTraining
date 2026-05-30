@@ -2,6 +2,7 @@ package com.my.book.library.feature.select_region.guide.ui
 
 import android.content.Context
 import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -48,6 +49,7 @@ import com.my.book.library.feature.select_region.guide.viewmodel.RegionSelectGui
 fun RegionSelectGuideScreen(
     commonViewModel: CommonViewModel,
     onBackPressed: () -> Unit,
+    onMoveToMain: () -> Unit,
     onMoveToRegionSelection: () -> Unit,
     modifier: Modifier
 ) {
@@ -69,17 +71,28 @@ fun RegionSelectGuideScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        regionSelectGuideViewModel.sideEffectEvent.collect { event ->
+            when (event) {
+                is RegionSelectGuideViewModel.SideEffectEvent.NavigateToMain -> {
+                    onMoveToMain()
+                }
+                is RegionSelectGuideViewModel.SideEffectEvent.NavigateBack -> {
+                    onBackPressed()
+                }
+            }
+        }
+    }
+
     RegionSelectGuideContent(
         localContext = context,
         onMoveToRegionSelection = onMoveToRegionSelection,
         onBackPressed = {
-            onBackPressed.invoke()
+            regionSelectGuideViewModel.intentAction(RegionSelectGuideViewModelEvent.CheckRegionAndBack)
         },
         modifier = Modifier,
         regionSelectGuideViewModelEvent = {
-            when(it) {
-                else -> {}
-            }
+            regionSelectGuideViewModel.intentAction(it)
         }
     )
 
@@ -93,7 +106,7 @@ fun RegionSelectGuideScreen(
         enabled = true,
         onBack = {
             LogUtil.i_dev("${object {}.javaClass.enclosingClass?.simpleName} BackHandler")
-            onBackPressed.invoke()
+            regionSelectGuideViewModel.intentAction(RegionSelectGuideViewModelEvent.CheckRegionAndBack)
         }
     )
 
@@ -123,7 +136,17 @@ fun RegionSelectGuideContent(
     ) { state ->
         Scaffold(
             modifier = Modifier
-                .padding(top = if(useStatusBarSpace) {state.statusBarHeight} else {0.dp}, bottom = if(useNavigationBarSpace) {state.navigationBarHeight} else {0.dp})
+                .padding(
+                    top = if (useStatusBarSpace) {
+                        state.statusBarHeight
+                    } else {
+                        0.dp
+                    }, bottom = if (useNavigationBarSpace) {
+                        state.navigationBarHeight
+                    } else {
+                        0.dp
+                    }
+                )
                 .consumeWindowInsets(WindowInsets.statusBars)
                 .consumeWindowInsets(WindowInsets.navigationBars)
         ) { innerPadding ->
