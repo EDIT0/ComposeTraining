@@ -81,6 +81,14 @@ fun AppNavHost(
                     onBackPressed = {
                         onBackPressed(navHostController = navHostController, onAppOff = onAppOff)
                     },
+                    onMoveToMain = {
+                        navHostController.navigate(route = Screen.Main.name) {
+                            popUpTo(Screen.Main.name) {
+                                inclusive = false
+                            }
+                            launchSingleTop = true
+                        }
+                    },
                     onMoveToRegionSelection = {
                         navHostController.navigate(route = Screen.RegionSelection.name)
                     },
@@ -146,6 +154,7 @@ fun AppNavHost(
                             popUpTo(Screen.RegionSelectGuide.name) {
                                 inclusive = true
                             }
+                            launchSingleTop = true
                         }
                     },
                     modifier = modifier,
@@ -166,6 +175,9 @@ fun AppNavHost(
                     commonViewModel = commonViewModel,
                     onMoveToSearchLibrary = {
                         navHostController.navigate(route = Screen.Search.name)
+                    },
+                    onMoveToSelectLibraryRegion = {
+                        navHostController.navigate(route = Screen.RegionSelectGuide.name)
                     },
                     modifier = modifier
                 )

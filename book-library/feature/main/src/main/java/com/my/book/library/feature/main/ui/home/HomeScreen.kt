@@ -48,6 +48,7 @@ import com.my.book.library.core.common.util.SystemBarConfig
 import com.my.book.library.core.common.util.SystemBarController
 import com.my.book.library.core.resource.NotoSansKR
 import com.my.book.library.core.resource.R
+import com.my.book.library.feature.main.intent.home.HomeViewModelEvent
 import com.my.book.library.feature.main.state.home.HomeUiState
 import com.my.book.library.feature.main.viewmodel.MainViewModel
 import com.my.book.library.feature.main.viewmodel.home.HomeViewModel
@@ -55,6 +56,7 @@ import com.my.book.library.feature.main.viewmodel.home.HomeViewModel
 @Composable
 fun HomeScreen(
     onMoveToSearchLibrary: () -> Unit,
+    onMoveToSelectLibraryRegion: () -> Unit,
     commonViewModel: CommonViewModel,
     mainViewModel: MainViewModel
 ) {
@@ -72,7 +74,9 @@ fun HomeScreen(
         object : LifecycleResult {
             override fun onEnter() {}
             override fun onStart() {}
-            override fun onResume() {}
+            override fun onResume() {
+                homeViewModel.intentAction(HomeViewModelEvent.GetMyLibraryInfo)
+            }
             override fun onPause() {}
             override fun onStop() {}
             override fun onDispose() {}
@@ -82,7 +86,8 @@ fun HomeScreen(
     HomeContent(
         localContext = localContext,
         onMoveToSearchLibrary = onMoveToSearchLibrary,
-        homeUiState = homeUiState,
+        onMoveToSelectLibraryRegion = onMoveToSelectLibraryRegion,
+        homeUiState = homeUiState
     )
 
     LifecycleListener(
@@ -96,6 +101,7 @@ fun HomeScreen(
 fun HomeContent(
     localContext: Context,
     onMoveToSearchLibrary: () -> Unit,
+    onMoveToSelectLibraryRegion: () -> Unit,
     homeUiState: State<HomeUiState>
 ) {
     val scrollState = rememberScrollState()
@@ -135,8 +141,8 @@ fun HomeContent(
                             .fillMaxWidth()
                             .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 12.dp)
                             .noRippleClickable {
-                                // TODO 위치 변경으로 이동
-                                LogUtil.d_dev("내 위치 클릭")
+                                // 지역 변경으로 이동
+                                onMoveToSelectLibraryRegion.invoke()
                             },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -227,6 +233,7 @@ fun HomeUIPreview() {
     HomeContent(
         localContext = LocalContext.current,
         onMoveToSearchLibrary = {},
+        onMoveToSelectLibraryRegion = {},
         homeUiState = remember { mutableStateOf(HomeUiState()) },
     )
 }
