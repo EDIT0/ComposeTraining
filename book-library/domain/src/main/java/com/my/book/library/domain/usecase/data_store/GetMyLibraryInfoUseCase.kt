@@ -16,12 +16,8 @@ class GetMyLibraryInfoUseCase @Inject constructor(
         return dataStoreRepository.getMyLibraryInfo().map { result ->
             when (result) {
                 is RequestResult.Success -> {
-                    if (result.resultData?.detailRegion != null && result.resultData?.library != null) {
-                        result
-                    }
-                    else {
-                        RequestResult.Error(Constant.DATA_STORE_GET_FAILURE_CODE, "")
-                    }
+                    if (result.resultData != null) result
+                    else RequestResult.Error(Constant.DATA_STORE_GET_FAILURE_CODE, "")
                 }
                 else -> result
             }
