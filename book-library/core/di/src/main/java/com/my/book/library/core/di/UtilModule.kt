@@ -16,8 +16,12 @@ object UtilModule {
 
     @Singleton
     @Provides
-    fun providesDataStoreUtil(): DataStoreUtil {
-        return DataStoreUtil()
+    fun providesDataStoreUtil(
+        @ApplicationContext context: Context
+    ): DataStoreUtil {
+        return DataStoreUtil().apply {
+            initialize(context)
+        }
     }
 
     @Singleton
