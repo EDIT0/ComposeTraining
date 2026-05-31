@@ -1,20 +1,23 @@
 package com.my.book.library.feature.search.library.ui
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.location.Location
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -30,17 +33,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -49,27 +55,33 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.layout.boundsInParent
-import androidx.compose.ui.layout.onGloballyPositioned
-import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.boundsInParent
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import kotlin.math.roundToInt
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -83,18 +95,28 @@ import com.my.book.library.core.common.util.SystemBarConfig
 import com.my.book.library.core.common.util.SystemBarController
 import com.my.book.library.core.model.res.ResSearchBook
 import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
+import com.my.book.library.core.common.noRippleClickable
+import com.my.book.library.core.resource.LibraryData
 import com.my.book.library.core.resource.NotoSansKR
 import com.my.book.library.core.resource.R
 import com.my.book.library.feature.search.library.intent.LibraryMapViewModelEvent
 import com.my.book.library.feature.search.library.state.LibraryMapUiState
 import com.my.book.library.feature.search.library.viewmodel.LibraryMapViewModel
 import com.naver.maps.geometry.LatLng
+import com.naver.maps.geometry.LatLngBounds
+import com.naver.maps.map.CameraUpdate
+import com.naver.maps.map.compose.CameraPositionState
 import com.naver.maps.map.compose.ExperimentalNaverMapApi
 import com.naver.maps.map.compose.Marker
 import com.naver.maps.map.compose.NaverMap
+import com.naver.maps.map.compose.rememberCameraPositionState
 import com.naver.maps.map.compose.rememberUpdatedMarkerState
 import com.naver.maps.map.overlay.OverlayImage
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
+@OptIn(ExperimentalNaverMapApi::class)
 @Composable
 fun LibraryMapScreen(
     commonViewModel: CommonViewModel,
@@ -106,11 +128,20 @@ fun LibraryMapScreen(
     val localContext = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    val commonViewModel = commonViewModel
     val libraryMapViewModel = hiltViewModel<LibraryMapViewModel>()
 
     val libraryMapUiState = libraryMapViewModel.libraryMapUiState.collectAsStateWithLifecycle()
     val holdingLibraryListPaging = libraryMapUiState.value.holdingLibraryList?.collectAsLazyPagingItems()
+    val cameraPositionState = rememberCameraPositionState()
+
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val granted = permissions.values.any { it }
+        if (granted) {
+            libraryMapViewModel.intentAction(LibraryMapViewModelEvent.StartLocationUpdates)
+        }
+    }
 
     val lifecycleResult = remember {
         object : LifecycleResult {
@@ -135,6 +166,24 @@ fun LibraryMapScreen(
                 is LibraryMapViewModel.SideEffectEvent.ShowToast -> {
                     Toast.makeText(localContext, it.message, Toast.LENGTH_SHORT).show()
                 }
+                is LibraryMapViewModel.SideEffectEvent.MoveToMyLocation -> {
+                    val lat = libraryMapUiState.value.userLatitude
+                    val lon = libraryMapUiState.value.userLongitude
+                    if (lat != null && lon != null) {
+                        cameraPositionState.animate(
+                            update = CameraUpdate.scrollTo(LatLng(lat, lon)),
+                            durationMs = 500
+                        )
+                    }
+                }
+                is LibraryMapViewModel.SideEffectEvent.RequestLocationPermission -> {
+                    locationPermissionLauncher.launch(
+                        arrayOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+                    )
+                }
             }
         }
     }
@@ -151,6 +200,7 @@ fun LibraryMapScreen(
         holdingLibraryListPaging = holdingLibraryListPaging,
         userLatitude = libraryMapUiState.value.userLatitude,
         userLongitude = libraryMapUiState.value.userLongitude,
+        cameraPositionState = cameraPositionState
     )
 
     LifecycleListener(
@@ -172,9 +222,13 @@ fun LibraryMapContent(
     holdingLibraryListPaging: LazyPagingItems<ResSearchBookHoldingLibrary.ResponseData.LibraryWrapper>?,
     previewHoldingLibraryItems: List<ResSearchBookHoldingLibrary.ResponseData.LibraryWrapper> = emptyList(),
     userLatitude: Double? = null,
-    userLongitude: Double? = null
+    userLongitude: Double? = null,
+    cameraPositionState: CameraPositionState = CameraPositionState()
 ) {
     val isPreview = LocalInspectionMode.current
+
+    // 지역 선택 바텀시트 상태 (저장 없이 임시 조회용)
+    var showRegionSheet by rememberSaveable { mutableStateOf(false) }
 
     val useStatusBarSpace = false
     val useNavigationBarSpace = true
@@ -211,11 +265,11 @@ fun LibraryMapContent(
                     var titleBarTopPx by remember { mutableFloatStateOf(0f) }
                     var titleBarBottomPx by remember { mutableFloatStateOf(0f) }
                     val initialOffsetPx = remember(screenHeightPx) {
-                        screenHeightPx - with(density) { screenHeightPx / 4 }
+                        screenHeightPx - with(density) { screenHeightPx / 3 }
                     }
                     val minOffsetPx = (titleBarTopPx + titleBarBottomPx) / 2f
                     val maxOffsetPx = remember(screenHeightPx) {
-                        screenHeightPx - with(density) { screenHeightPx / 4 }
+                        screenHeightPx - with(density) { screenHeightPx / 3 }
                     }
 
                     val savedOffsetRatio = libraryMapUiState.value.sheetOffsetRatio
@@ -262,7 +316,7 @@ fun LibraryMapContent(
                     // Detail sheet 스냅 포인트
                     val detailExpandOffsetPx = (titleBarTopPx + titleBarBottomPx) / 2f
                     val detailCollapsedOffsetPx = remember(screenHeightPx) {
-                        screenHeightPx - with(density) { 160.dp.toPx() }
+                        screenHeightPx - with(density) { screenHeightPx / 3 }
                     }
                     val detailHalfOffsetPx = detailExpandOffsetPx + (screenHeightPx - detailExpandOffsetPx) * 0.5f
 
@@ -271,6 +325,18 @@ fun LibraryMapContent(
                     }
 
                     val selectedLibCode = libraryMapUiState.value.selectedLibCode
+
+                    val handleBack = {
+                        if (selectedLibCode != null) {
+                            libraryMapViewModelEvent(LibraryMapViewModelEvent.SelectMarker(null))
+                        } else {
+                            onBackPressed()
+                        }
+                    }
+
+                    BackHandler {
+                        handleBack()
+                    }
 
                     LaunchedEffect(selectedLibCode) {
                         if (selectedLibCode != null) {
@@ -315,6 +381,37 @@ fun LibraryMapContent(
                     // 지도
                     val markerItems = holdingLibraryListPaging?.itemSnapshotList?.items ?: emptyList()
 
+                    // 지역이 바뀔 때(holdingLibraryListPaging 교체)만 카메라 재조정
+                    // 동일 지역 내 페이징은 리스트만 추가되고 카메라는 유지
+                    LaunchedEffect(holdingLibraryListPaging) {
+                        if (isPreview || holdingLibraryListPaging == null) return@LaunchedEffect
+                        // 첫 아이템이 도착할 때까지 대기 후 단 한 번 bounds 계산
+                        snapshotFlow { holdingLibraryListPaging.itemSnapshotList.items }
+                            .first { it.isNotEmpty() }
+                            .let { items ->
+                                val validCoords = items.mapNotNull { item ->
+                                    val lat = item.lib.latitude?.toDoubleOrNull()
+                                    val lon = item.lib.longitude?.toDoubleOrNull()
+                                    if (lat != null && lon != null) LatLng(lat, lon) else null
+                                }
+                                if (validCoords.isNotEmpty()) {
+                                    val bounds = LatLngBounds.Builder().apply {
+                                        validCoords.forEach { include(it) }
+                                    }.build()
+                                    cameraPositionState.animate(
+                                        update = CameraUpdate.fitBounds(
+                                            bounds,
+                                            100,
+                                            titleBarBottomPx.toInt() + 100,
+                                            100,
+                                            100
+                                        ),
+                                        durationMs = 500
+                                    )
+                                }
+                            }
+                    }
+
                     if (isPreview) {
                         Box(
                             modifier = Modifier
@@ -323,7 +420,7 @@ fun LibraryMapContent(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "지도 영역",
+                                text = stringResource(R.string.library_map_preview_placeholder),
                                 style = TextStyle(
                                     color = colorResource(R.color.color_6B7684),
                                     fontSize = dpToSp(16.dp),
@@ -334,8 +431,21 @@ fun LibraryMapContent(
                         }
                     } else {
                         NaverMap(
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(with(density) { (initialOffsetPx + 24.dp.toPx()).toDp() }),
+                            cameraPositionState = cameraPositionState
                         ) {
+                            // 내 위치 마커
+                            val userLat = userLatitude
+                            val userLon = userLongitude
+                            if (userLat != null && userLon != null) {
+                                Marker(
+                                    state = rememberUpdatedMarkerState(position = LatLng(userLat, userLon)),
+                                    icon = OverlayImage.fromResource(R.drawable.ic_user_location_marker_20x20)
+                                )
+                            }
+                            // 도서관 마커
                             markerItems.forEach { item ->
                                 val lat = item.lib.latitude?.toDoubleOrNull()
                                 val lon = item.lib.longitude?.toDoubleOrNull()
@@ -351,13 +461,38 @@ fun LibraryMapContent(
                                         ),
                                         captionText = item.lib.libName ?: "",
                                         onClick = {
-                                            libraryMapViewModelEvent(LibraryMapViewModelEvent.SelectMarker(item.lib.libCode))
+                                            libraryMapViewModelEvent.invoke(LibraryMapViewModelEvent.SelectMarker(item.lib.libCode))
                                             true
                                         }
                                     )
                                 }
                             }
                         }
+                    }
+
+                    // 내 위치 이동 버튼 (현재 활성 바텀시트 상단 15dp 위, 오른쪽 끝 15dp 여백)
+                    val myLocBtnSizePx = with(density) { 48.dp.toPx() }
+                    val myLocBtnMarginPx = with(density) { 15.dp.toPx() }
+                    val activeSheetY = if (selectedLibCode == null) sheetOffsetY else detailSheetAnim.value
+                    val myLocBtnY = (activeSheetY - myLocBtnMarginPx - myLocBtnSizePx)
+                        .coerceAtLeast(titleBarBottomPx + myLocBtnMarginPx)
+                    val myLocBtnX = constraints.maxWidth - myLocBtnMarginPx - myLocBtnSizePx
+
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .offset { IntOffset(myLocBtnX.roundToInt(), myLocBtnY.roundToInt()) }
+                            .shadow(elevation = 4.dp, shape = CircleShape)
+                            .background(colorResource(R.color.color_FFFFFFFF), CircleShape)
+                            .clickable {
+                                libraryMapViewModelEvent.invoke(LibraryMapViewModelEvent.RequestMoveToMyLocation)
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.ic_my_location_24x24),
+                            contentDescription = "내 위치로 이동"
+                        )
                     }
 
                     // 자유 드래그 바텀시트 (마커 선택 시 숨김)
@@ -401,8 +536,8 @@ fun LibraryMapContent(
 
                             // 리스트
                             LazyColumn(
-                                modifier = Modifier
-                                    .fillMaxSize()
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(bottom = state.navigationBarHeight)
                             ) {
                                 if (isPreview) {
                                     items(count = previewHoldingLibraryItems.size) { index ->
@@ -413,13 +548,79 @@ fun LibraryMapContent(
                                         )
                                     }
                                 } else {
+                                    item {
+                                        val currentDetailRegion = libraryMapUiState.value.currentDetailRegion
+                                        val districtName = currentDetailRegion?.districtNameRes
+                                            ?.let { stringResource(it) } ?: ""
+                                        val libraryCount = holdingLibraryListPaging?.itemCount ?: 0
+
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clickable {
+                                                    showRegionSheet = true
+                                                }
+                                                .padding(horizontal = 20.dp, vertical = 14.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Image(
+                                                painter = painterResource(R.drawable.ic_point_marker_black_15x19),
+                                                contentDescription = null
+                                            )
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text(
+                                                text = districtName,
+                                                style = TextStyle(
+                                                    color = colorResource(R.color.color_191F28),
+                                                    fontSize = dpToSp(16.dp),
+                                                    fontFamily = NotoSansKR,
+                                                    fontWeight = FontWeight.Medium,
+                                                    lineHeight = dpToSp(24.dp)
+                                                )
+                                            )
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text(
+                                                text = "•",
+                                                style = TextStyle(
+                                                    color = colorResource(R.color.color_191F28),
+                                                    fontSize = dpToSp(16.dp),
+                                                    fontFamily = NotoSansKR,
+                                                    fontWeight = FontWeight.Medium
+                                                )
+                                            )
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text(
+                                                text = stringResource(R.string.library_map_library_count, libraryCount),
+                                                style = TextStyle(
+                                                    color = colorResource(R.color.color_191F28),
+                                                    fontSize = dpToSp(16.dp),
+                                                    fontFamily = NotoSansKR,
+                                                    fontWeight = FontWeight.Medium,
+                                                    lineHeight = dpToSp(24.dp)
+                                                )
+                                            )
+                                        }
+                                    }
                                     holdingLibraryListPaging?.let { pagingItems ->
                                         items(count = pagingItems.itemCount) { index ->
                                             val item = pagingItems[index] ?: return@items
                                             LibraryListItem(
                                                 item = item,
                                                 userLatitude = userLatitude,
-                                                userLongitude = userLongitude
+                                                userLongitude = userLongitude,
+                                                onClick = {
+                                                    libraryMapViewModelEvent(LibraryMapViewModelEvent.SelectMarker(item.lib.libCode))
+                                                    val lat = item.lib.latitude?.toDoubleOrNull()
+                                                    val lon = item.lib.longitude?.toDoubleOrNull()
+                                                    if (lat != null && lon != null) {
+                                                        coroutineScope.launch {
+                                                            cameraPositionState.animate(
+                                                                update = CameraUpdate.scrollTo(LatLng(lat, lon)),
+                                                                durationMs = 500
+                                                            )
+                                                        }
+                                                    }
+                                                }
                                             )
                                         }
                                     }
@@ -491,7 +692,10 @@ fun LibraryMapContent(
                             }
 
                             // Detail 콘텐츠
-                            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(bottom = state.navigationBarHeight)
+                            ) {
                                 item {
                                     Spacer(modifier = Modifier.height(20.dp))
                                 }
@@ -500,9 +704,11 @@ fun LibraryMapContent(
                     }
 
                     // 바텀시트가 타이틀 바에 닿을 때 하얀 배경 오버레이
+                    // 마커 선택 시 메인 시트는 숨겨지므로 mainCoverAlpha를 0으로 처리.
+                    // selectedLibCode가 null로 돌아오면 sheetOffsetY가 보존되어 있으므로 이전 오버레이 상태가 자동 복원됨.
                     val coverThresholdPx = with(density) { 60.dp.toPx() }
-                    val mainCoverAlpha = ((titleBarBottomPx + coverThresholdPx - sheetOffsetY) / coverThresholdPx)
-                        .coerceIn(0f, 1f)
+                    val mainCoverAlpha = if (selectedLibCode != null) 0f
+                        else ((titleBarBottomPx + coverThresholdPx - sheetOffsetY) / coverThresholdPx).coerceIn(0f, 1f)
                     val detailCoverAlpha = ((titleBarBottomPx + coverThresholdPx - detailSheetAnim.value) / coverThresholdPx)
                         .coerceIn(0f, 1f)
                     val coverAlpha = maxOf(mainCoverAlpha, detailCoverAlpha)
@@ -534,13 +740,7 @@ fun LibraryMapContent(
                         Image(
                             painter = painterResource(R.drawable.ic_arrow_left_black_40x40),
                             contentDescription = "뒤로가기",
-                            modifier = Modifier.clickable {
-                                if (selectedLibCode != null) {
-                                    libraryMapViewModelEvent(LibraryMapViewModelEvent.SelectMarker(null))
-                                } else {
-                                    onBackPressed()
-                                }
-                            }
+                            modifier = Modifier.clickable { handleBack() }
                         )
                         Text(
                             text = bookTitle,
@@ -557,6 +757,221 @@ fun LibraryMapContent(
                 }
             }
         }
+
+        // 지역 임시 변경 바텀시트 (저장 없이 조회용)
+        if (showRegionSheet) {
+            RegionSelectBottomSheet(
+                currentDetailRegion = libraryMapUiState.value.currentDetailRegion,
+                onDismiss = { showRegionSheet = false },
+                onRegionSelected = { detailRegion ->
+                    showRegionSheet = false
+                    libraryMapViewModelEvent(LibraryMapViewModelEvent.UpdateRegion(detailRegion))
+                }
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RegionSelectBottomSheet(
+    currentDetailRegion: LibraryData.DetailRegion?,
+    onDismiss: () -> Unit,
+    onRegionSelected: (LibraryData.DetailRegion) -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var selectedRegion by remember {
+        mutableStateOf(
+            currentDetailRegion?.let { dr ->
+                LibraryData.regionList.find { it.code == dr.regionCode }
+            }
+        )
+    }
+    var selectedDetailRegion by remember { mutableStateOf(currentDetailRegion) }
+
+    // LazyColumn 잔여 스크롤이 ModalBottomSheet으로 전파되지 않도록 차단
+    // (각 LazyColumn에 직접 적용해야 효과적)
+    val blockOverscrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource
+            ): Offset = available.copy(x = 0f)
+        }
+    }
+
+    val detailListState = androidx.compose.foundation.lazy.rememberLazyListState()
+    LaunchedEffect(selectedRegion) {
+        detailListState.scrollToItem(0)
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = colorResource(R.color.color_FFFFFFFF)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(480.dp)
+        ) {
+            // 헤더
+            Text(
+                text = stringResource(R.string.select_region_selection_title),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                style = TextStyle(
+                    color = colorResource(R.color.color_191F28),
+                    fontSize = dpToSp(16.dp),
+                    fontFamily = NotoSansKR,
+                    fontWeight = FontWeight.Medium
+                )
+            )
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(colorResource(R.color.color_E5E8EB))
+            )
+
+            // 지역 선택 (좌: 시/도, 우: 구/군)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            ) {
+                // 시/도 목록
+                LazyColumn(
+                    modifier = Modifier
+                        .width(128.dp)
+                        .fillMaxHeight()
+                        .background(colorResource(R.color.color_F9FAFB))
+                        .nestedScroll(blockOverscrollConnection)
+                ) {
+                    items(count = LibraryData.regionList.size) { index ->
+                        val region = LibraryData.regionList[index]
+                        val isSelected = region == selectedRegion
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .noRippleClickable {
+                                    selectedRegion = region
+                                    selectedDetailRegion = null
+                                }
+                                .padding(horizontal = 16.dp),
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = stringResource(region.nameRes),
+                                style = TextStyle(
+                                    color = colorResource(if (isSelected) R.color.color_3182F6 else R.color.color_6B7684),
+                                    fontSize = dpToSp(16.dp),
+                                    fontFamily = NotoSansKR,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            )
+                        }
+                    }
+                }
+
+                // 구분선
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(1.dp)
+                        .background(colorResource(R.color.color_E5E8EB))
+                )
+
+                // 구/군 목록
+                val filteredDetails = LibraryData.allDetailRegions.filter { it.regionCode == selectedRegion?.code }
+                if (selectedRegion == null) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = stringResource(R.string.library_map_region_select_hint),
+                            textAlign = TextAlign.Center,
+                            style = TextStyle(
+                                color = colorResource(R.color.color_6B7684),
+                                fontSize = dpToSp(14.dp),
+                                fontFamily = NotoSansKR
+                            )
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(1f)
+                            .nestedScroll(blockOverscrollConnection),
+                        state = detailListState
+                    ) {
+                        items(count = filteredDetails.size) { index ->
+                            val detail = filteredDetails[index]
+                            val isSelected = detail == selectedDetailRegion
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp)
+                                    .noRippleClickable { selectedDetailRegion = detail }
+                                    .padding(horizontal = 20.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = stringResource(detail.districtNameRes),
+                                    modifier = Modifier.weight(1f),
+                                    style = TextStyle(
+                                        color = colorResource(if (isSelected) R.color.color_3182F6 else R.color.color_6B7684),
+                                        fontSize = dpToSp(16.dp),
+                                        fontFamily = NotoSansKR,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                )
+                                if (isSelected) {
+                                    Image(
+                                        painter = painterResource(R.drawable.ic_check_blue_17x13),
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                            if (index < filteredDetails.lastIndex) {
+                                Spacer(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(1.dp)
+                                        .background(colorResource(R.color.color_F2F4F6))
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 적용 버튼
+            val isEnabled = selectedDetailRegion != null
+            Button(
+                onClick = { selectedDetailRegion?.let { onRegionSelected(it) } },
+                enabled = isEnabled,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 20.dp, top = 16.dp, end = 20.dp, bottom = 24.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.library_map_apply),
+                    style = TextStyle(
+                        fontSize = dpToSp(16.dp),
+                        fontFamily = NotoSansKR,
+                        fontWeight = FontWeight.Medium
+                    )
+                )
+            }
+        }
     }
 }
 
@@ -564,7 +979,8 @@ fun LibraryMapContent(
 private fun LibraryListItem(
     item: ResSearchBookHoldingLibrary.ResponseData.LibraryWrapper,
     userLatitude: Double?,
-    userLongitude: Double?
+    userLongitude: Double?,
+    onClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
 
@@ -585,6 +1001,7 @@ private fun LibraryListItem(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable { onClick() }
             .padding(horizontal = 20.dp, vertical = 12.dp)
     ) {
         // 제목 + 직선거리
@@ -663,7 +1080,7 @@ private fun LibraryListItem(
                     context.startActivity(intent)
                 }
             ) {
-                Text(text = "전화")
+                Text(text = stringResource(R.string.library_map_call))
             }
             Button(
                 modifier = Modifier.weight(1f),
@@ -673,7 +1090,7 @@ private fun LibraryListItem(
                     context.startActivity(intent)
                 }
             ) {
-                Text(text = "홈페이지 바로가기")
+                Text(text = stringResource(R.string.library_map_homepage))
             }
         }
     }
@@ -744,6 +1161,7 @@ fun SearchContentUiPreview() {
         holdingLibraryListPaging = null,
         previewHoldingLibraryItems = mockData,
         userLatitude = 37.5665,
-        userLongitude = 126.9780
+        userLongitude = 126.9780,
+        cameraPositionState = rememberCameraPositionState()
     )
 }

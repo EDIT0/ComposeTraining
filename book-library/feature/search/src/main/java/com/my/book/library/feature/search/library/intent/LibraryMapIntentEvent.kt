@@ -11,6 +11,8 @@ sealed interface LibraryMapViewModelEvent {
     data class RequestHoldingLibraryList(val isbn: String, val region: Int, val dtlRegion: Int): LibraryMapViewModelEvent
     data class SelectMarker(val libCode: String?): LibraryMapViewModelEvent
     data class UpdateSheetOffsetRatio(val ratio: Float): LibraryMapViewModelEvent
+    data object StartLocationUpdates : LibraryMapViewModelEvent
+    data object RequestMoveToMyLocation : LibraryMapViewModelEvent
 }
 
 sealed interface LibraryMapUiEvent {

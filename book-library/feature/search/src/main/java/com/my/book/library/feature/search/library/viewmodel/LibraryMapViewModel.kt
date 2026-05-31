@@ -15,6 +15,7 @@ import com.my.book.library.feature.search.library.intent.LibraryMapUiEvent
 import com.my.book.library.feature.search.library.intent.LibraryMapViewModelEvent
 import com.my.book.library.feature.search.library.state.LibraryMapUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -37,6 +38,8 @@ class LibraryMapViewModel @Inject constructor(
 
     sealed interface SideEffectEvent {
         class ShowToast(val message: String): SideEffectEvent
+        data object MoveToMyLocation : SideEffectEvent
+        data object RequestLocationPermission : SideEffectEvent
     }
 
     private val _sideEffectEvent = Channel<SideEffectEvent>()
@@ -69,6 +72,7 @@ class LibraryMapViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, LibraryMapUiState())
 
     private var currentIsbn: String = ""
+    private var locationUpdatesJob: Job? = null
 
     fun intentAction(libraryMapViewModelEvent: LibraryMapViewModelEvent) {
         when(libraryMapViewModelEvent) {
@@ -108,7 +112,33 @@ class LibraryMapViewModel @Inject constructor(
                     _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateSheetOffsetRatio(libraryMapViewModelEvent.ratio))
                 }
             }
+            is LibraryMapViewModelEvent.StartLocationUpdates -> {
+                startLocationUpdates()
+            }
+            is LibraryMapViewModelEvent.RequestMoveToMyLocation -> {
+                viewModelScope.launch {
+                    if (locationUtil.isLocationPermissionGranted()) {
+                        _sideEffectEvent.send(SideEffectEvent.MoveToMyLocation)
+                    } else {
+                        _sideEffectEvent.send(SideEffectEvent.RequestLocationPermission)
+                    }
+                }
+            }
             else -> {}
+        }
+    }
+
+    private fun startLocationUpdates() {
+        locationUpdatesJob?.cancel()
+        locationUpdatesJob = viewModelScope.launch {
+            locationUtil.getLocationUpdates().collect { location ->
+                _libraryMapUiEvent.send(
+                    LibraryMapUiEvent.UpdateUserLocation(
+                        latitude = location.latitude,
+                        longitude = location.longitude
+                    )
+                )
+            }
         }
     }
 
@@ -117,6 +147,9 @@ class LibraryMapViewModel @Inject constructor(
             _libraryMapUiEvent.send(
                 LibraryMapUiEvent.UpdateUserLocation(latitude = location.latitude, longitude = location.longitude)
             )
+        }
+        if (locationUtil.isLocationPermissionGranted()) {
+            startLocationUpdates()
         }
         getMyLibraryInfoUseCase.invoke().collect { result ->
             when (result) {
