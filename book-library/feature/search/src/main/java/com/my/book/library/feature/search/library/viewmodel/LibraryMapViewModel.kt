@@ -15,6 +15,7 @@ import com.my.book.library.feature.search.library.intent.LibraryMapUiEvent
 import com.my.book.library.feature.search.library.intent.LibraryMapViewModelEvent
 import com.my.book.library.feature.search.library.state.LibraryMapUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -118,21 +119,22 @@ class LibraryMapViewModel @Inject constructor(
         }
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        locationUpdatesJob?.cancel()
-    }
-
     private fun startLocationUpdates() {
         locationUpdatesJob?.cancel()
         locationUpdatesJob = viewModelScope.launch {
-            locationUtil.getLocationUpdates().collect { location ->
-                _libraryMapUiEvent.send(
-                    LibraryMapUiEvent.UpdateUserLocation(
-                        latitude = location.latitude,
-                        longitude = location.longitude
+            try {
+                locationUtil.getLocationUpdates().collect { location ->
+                    _libraryMapUiEvent.send(
+                        LibraryMapUiEvent.UpdateUserLocation(
+                            latitude = location.latitude,
+                            longitude = location.longitude
+                        )
                     )
-                )
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                LogUtil.e_dev("Location updates failed: ${e.message}")
             }
         }
     }

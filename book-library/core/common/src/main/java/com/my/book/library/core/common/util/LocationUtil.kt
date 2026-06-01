@@ -52,7 +52,11 @@ class LocationUtil(
                 }
             } catch (_: Exception) {}
         }
-        awaitClose { locationManager.removeUpdates(listener) }
+        awaitClose {
+            try {
+                locationManager.removeUpdates(listener)
+            } catch (_: Exception) {}
+        }
     }
 
 }
