@@ -85,6 +85,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.my.book.library.core.common.CommonViewModel
@@ -553,6 +554,7 @@ fun LibraryMapContent(
                                         val districtName = currentDetailRegion?.districtNameRes
                                             ?.let { stringResource(it) } ?: ""
                                         val libraryCount = holdingLibraryListPaging?.itemCount ?: 0
+                                        val isRefreshDone = holdingLibraryListPaging?.loadState?.refresh is LoadState.NotLoading
                                         val hasLibraries = libraryCount > 0
 
                                         Row(
@@ -591,7 +593,9 @@ fun LibraryMapContent(
                                             )
                                             Spacer(modifier = Modifier.width(6.dp))
                                             Text(
-                                                text = if (hasLibraries) {
+                                                text = if (!isRefreshDone) {
+                                                    ""
+                                                } else if (hasLibraries) {
                                                     stringResource(R.string.library_map_library_count, libraryCount)
                                                 } else {
                                                     stringResource(R.string.library_map_no_library)
@@ -607,7 +611,8 @@ fun LibraryMapContent(
                                         }
                                     }
                                     holdingLibraryListPaging?.let { pagingItems ->
-                                        if (pagingItems.itemCount == 0) {
+                                        val isRefreshDone = pagingItems.loadState.refresh is LoadState.NotLoading
+                                        if (isRefreshDone && pagingItems.itemCount == 0) {
                                             item {
                                                 Column(
                                                     modifier = Modifier
