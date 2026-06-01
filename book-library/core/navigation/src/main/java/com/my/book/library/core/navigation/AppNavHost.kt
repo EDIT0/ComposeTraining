@@ -13,11 +13,13 @@ import androidx.navigation.compose.composable
 import com.google.gson.Gson
 import com.my.book.library.feature.search_library.ui.SearchLibraryScreen
 import com.my.book.library.core.common.CommonViewModel
+import com.my.book.library.core.model.res.ResSearchBook
 import com.my.book.library.core.model.res.ResSearchBookLibrary
 import com.my.book.library.core.resource.LibraryData
 import com.my.book.library.feature.splash.intro.ui.SplashScreen
 import com.my.book.library.feature.main.ui.MainScreen
 import com.my.book.library.feature.search.book.ui.SearchScreen
+import com.my.book.library.feature.search.library.ui.LibraryMapScreen
 import com.my.book.library.feature.select_library.detail_region.ui.SelectLibraryDetailRegionScreen
 import com.my.book.library.feature.select_library.library.ui.SelectLibraryListScreen
 import com.my.book.library.feature.select_library.library_detail.ui.SelectLibraryListDetailScreen
@@ -197,7 +199,42 @@ fun AppNavHost(
                     onBackPressed = {
                         onBackPressed(navHostController = navHostController, onAppOff = onAppOff)
                     },
+                    onMoveToLibraryMap = { book: ResSearchBook.ResponseData.BookWrapper ->
+                        val bookString = URLEncoder.encode(
+                            Gson().toJson(book),
+                            StandardCharsets.UTF_8.name()
+                        )
+
+                        navHostController.navigate(route = Screen.LibraryMap.name + "/${bookString}")
+                    },
                     modifier = modifier
+                )
+            }
+        )
+
+        // LibraryMapScreen
+        composable(
+            route = Screen.LibraryMap.name + "/{${Data.Book.name}}",
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None },
+            content = {
+                val bookString = it.arguments?.getString(Data.Book.name)
+                val book = Gson().fromJson(URLDecoder.decode(bookString, StandardCharsets.UTF_8.name()), ResSearchBook.ResponseData.BookWrapper::class.java)
+
+                if(book == null) {
+                    onBackPressed(navHostController = navHostController, onAppOff = onAppOff)
+                    return@composable
+                }
+
+                LibraryMapScreen(
+                    commonViewModel = commonViewModel,
+                    onBackPressed = {
+                        onBackPressed(navHostController = navHostController, onAppOff = onAppOff)
+                    },
+                    modifier = modifier,
+                    book = book
                 )
             }
         )

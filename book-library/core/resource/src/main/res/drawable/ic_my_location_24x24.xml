@@ -1,0 +1,44 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Top line -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#3182F6"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M12,2 L12,6"/>
+    <!-- Bottom line -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#3182F6"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M12,18 L12,22"/>
+    <!-- Left line -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#3182F6"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M2,12 L6,12"/>
+    <!-- Right line -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#3182F6"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M18,12 L22,12"/>
+    <!-- Circle (center 12,12 radius 6) -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#3182F6"
+        android:strokeWidth="2"
+        android:pathData="M6,12 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0"/>
+    <!-- Center dot (center 12,12 radius 2) -->
+    <path
+        android:fillColor="#3182F6"
+        android:pathData="M10,12 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0"/>
+</vector>

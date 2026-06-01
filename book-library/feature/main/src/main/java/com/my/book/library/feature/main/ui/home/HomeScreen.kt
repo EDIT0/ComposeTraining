@@ -106,7 +106,7 @@ fun HomeContent(
 ) {
     val scrollState = rememberScrollState()
 
-    val useStatusBarSpace = false
+    val useStatusBarSpace = true
     val useNavigationBarSpace = true
 
     SystemBarController.Setup(
@@ -121,7 +121,7 @@ fun HomeContent(
     ) { state ->
         Scaffold(
             modifier = Modifier
-                .padding(top = state.statusBarHeight, bottom = state.navigationBarHeight)
+                .padding(top = if(useStatusBarSpace) {state.statusBarHeight} else {0.dp}, bottom = if(useNavigationBarSpace) {state.navigationBarHeight} else {0.dp})
                 .consumeWindowInsets(WindowInsets.statusBars)
                 .consumeWindowInsets(WindowInsets.navigationBars)
         ) { innerPadding ->

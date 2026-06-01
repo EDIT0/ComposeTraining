@@ -77,6 +77,7 @@ import kotlinx.coroutines.flow.flowOf
 fun SearchScreen(
     commonViewModel: CommonViewModel,
     onBackPressed: () -> Unit,
+    onMoveToLibraryMap: (ResSearchBook.ResponseData.BookWrapper) -> Unit,
     modifier: Modifier
 ) {
     val localContext = LocalContext.current
@@ -112,6 +113,7 @@ fun SearchScreen(
     SearchContent(
         localContext = localContext,
         onBackPressed = onBackPressed,
+        onMoveToLibraryMap = onMoveToLibraryMap,
         modifier = Modifier,
         searchViewModelEvent = {
             searchViewModel.intentAction(it)
@@ -131,13 +133,14 @@ fun SearchScreen(
 fun SearchContent(
     localContext: Context,
     onBackPressed: () -> Unit,
+    onMoveToLibraryMap: (ResSearchBook.ResponseData.BookWrapper) -> Unit,
     modifier: Modifier,
     searchViewModelEvent: (SearchViewModelEvent) -> Unit,
     searchUiState: State<SearchUiState>,
     bookListPaging: LazyPagingItems<ResSearchBook.ResponseData.BookWrapper>?
 ) {
 
-    val useStatusBarSpace = false
+    val useStatusBarSpace = true
     val useNavigationBarSpace = true
 
     SystemBarController.Setup(
@@ -152,7 +155,7 @@ fun SearchContent(
     ) { state ->
         Scaffold(
             modifier = Modifier
-                .padding(top = state.statusBarHeight, bottom = state.navigationBarHeight)
+                .padding(top = if(useStatusBarSpace) {state.statusBarHeight} else {0.dp}, bottom = if(useNavigationBarSpace) {state.navigationBarHeight} else {0.dp})
                 .consumeWindowInsets(WindowInsets.statusBars)
                 .consumeWindowInsets(WindowInsets.navigationBars)
         ) { innerPadding ->
@@ -284,6 +287,7 @@ fun SearchContent(
                                                     data = book!!,
                                                     onItemClick = {
                                                         LogUtil.d_dev("클릭된 책: ${it.doc.bookName}")
+                                                        onMoveToLibraryMap.invoke(it)
                                                     }
                                                 )
                                             }
@@ -616,6 +620,7 @@ fun SearchContentUiPreview() {
     SearchContent(
         localContext = LocalContext.current,
         onBackPressed = {},
+        onMoveToLibraryMap = {},
         modifier = Modifier,
         searchViewModelEvent = {},
         searchUiState = remember { mutableStateOf(SearchUiState()) },
