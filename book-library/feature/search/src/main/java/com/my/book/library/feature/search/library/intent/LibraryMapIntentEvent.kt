@@ -2,13 +2,11 @@ package com.my.book.library.feature.search.library.intent
 
 import androidx.paging.PagingData
 import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
-import com.my.book.library.core.model.res.ResSearchBookLibrary
 import com.my.book.library.core.resource.LibraryData
 
 sealed interface LibraryMapViewModelEvent {
     data class RequestInit(val isbn: String): LibraryMapViewModelEvent
     data class UpdateRegion(val detailRegion: LibraryData.DetailRegion): LibraryMapViewModelEvent
-    data class RequestHoldingLibraryList(val isbn: String, val region: Int, val dtlRegion: Int): LibraryMapViewModelEvent
     data class SelectMarker(val libCode: String?): LibraryMapViewModelEvent
     data class UpdateSheetOffsetRatio(val ratio: Float): LibraryMapViewModelEvent
     data object StartLocationUpdates : LibraryMapViewModelEvent

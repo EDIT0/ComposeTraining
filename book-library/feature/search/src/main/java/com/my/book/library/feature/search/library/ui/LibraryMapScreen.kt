@@ -541,7 +541,10 @@ fun LibraryMapContent(
                                 contentPadding = PaddingValues(bottom = state.navigationBarHeight)
                             ) {
                                 if (isPreview) {
-                                    items(count = previewHoldingLibraryItems.size) { index ->
+                                    items(
+                                        count = previewHoldingLibraryItems.size,
+                                        key = { index -> previewHoldingLibraryItems[index].lib.libCode ?: index }
+                                    ) { index ->
                                         LibraryListItem(
                                             item = previewHoldingLibraryItems[index],
                                             userLatitude = userLatitude,
@@ -647,7 +650,10 @@ fun LibraryMapContent(
                                                 }
                                             }
                                         } else {
-                                            items(count = pagingItems.itemCount) { index ->
+                                            items(
+                                                count = pagingItems.itemCount,
+                                                key = { index -> pagingItems.peek(index)?.lib?.libCode ?: index }
+                                            ) { index ->
                                                 val item = pagingItems[index] ?: return@items
                                                 LibraryListItem(
                                                     item = item,
@@ -896,7 +902,7 @@ private fun RegionSelectBottomSheet(
                         .background(colorResource(R.color.color_F9FAFB))
                         .nestedScroll(blockOverscrollConnection)
                 ) {
-                    items(count = LibraryData.regionList.size) { index ->
+                    items(count = LibraryData.regionList.size, key = { LibraryData.regionList[it].code }) { index ->
                         val region = LibraryData.regionList[index]
                         val isSelected = region == selectedRegion
                         Column(
@@ -957,7 +963,7 @@ private fun RegionSelectBottomSheet(
                             .nestedScroll(blockOverscrollConnection),
                         state = detailListState
                     ) {
-                        items(count = filteredDetails.size) { index ->
+                        items(count = filteredDetails.size, key = { filteredDetails[it].code }) { index ->
                             val detail = filteredDetails[index]
                             val isSelected = detail == selectedDetailRegion
                             Row(

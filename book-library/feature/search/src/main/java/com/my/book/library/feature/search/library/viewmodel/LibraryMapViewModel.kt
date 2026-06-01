@@ -93,15 +93,6 @@ class LibraryMapViewModel @Inject constructor(
                     )
                 }
             }
-            is LibraryMapViewModelEvent.RequestHoldingLibraryList -> {
-                viewModelScope.launch {
-                    requestHoldingLibrary(
-                        isbn = libraryMapViewModelEvent.isbn,
-                        region = libraryMapViewModelEvent.region,
-                        dtlRegion = libraryMapViewModelEvent.dtlRegion
-                    )
-                }
-            }
             is LibraryMapViewModelEvent.SelectMarker -> {
                 viewModelScope.launch {
                     _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateSelectedLibCode(libraryMapViewModelEvent.libCode))
@@ -124,8 +115,12 @@ class LibraryMapViewModel @Inject constructor(
                     }
                 }
             }
-            else -> {}
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        locationUpdatesJob?.cancel()
     }
 
     private fun startLocationUpdates() {
