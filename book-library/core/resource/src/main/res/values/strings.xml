@@ -28,6 +28,9 @@
 
     <string name="library_map_preview_placeholder">지도 영역</string>
     <string name="library_map_library_count">%d곳 소장</string>
+    <string name="library_map_no_library">소장 도서관 없음</string>
+    <string name="library_map_no_library_main">이 지역에 소장 도서관이 없습니다.</string>
+    <string name="library_map_no_library_sub">다른 지역을 선택해주세요.</string>
     <string name="library_map_region_select_hint">시/도를 먼저 선택해주세요</string>
     <string name="library_map_apply">적용</string>
     <string name="library_map_call">전화</string>

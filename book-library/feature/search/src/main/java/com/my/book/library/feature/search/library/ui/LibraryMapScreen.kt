@@ -553,6 +553,7 @@ fun LibraryMapContent(
                                         val districtName = currentDetailRegion?.districtNameRes
                                             ?.let { stringResource(it) } ?: ""
                                         val libraryCount = holdingLibraryListPaging?.itemCount ?: 0
+                                        val hasLibraries = libraryCount > 0
 
                                         Row(
                                             modifier = Modifier
@@ -590,7 +591,11 @@ fun LibraryMapContent(
                                             )
                                             Spacer(modifier = Modifier.width(6.dp))
                                             Text(
-                                                text = stringResource(R.string.library_map_library_count, libraryCount),
+                                                text = if (hasLibraries) {
+                                                    stringResource(R.string.library_map_library_count, libraryCount)
+                                                } else {
+                                                    stringResource(R.string.library_map_no_library)
+                                                },
                                                 style = TextStyle(
                                                     color = colorResource(R.color.color_191F28),
                                                     fontSize = dpToSp(16.dp),
@@ -602,26 +607,62 @@ fun LibraryMapContent(
                                         }
                                     }
                                     holdingLibraryListPaging?.let { pagingItems ->
-                                        items(count = pagingItems.itemCount) { index ->
-                                            val item = pagingItems[index] ?: return@items
-                                            LibraryListItem(
-                                                item = item,
-                                                userLatitude = userLatitude,
-                                                userLongitude = userLongitude,
-                                                onClick = {
-                                                    libraryMapViewModelEvent(LibraryMapViewModelEvent.SelectMarker(item.lib.libCode))
-                                                    val lat = item.lib.latitude?.toDoubleOrNull()
-                                                    val lon = item.lib.longitude?.toDoubleOrNull()
-                                                    if (lat != null && lon != null) {
-                                                        coroutineScope.launch {
-                                                            cameraPositionState.animate(
-                                                                update = CameraUpdate.scrollTo(LatLng(lat, lon)),
-                                                                durationMs = 500
-                                                            )
+                                        if (pagingItems.itemCount == 0) {
+                                            item {
+                                                Column(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(top = 48.dp, bottom = 24.dp),
+                                                    horizontalAlignment = Alignment.CenterHorizontally
+                                                ) {
+                                                    Image(
+                                                        painter = painterResource(R.drawable.ic_book_grey_57x64),
+                                                        contentDescription = null
+                                                    )
+                                                    Spacer(modifier = Modifier.height(16.dp))
+                                                    Text(
+                                                        text = stringResource(R.string.library_map_no_library_main),
+                                                        style = TextStyle(
+                                                            color = colorResource(R.color.color_191F28),
+                                                            fontSize = dpToSp(16.dp),
+                                                            fontFamily = NotoSansKR,
+                                                            fontWeight = FontWeight.Medium
+                                                        )
+                                                    )
+                                                    Spacer(modifier = Modifier.height(6.dp))
+                                                    Text(
+                                                        text = stringResource(R.string.library_map_no_library_sub),
+                                                        style = TextStyle(
+                                                            color = colorResource(R.color.color_6B7684),
+                                                            fontSize = dpToSp(14.dp),
+                                                            fontFamily = NotoSansKR,
+                                                            fontWeight = FontWeight.Normal
+                                                        )
+                                                    )
+                                                }
+                                            }
+                                        } else {
+                                            items(count = pagingItems.itemCount) { index ->
+                                                val item = pagingItems[index] ?: return@items
+                                                LibraryListItem(
+                                                    item = item,
+                                                    userLatitude = userLatitude,
+                                                    userLongitude = userLongitude,
+                                                    onClick = {
+                                                        libraryMapViewModelEvent(LibraryMapViewModelEvent.SelectMarker(item.lib.libCode))
+                                                        val lat = item.lib.latitude?.toDoubleOrNull()
+                                                        val lon = item.lib.longitude?.toDoubleOrNull()
+                                                        if (lat != null && lon != null) {
+                                                            coroutineScope.launch {
+                                                                cameraPositionState.animate(
+                                                                    update = CameraUpdate.scrollTo(LatLng(lat, lon)),
+                                                                    durationMs = 500
+                                                                )
+                                                            }
                                                         }
                                                     }
-                                                }
-                                            )
+                                                )
+                                            }
                                         }
                                     }
                                 }
