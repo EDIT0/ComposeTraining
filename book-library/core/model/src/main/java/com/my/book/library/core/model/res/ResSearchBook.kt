@@ -15,6 +15,8 @@ data class ResSearchBook(
         val docs: List<BookWrapper>
     ) {
         data class RequestData(
+            @SerializedName("title")
+            val title: String?,
             @SerializedName("keyword")
             val keyword: String?,
             @SerializedName("sort")

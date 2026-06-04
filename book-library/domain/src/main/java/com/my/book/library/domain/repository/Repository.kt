@@ -4,7 +4,7 @@ import androidx.paging.PagingData
 import com.my.book.library.core.model.network.RequestResult
 import com.my.book.library.core.model.req.ReqBookDetail
 import com.my.book.library.core.model.req.ReqSearchBookHoldingLibrary
-import com.my.book.library.core.model.req.ReqSearchBookWithKeyword
+import com.my.book.library.core.model.req.ReqSearchBookWithTitle
 import com.my.book.library.core.model.req.ReqSearchDetailRegionBookLibrary
 import com.my.book.library.core.model.req.ReqSearchLibCodeBookLibrary
 import com.my.book.library.core.model.req.ReqSearchRegionBookLibrary
@@ -20,7 +20,7 @@ interface Repository {
     suspend fun getSearchDetailRegionBookLibrary(reqSearchDetailRegionBookLibrary: ReqSearchDetailRegionBookLibrary): Flow<RequestResult<ResSearchBookLibrary>>
     suspend fun getSearchDetailRegionBookLibraryPaging(reqSearchDetailRegionBookLibrary: ReqSearchDetailRegionBookLibrary): Flow<PagingData<ResSearchBookLibrary.ResponseData.LibraryWrapper>>
     suspend fun getSearchLibCodeBookLibrary(reqSearchLibCodeBookLibrary: ReqSearchLibCodeBookLibrary): Flow<RequestResult<ResSearchBookLibrary>>
-    suspend fun getSearchBookPaging(reqSearchBookWithKeyword: ReqSearchBookWithKeyword, onResponseData: (ResSearchBook.ResponseData) -> Unit): Flow<PagingData<ResSearchBook.ResponseData.BookWrapper>>
+    suspend fun getSearchBookPaging(reqSearchBookWithTitle: ReqSearchBookWithTitle, onResponseData: (ResSearchBook.ResponseData) -> Unit): Flow<PagingData<ResSearchBook.ResponseData.BookWrapper>>
     suspend fun getBookDetail(reqBookDetail: ReqBookDetail): Flow<RequestResult<ResBookDetail>>
     suspend fun getSearchBookHoldingLibraryPaging(reqSearchBookHoldingLibrary: ReqSearchBookHoldingLibrary): Flow<PagingData<ResSearchBookHoldingLibrary.ResponseData.LibraryWrapper>>
 

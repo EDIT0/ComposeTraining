@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -184,10 +185,10 @@ fun HomeContent(
                         hint = stringResource(R.string.main_home_fake_search_hint),
                         hintColorRes = R.color.color_8B95A1,
                         textSize = 16.dp,
-                        query = "",
+                        value = TextFieldValue(""),
                         focusRequester = remember { FocusRequester() },
                         showKeyboardOnStart = true,
-                        onQueryChange = {},
+                        onValueChange = {},
                         onSearchClick = {},
                         onCancelClick = {},
                         onFakeBarClick = {

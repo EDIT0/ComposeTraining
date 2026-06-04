@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
@@ -37,6 +36,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -143,6 +144,17 @@ fun SearchContent(
     val useStatusBarSpace = true
     val useNavigationBarSpace = true
 
+    var textFieldValue by remember {
+        mutableStateOf(TextFieldValue(text = searchUiState.value.title, selection = TextRange(searchUiState.value.title.length)))
+    }
+
+    LaunchedEffect(searchUiState.value.title) {
+        val title = searchUiState.value.title
+        if (textFieldValue.text != title) {
+            textFieldValue = TextFieldValue(text = title, selection = TextRange(title.length))
+        }
+    }
+
     SystemBarController.Setup(
         config = SystemBarConfig(
             statusBarColor = colorResource(R.color.color_FFFFFFFF),
@@ -198,17 +210,23 @@ fun SearchContent(
                             hint = stringResource(R.string.main_home_fake_search_hint),
                             hintColorRes = R.color.color_8B95A1,
                             textSize = 16.dp,
-                            query = searchUiState.value.keyword,
+                            value = textFieldValue,
                             focusRequester = remember { FocusRequester() },
                             showKeyboardOnStart = true,
-                            onQueryChange = {
-                                searchViewModelEvent.invoke(SearchViewModelEvent.RequestUpdateKeyword(keyword = it))
+                            onValueChange = {
+                                val filtered = it.copy(text = it.text.replace("\n", ""))
+                                textFieldValue = filtered
+                                searchViewModelEvent.invoke(SearchViewModelEvent.RequestUpdateTitle(title = filtered.text))
                             },
                             onSearchClick = {
-                                searchViewModelEvent.invoke(SearchViewModelEvent.RequestSearchBook(keyword = searchUiState.value.keyword))
+                                val trimmed = textFieldValue.text.trim()
+                                textFieldValue = TextFieldValue(text = trimmed, selection = TextRange(trimmed.length))
+                                searchViewModelEvent.invoke(SearchViewModelEvent.RequestUpdateTitle(title = trimmed))
+                                searchViewModelEvent.invoke(SearchViewModelEvent.RequestSearchBook(title = trimmed))
                             },
                             onCancelClick = {
-                                searchViewModelEvent.invoke(SearchViewModelEvent.RequestUpdateKeyword(keyword = ""))
+                                textFieldValue = TextFieldValue("")
+                                searchViewModelEvent.invoke(SearchViewModelEvent.RequestUpdateTitle(title = ""))
                             },
                             onFakeBarClick = {}
                         )
@@ -235,7 +253,7 @@ fun SearchContent(
                                         .fillMaxHeight()
                                         .padding(horizontal = 20.dp),
                                     drawableRes = R.drawable.ic_search_fail_grey_27x26,
-                                    title = "\"${searchUiState.value.searchInfo?.request?.keyword}\"에 대한\n" + stringResource(R.string.search_book_no_result_title),
+                                    title = "\"${searchUiState.value.searchInfo?.request?.title}\"에 대한\n" + stringResource(R.string.search_book_no_result_title),
                                     subtitle = stringResource(R.string.search_book_no_result_subtitle)
                                 )
                             }
@@ -269,7 +287,7 @@ fun SearchContent(
                                                     .padding(horizontal = 20.dp, vertical = 16.dp)
                                             ) {
                                                 Text(
-                                                    text = stringResource(R.string.search_book_result_count, searchUiState.value.searchInfo?.request?.keyword ?: "", searchUiState.value.searchInfo?.numFound ?: 0),
+                                                    text = stringResource(R.string.search_book_result_count, searchUiState.value.searchInfo?.request?.title ?: "", searchUiState.value.searchInfo?.numFound ?: 0),
                                                     style = TextStyle(
                                                         color = colorResource(R.color.color_6B7684),
                                                         fontSize = dpToSp(13.dp),

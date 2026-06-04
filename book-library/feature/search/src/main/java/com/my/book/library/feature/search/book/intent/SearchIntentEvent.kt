@@ -4,12 +4,12 @@ import androidx.paging.PagingData
 import com.my.book.library.core.model.res.ResSearchBook
 
 sealed interface SearchViewModelEvent {
-    data class RequestUpdateKeyword(val keyword: String): SearchViewModelEvent
-    data class RequestSearchBook(val keyword: String): SearchViewModelEvent
+    data class RequestUpdateTitle(val title: String): SearchViewModelEvent
+    data class RequestSearchBook(val title: String): SearchViewModelEvent
 }
 
 sealed interface SearchUiEvent {
-    data class UpdateKeyword(val keyword: String): SearchUiEvent
+    data class UpdateTitle(val title: String): SearchUiEvent
     data class UpdateBookList(val bookList: PagingData<ResSearchBook.ResponseData.BookWrapper>?): SearchUiEvent
     data class UpdateSearchInfo(val searchInfo: ResSearchBook.ResponseData): SearchUiEvent
 }

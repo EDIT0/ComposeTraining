@@ -75,7 +75,8 @@ interface ApiService {
      * @param format
      * @param pageNo
      * @param pageSize
-     * @param keyword 책 제목
+     * @param keyword 키워드 (다중선택가능)
+     * @param title 책 제목
      * @return
      */
     @GET("${Constant.URL_PATH_API}/srchBooks")
@@ -84,7 +85,8 @@ interface ApiService {
         @Query("format") format: String = Constant.JSON,
         @Query("pageNo") pageNo: Int,
         @Query("pageSize") pageSize: Int,
-        @Query("keyword") keyword: String
+        @Query("keyword") keyword: String,
+        @Query("title") title: String
     ): Response<ResSearchBook>
 
     /**

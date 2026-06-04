@@ -5,7 +5,7 @@ import com.my.book.library.core.common.Constant
 import com.my.book.library.core.model.network.RequestResult
 import com.my.book.library.core.model.req.ReqBookDetail
 import com.my.book.library.core.model.req.ReqSearchBookHoldingLibrary
-import com.my.book.library.core.model.req.ReqSearchBookWithKeyword
+import com.my.book.library.core.model.req.ReqSearchBookWithTitle
 import com.my.book.library.core.model.req.ReqSearchDetailRegionBookLibrary
 import com.my.book.library.core.model.req.ReqSearchLibCodeBookLibrary
 import com.my.book.library.core.model.req.ReqSearchRegionBookLibrary
@@ -95,11 +95,11 @@ class RepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getSearchBookPaging(reqSearchBookWithKeyword: ReqSearchBookWithKeyword, onResponseData: (ResSearchBook.ResponseData) -> Unit): Flow<PagingData<ResSearchBook.ResponseData.BookWrapper>> {
-        return remoteDataSource.getSearchBookWithKeywordPaging(
+    override suspend fun getSearchBookPaging(reqSearchBookWithTitle: ReqSearchBookWithTitle, onResponseData: (ResSearchBook.ResponseData) -> Unit): Flow<PagingData<ResSearchBook.ResponseData.BookWrapper>> {
+        return remoteDataSource.getSearchBookWithTitlePaging(
             authToken = BuildConfig.BOOK_LIBRARY_API_KEY,
             format = Constant.JSON,
-            reqSearchBookWithKeyword = reqSearchBookWithKeyword,
+            reqSearchBookWithTitle = reqSearchBookWithTitle,
             onResponseData = onResponseData
         )
     }

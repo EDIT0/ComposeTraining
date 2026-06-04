@@ -31,6 +31,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -50,10 +52,10 @@ fun CommonSearchBar(
     @ColorRes hintColorRes: Int = R.color.color_6B7684,
     @ColorRes textColorRes: Int = R.color.color_191F28,
     textSize: Dp = 14.dp,
-    query: String,
+    value: TextFieldValue,
     focusRequester: FocusRequester,
     showKeyboardOnStart: Boolean = false,
-    onQueryChange: (String) -> Unit,
+    onValueChange: (TextFieldValue) -> Unit,
     onSearchClick: () -> Unit,
     onCancelClick: () -> Unit,
     onFakeBarClick: () -> Unit
@@ -97,7 +99,7 @@ fun CommonSearchBar(
             modifier = Modifier.weight(1f),
             contentAlignment = Alignment.CenterStart
         ) {
-            if (query.isEmpty()) {
+            if (value.text.isEmpty()) {
                 Text(
                     text = hint,
                     style = TextStyle(
@@ -111,8 +113,8 @@ fun CommonSearchBar(
 
             if (!isFakeSearchBar) {
                 BasicTextField(
-                    value = query,
-                    onValueChange = { onQueryChange(it) },
+                    value = value,
+                    onValueChange = onValueChange,
                     modifier = Modifier
                         .fillMaxWidth()
                         .focusRequester(focusRequester),
@@ -137,7 +139,7 @@ fun CommonSearchBar(
             }
         }
 
-        if (query.isNotEmpty()) {
+        if (value.text.isNotEmpty()) {
             Spacer(modifier = Modifier.width(8.dp))
             Image(
                 painter = painterResource(R.drawable.ic_cancel_grey_20x20),
@@ -155,18 +157,18 @@ fun CommonSearchBar(
 @Preview(showBackground = true)
 @Composable
 fun CommonSearchBarPreview() {
-    var query by remember { mutableStateOf("") }
+    var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
     val focusRequester = remember { FocusRequester() }
     CommonSearchBar(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight(),
         hint = "검색어를 입력하세요",
-        query = query,
+        value = textFieldValue,
         focusRequester = focusRequester,
-        onQueryChange = { query = it },
+        onValueChange = { textFieldValue = it },
         onSearchClick = {},
-        onCancelClick = { query = "" },
+        onCancelClick = { textFieldValue = TextFieldValue("") },
         onFakeBarClick = {}
     )
 }
@@ -181,9 +183,9 @@ fun CommonSearchBarFakePreview() {
             .wrapContentHeight(),
         hint = "검색어를 입력하세요",
         isFakeSearchBar = true,
-        query = "",
+        value = TextFieldValue(""),
         focusRequester = focusRequester,
-        onQueryChange = {},
+        onValueChange = {},
         onSearchClick = {},
         onCancelClick = {},
         onFakeBarClick = {}

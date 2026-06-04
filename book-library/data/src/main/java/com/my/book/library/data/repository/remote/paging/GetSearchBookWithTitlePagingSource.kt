@@ -2,18 +2,18 @@ package com.my.book.library.data.repository.remote.paging
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.my.book.library.core.model.req.ReqSearchBookWithKeyword
+import com.my.book.library.core.model.req.ReqSearchBookWithTitle
 import com.my.book.library.core.model.res.ResSearchBook
 import com.my.book.library.data.api.ApiService
 import java.io.IOException
 
 private const val STARTING_PAGE_INDEX = 1
 
-class GetSearchBookWithKeywordPagingSource(
+class GetSearchBookWithTitlePagingSource(
     private val apiService: ApiService,
     private val authToken: String,
     private val format: String,
-    private val reqSearchBookWithKeyword: ReqSearchBookWithKeyword,
+    private val reqSearchBookWithTitle: ReqSearchBookWithTitle,
     private val onResponseData: (ResSearchBook.ResponseData) -> Unit = {}
 ): PagingSource<Int, ResSearchBook.ResponseData.BookWrapper>() {
 
@@ -36,7 +36,8 @@ class GetSearchBookWithKeywordPagingSource(
                 format = format,
                 pageNo = position,
                 pageSize = 10,
-                keyword = reqSearchBookWithKeyword.keyword
+                keyword = reqSearchBookWithTitle.keyword,
+                title = reqSearchBookWithTitle.title
             )
 
             var post: ResSearchBook? = null

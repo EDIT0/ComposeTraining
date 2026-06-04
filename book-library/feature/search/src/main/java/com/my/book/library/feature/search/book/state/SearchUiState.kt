@@ -5,7 +5,7 @@ import com.my.book.library.core.model.res.ResSearchBook
 import kotlinx.coroutines.flow.MutableStateFlow
 
 data class SearchUiState(
-    val keyword: String = "",
+    val title: String = "",
     val bookList: MutableStateFlow<PagingData<ResSearchBook.ResponseData.BookWrapper>>? = null,
     val searchInfo: ResSearchBook.ResponseData? = null
 )

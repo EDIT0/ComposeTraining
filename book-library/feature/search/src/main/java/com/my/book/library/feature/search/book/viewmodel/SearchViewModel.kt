@@ -6,9 +6,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import androidx.paging.map
 import com.my.book.library.core.common.util.LogUtil
-import com.my.book.library.core.model.req.ReqSearchBookWithKeyword
+import com.my.book.library.core.model.req.ReqSearchBookWithTitle
 import com.my.book.library.core.resource.R
-import com.my.book.library.domain.usecase.GetSearchBookWithKeywordUseCase
+import com.my.book.library.domain.usecase.GetSearchBookWithTitleUseCase
 import com.my.book.library.feature.search.book.intent.SearchUiEvent
 import com.my.book.library.feature.search.book.intent.SearchViewModelEvent
 import com.my.book.library.feature.search.book.state.SearchUiState
@@ -28,7 +28,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val app: Application,
-    private val getSearchBookWithKeywordUseCase: GetSearchBookWithKeywordUseCase
+    private val getSearchBookWithTitleUseCase: GetSearchBookWithTitleUseCase
 ): AndroidViewModel(application = app) {
 
     sealed interface SideEffectEvent {
@@ -40,14 +40,14 @@ class SearchViewModel @Inject constructor(
 
     fun intentAction(searchViewModelEvent: SearchViewModelEvent) {
         when(searchViewModelEvent) {
-            is SearchViewModelEvent.RequestUpdateKeyword -> {
+            is SearchViewModelEvent.RequestUpdateTitle -> {
                 viewModelScope.launch {
-                    _searchUiEvent.send(SearchUiEvent.UpdateKeyword(searchViewModelEvent.keyword))
+                    _searchUiEvent.send(SearchUiEvent.UpdateTitle(searchViewModelEvent.title))
                 }
             }
             is SearchViewModelEvent.RequestSearchBook -> {
                 viewModelScope.launch {
-                    requestSearchBook(keyword = searchViewModelEvent.keyword)
+                    requestSearchBook(title = searchViewModelEvent.title)
                 }
             }
         }
@@ -59,8 +59,8 @@ class SearchViewModel @Inject constructor(
             initial = SearchUiState(),
             operation = { state, event ->
                 when(event) {
-                    is SearchUiEvent.UpdateKeyword -> {
-                        state.copy(keyword = event.keyword)
+                    is SearchUiEvent.UpdateTitle -> {
+                        state.copy(title = event.title)
                     }
                     is SearchUiEvent.UpdateBookList -> {
                         state.copy(bookList = MutableStateFlow(value = event.bookList!!))
@@ -73,16 +73,17 @@ class SearchViewModel @Inject constructor(
         )
         .stateIn(viewModelScope, SharingStarted.Eagerly, SearchUiState())
 
-    private suspend fun requestSearchBook(keyword: String) {
-        if (keyword.length < 2 || keyword.length > 50) {
+    private suspend fun requestSearchBook(title: String) {
+        if (title.length < 2 || title.length > 50) {
             _sideEffectEvent.send(SearchViewModel.SideEffectEvent.ShowToast(app.getString(R.string.search_book_letter_count_warning_notice)))
             return
         }
-        getSearchBookWithKeywordUseCase.invokePaging(
-            reqSearchBookWithKeyword = ReqSearchBookWithKeyword(
+        getSearchBookWithTitleUseCase.invokePaging(
+            reqSearchBookWithTitle = ReqSearchBookWithTitle(
                 pageNo = 0,
                 pageSize = 0,
-                keyword = keyword
+                keyword = "",
+                title = title
             ),
             onResponseData = {
                 viewModelScope.launch {

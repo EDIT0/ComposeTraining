@@ -5,7 +5,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.my.book.library.core.model.req.ReqBookDetail
 import com.my.book.library.core.model.req.ReqSearchBookHoldingLibrary
-import com.my.book.library.core.model.req.ReqSearchBookWithKeyword
+import com.my.book.library.core.model.req.ReqSearchBookWithTitle
 import com.my.book.library.core.model.req.ReqSearchDetailRegionBookLibrary
 import com.my.book.library.core.model.req.ReqSearchLibCodeBookLibrary
 import com.my.book.library.core.model.req.ReqSearchRegionBookLibrary
@@ -15,7 +15,7 @@ import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
 import com.my.book.library.core.model.res.ResSearchBookLibrary
 import com.my.book.library.data.api.ApiService
 import com.my.book.library.data.repository.remote.paging.GetSearchBookHoldingLibraryPagingSource
-import com.my.book.library.data.repository.remote.paging.GetSearchBookWithKeywordPagingSource
+import com.my.book.library.data.repository.remote.paging.GetSearchBookWithTitlePagingSource
 import com.my.book.library.data.repository.remote.paging.GetSearchDetailRegionBookLibraryPagingSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -97,10 +97,10 @@ class RemoteDataSourceImpl @Inject constructor(
         )
     }
 
-    override suspend fun getSearchBookWithKeywordPaging(
+    override suspend fun getSearchBookWithTitlePaging(
         authToken: String,
         format: String,
-        reqSearchBookWithKeyword: ReqSearchBookWithKeyword,
+        reqSearchBookWithTitle: ReqSearchBookWithTitle,
         onResponseData: (ResSearchBook.ResponseData) -> Unit
     ): Flow<PagingData<ResSearchBook.ResponseData.BookWrapper>> {
         return Pager(
@@ -115,11 +115,11 @@ class RemoteDataSourceImpl @Inject constructor(
 
             // 사용할 메소드 선언
             pagingSourceFactory = {
-                GetSearchBookWithKeywordPagingSource(
+                GetSearchBookWithTitlePagingSource(
                     apiService = apiService,
                     authToken = authToken,
                     format = format,
-                    reqSearchBookWithKeyword = reqSearchBookWithKeyword,
+                    reqSearchBookWithTitle = reqSearchBookWithTitle,
                     onResponseData = onResponseData
                 )
             }

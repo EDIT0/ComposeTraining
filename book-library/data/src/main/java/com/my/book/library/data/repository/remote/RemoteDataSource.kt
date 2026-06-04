@@ -3,7 +3,7 @@ package com.my.book.library.data.repository.remote
 import androidx.paging.PagingData
 import com.my.book.library.core.model.req.ReqBookDetail
 import com.my.book.library.core.model.req.ReqSearchBookHoldingLibrary
-import com.my.book.library.core.model.req.ReqSearchBookWithKeyword
+import com.my.book.library.core.model.req.ReqSearchBookWithTitle
 import com.my.book.library.core.model.req.ReqSearchDetailRegionBookLibrary
 import com.my.book.library.core.model.req.ReqSearchLibCodeBookLibrary
 import com.my.book.library.core.model.req.ReqSearchRegionBookLibrary
@@ -20,7 +20,7 @@ interface RemoteDataSource {
     suspend fun getSearchDetailRegionBookLibrary(authToken: String, format: String, reqSearchDetailRegionBookLibrary: ReqSearchDetailRegionBookLibrary): Response<ResSearchBookLibrary>
     suspend fun getSearchDetailRegionBookLibraryPaging(authToken: String, format: String, reqSearchDetailRegionBookLibrary: ReqSearchDetailRegionBookLibrary): Flow<PagingData<ResSearchBookLibrary.ResponseData.LibraryWrapper>>
     suspend fun getSearchLibCodeBookLibrary(authToken: String, format: String, reqSearchLibCodeBookLibrary: ReqSearchLibCodeBookLibrary): Response<ResSearchBookLibrary>
-    suspend fun getSearchBookWithKeywordPaging(authToken: String, format: String, reqSearchBookWithKeyword: ReqSearchBookWithKeyword, onResponseData: (ResSearchBook.ResponseData) -> Unit): Flow<PagingData<ResSearchBook.ResponseData.BookWrapper>>
+    suspend fun getSearchBookWithTitlePaging(authToken: String, format: String, reqSearchBookWithTitle: ReqSearchBookWithTitle, onResponseData: (ResSearchBook.ResponseData) -> Unit): Flow<PagingData<ResSearchBook.ResponseData.BookWrapper>>
     suspend fun getBookDetail(authToken: String, format: String, reqBookDetail: ReqBookDetail): Response<ResBookDetail>
     suspend fun getSearchBookHoldingLibraryPaging(authToken: String, format: String, reqSearchBookHoldingLibrary: ReqSearchBookHoldingLibrary): Flow<PagingData<ResSearchBookHoldingLibrary.ResponseData.LibraryWrapper>>
 }
