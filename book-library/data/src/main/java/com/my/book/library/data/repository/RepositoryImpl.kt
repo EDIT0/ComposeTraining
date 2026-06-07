@@ -4,12 +4,14 @@ import androidx.paging.PagingData
 import com.my.book.library.core.common.Constant
 import com.my.book.library.core.model.network.RequestResult
 import com.my.book.library.core.model.req.ReqBookDetail
+import com.my.book.library.core.model.req.ReqCheckBookAvailability
 import com.my.book.library.core.model.req.ReqSearchBookHoldingLibrary
 import com.my.book.library.core.model.req.ReqSearchBookWithTitle
 import com.my.book.library.core.model.req.ReqSearchDetailRegionBookLibrary
 import com.my.book.library.core.model.req.ReqSearchLibCodeBookLibrary
 import com.my.book.library.core.model.req.ReqSearchRegionBookLibrary
 import com.my.book.library.core.model.res.ResBookDetail
+import com.my.book.library.core.model.res.ResCheckBookAvailability
 import com.my.book.library.core.model.res.ResSearchBook
 import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
 import com.my.book.library.core.model.res.ResSearchBookLibrary
@@ -131,5 +133,26 @@ class RepositoryImpl @Inject constructor(
             format = Constant.JSON,
             reqSearchBookHoldingLibrary = reqSearchBookHoldingLibrary
         )
+    }
+
+    override suspend fun getCheckBookAvailability(reqCheckBookAvailability: ReqCheckBookAvailability): Flow<RequestResult<ResCheckBookAvailability>> {
+        return flow {
+            val response = remoteDataSource.getCheckBookAvailability(
+                authToken = BuildConfig.BOOK_LIBRARY_API_KEY,
+                format = Constant.JSON,
+                reqCheckBookAvailability = reqCheckBookAvailability
+            )
+
+            if (response.isSuccessful) {
+                val body = response.body()
+                if (body != null) {
+                    emit(RequestResult.Success(data = body))
+                } else {
+                    emit(RequestResult.DataEmpty())
+                }
+            } else {
+                emit(RequestResult.Error(code = response.code(), message = response.message()))
+            }
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.my.book.library.feature.search.library.intent
 
 import androidx.paging.PagingData
+import com.my.book.library.core.model.res.ResCheckBookAvailability
 import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
 import com.my.book.library.core.resource.LibraryData
 
@@ -19,4 +20,5 @@ sealed interface LibraryMapUiEvent {
     data class UpdateHoldingLibraryList(val holdingLibraryList: PagingData<ResSearchBookHoldingLibrary.ResponseData.LibraryWrapper>?): LibraryMapUiEvent
     data class UpdateSelectedLibCode(val libCode: String?): LibraryMapUiEvent
     data class UpdateSheetOffsetRatio(val ratio: Float): LibraryMapUiEvent
+    data class UpdateCheckBookAvailability(val resCheckBookAvailability: ResCheckBookAvailability?): LibraryMapUiEvent
 }

@@ -7,8 +7,10 @@ import androidx.paging.cachedIn
 import androidx.paging.map
 import com.my.book.library.core.common.util.LogUtil
 import com.my.book.library.core.model.network.RequestResult
+import com.my.book.library.core.model.req.ReqCheckBookAvailability
 import com.my.book.library.core.model.req.ReqSearchBookHoldingLibrary
 import com.my.book.library.core.common.util.LocationUtil
+import com.my.book.library.domain.usecase.GetCheckBookAvailabilityUseCase
 import com.my.book.library.domain.usecase.GetSearchBookHoldingLibraryUseCase
 import com.my.book.library.domain.usecase.data_store.GetMyLibraryInfoUseCase
 import com.my.book.library.feature.search.library.intent.LibraryMapUiEvent
@@ -33,6 +35,7 @@ import javax.inject.Inject
 class LibraryMapViewModel @Inject constructor(
     private val app: Application,
     private val getSearchBookHoldingLibraryUseCase: GetSearchBookHoldingLibraryUseCase,
+    private val getCheckBookAvailabilityUseCase: GetCheckBookAvailabilityUseCase,
     private val getMyLibraryInfoUseCase: GetMyLibraryInfoUseCase,
     private val locationUtil: LocationUtil
 ): AndroidViewModel(application = app) {
@@ -67,6 +70,9 @@ class LibraryMapViewModel @Inject constructor(
                     is LibraryMapUiEvent.UpdateSheetOffsetRatio -> {
                         state.copy(sheetOffsetRatio = event.ratio)
                     }
+                    is LibraryMapUiEvent.UpdateCheckBookAvailability -> {
+                        state.copy(resCheckBookAvailability = event.resCheckBookAvailability)
+                    }
                 }
             }
         )
@@ -96,7 +102,13 @@ class LibraryMapViewModel @Inject constructor(
             }
             is LibraryMapViewModelEvent.SelectMarker -> {
                 viewModelScope.launch {
-                    _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateSelectedLibCode(libraryMapViewModelEvent.libCode))
+                    val libCode = libraryMapViewModelEvent.libCode
+                    _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateSelectedLibCode(libCode))
+                    if (libCode != null) {
+                        requestCheckBookAvailability(libCode = libCode)
+                    } else {
+                        _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateCheckBookAvailability(resCheckBookAvailability = null))
+                    }
                 }
             }
             is LibraryMapViewModelEvent.UpdateSheetOffsetRatio -> {
@@ -158,6 +170,27 @@ class LibraryMapViewModel @Inject constructor(
                         region = detailRegion.regionCode,
                         dtlRegion = detailRegion.code
                     )
+                }
+                is RequestResult.Error -> {
+                    _sideEffectEvent.send(SideEffectEvent.ShowToast(message = result.message ?: ""))
+                }
+                else -> {}
+            }
+        }
+    }
+
+    private suspend fun requestCheckBookAvailability(libCode: String) {
+        getCheckBookAvailabilityUseCase.invoke(
+            reqCheckBookAvailability = ReqCheckBookAvailability(
+                libCode = libCode.toIntOrNull() ?: return,
+                isbn13 = currentIsbn
+            )
+        ).catch { e ->
+            _sideEffectEvent.send(SideEffectEvent.ShowToast(message = e.message ?: ""))
+        }.collect { result ->
+            when (result) {
+                is RequestResult.Success -> {
+                    _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateCheckBookAvailability(result.resultData))
                 }
                 is RequestResult.Error -> {
                     _sideEffectEvent.send(SideEffectEvent.ShowToast(message = result.message ?: ""))

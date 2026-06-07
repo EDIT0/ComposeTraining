@@ -4,12 +4,14 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.my.book.library.core.model.req.ReqBookDetail
+import com.my.book.library.core.model.req.ReqCheckBookAvailability
 import com.my.book.library.core.model.req.ReqSearchBookHoldingLibrary
 import com.my.book.library.core.model.req.ReqSearchBookWithTitle
 import com.my.book.library.core.model.req.ReqSearchDetailRegionBookLibrary
 import com.my.book.library.core.model.req.ReqSearchLibCodeBookLibrary
 import com.my.book.library.core.model.req.ReqSearchRegionBookLibrary
 import com.my.book.library.core.model.res.ResBookDetail
+import com.my.book.library.core.model.res.ResCheckBookAvailability
 import com.my.book.library.core.model.res.ResSearchBook
 import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
 import com.my.book.library.core.model.res.ResSearchBookLibrary
@@ -165,5 +167,18 @@ class RemoteDataSourceImpl @Inject constructor(
         ).flow.catch {
             throw Exception(it)
         }
+    }
+
+    override suspend fun getCheckBookAvailability(
+        authToken: String,
+        format: String,
+        reqCheckBookAvailability: ReqCheckBookAvailability
+    ): Response<ResCheckBookAvailability> {
+        return apiService.getCheckBookAvailability(
+            authKey = authToken,
+            libCode = reqCheckBookAvailability.libCode,
+            isbn13 = reqCheckBookAvailability.isbn13,
+            format = format
+        )
     }
 }
