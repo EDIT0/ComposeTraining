@@ -14,6 +14,8 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -98,7 +100,6 @@ import com.my.book.library.core.common.util.SystemBarController
 import com.my.book.library.core.model.res.ResSearchBook
 import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
 import com.my.book.library.core.common.noRippleClickable
-import com.my.book.library.core.common.util.LogUtil
 import com.my.book.library.core.model.res.ResCheckBookAvailability
 import com.my.book.library.core.resource.LibraryData
 import com.my.book.library.core.resource.NotoSansKR
@@ -1041,7 +1042,7 @@ private fun LibraryDetailSheet(
     item: ResSearchBookHoldingLibrary.ResponseData.LibraryWrapper? = null,
     userLatitude: Double? = null,
     userLongitude: Double? = null,
-    resCheckBookAvailability: ResCheckBookAvailability? = null, // TODO 대출 현황 표시 필요
+    resCheckBookAvailability: ResCheckBookAvailability? = null,
     nestedScrollConnection: NestedScrollConnection,
     onDrag: suspend (Float) -> Unit,
     onDragStopped: suspend (Float) -> Unit,
@@ -1094,147 +1095,264 @@ private fun LibraryDetailSheet(
             ) {
                 // 도서관 기본 정보
                 item {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp)
-                    ) {
-                        Text(
-                            text = item?.lib?.libName?:"",
-                            style = TextStyle(
-                                color = colorResource(R.color.color_191F28),
-                                fontSize = dpToSp(20.dp),
-                                lineHeight = dpToSp(24.dp),
-                                fontFamily = NotoSansKR,
-                                fontWeight = FontWeight.Medium
-                            ),
-                            textAlign = TextAlign.Start
-                        )
+                    LibraryInfoView(
+                        localContext = localContext,
+                        libraryInfo = item
+                    )
+                }
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                item {
+                    Spacer(modifier = Modifier.height(40.dp))
+                }
 
-                        item?.lib?.address?.let { address ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth(),
-                                verticalAlignment = Alignment.Top
-                            ) {
-                                Image(
-                                    painter = painterResource(R.drawable.ic_point_marker_grey_12x15),
-                                    contentDescription = "",
-                                    modifier = Modifier
-                                        .padding(top = 3.dp)
-                                )
-
-                                Spacer(modifier = Modifier.width(5.dp))
-
-                                Text(
-                                    text = address,
-                                    style = TextStyle(
-                                        color = colorResource(R.color.color_6B7684),
-                                        fontSize = dpToSp(14.dp),
-                                        lineHeight = dpToSp(22.dp),
-                                        fontFamily = NotoSansKR,
-                                        fontWeight = FontWeight.Medium
-                                    ),
-                                    textAlign = TextAlign.Start
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(12.dp))
-                        }
-
-                        item?.lib?.operatingTime?.let { operatingTime ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth(),
-                                verticalAlignment = Alignment.Top
-                            ) {
-                                Image(
-                                    painter = painterResource(R.drawable.ic_clock_grey_15x15),
-                                    contentDescription = "",
-                                    modifier = Modifier
-                                        .padding(top = 3.dp)
-                                )
-
-                                Spacer(modifier = Modifier.width(5.dp))
-
-                                Text(
-                                    text = operatingTime,
-                                    style = TextStyle(
-                                        color = colorResource(R.color.color_6B7684),
-                                        fontSize = dpToSp(14.dp),
-                                        lineHeight = dpToSp(22.dp),
-                                        fontFamily = NotoSansKR,
-                                        fontWeight = FontWeight.Medium
-                                    ),
-                                    textAlign = TextAlign.Start
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(12.dp))
-                        }
-
-                        item?.lib?.closed?.let { closed ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth(),
-                                verticalAlignment = Alignment.Top
-                            ) {
-                                Image(
-                                    painter = painterResource(R.drawable.ic_calendar_grey_14x15),
-                                    contentDescription = "",
-                                    modifier = Modifier
-                                        .padding(top = 3.dp)
-                                )
-
-                                Spacer(modifier = Modifier.width(5.dp))
-
-                                Text(
-                                    text = closed,
-                                    style = TextStyle(
-                                        color = colorResource(R.color.color_6B7684),
-                                        fontSize = dpToSp(14.dp),
-                                        lineHeight = dpToSp(22.dp),
-                                        fontFamily = NotoSansKR,
-                                        fontWeight = FontWeight.Medium
-                                    ),
-                                    textAlign = TextAlign.Start
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        // 전화 버튼 + 홈페이지 버튼
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            OutlinedButton(
-                                onClick = {
-                                    val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${item?.lib?.tel}"))
-                                    localContext.startActivity(intent)
-                                }
-                            ) {
-                                Text(text = stringResource(R.string.library_map_call))
-                            }
-                            Button(
-                                modifier = Modifier.weight(1f),
-                                onClick = {
-                                    val uri = Uri.parse(item?.lib?.homepage)
-                                    val intent = Intent(Intent.ACTION_VIEW, uri)
-                                    localContext.startActivity(intent)
-                                }
-                            ) {
-                                Text(text = stringResource(R.string.library_map_homepage))
-                            }
-                        }
-                    }
+                // 도서 대출 현황
+                item {
+                    BookAvailabilityView(
+                        resCheckBookAvailability = resCheckBookAvailability
+                    )
                 }
             }
         }
     }
+}
+
+@Composable
+fun LibraryInfoView(
+    localContext: Context,
+    libraryInfo: ResSearchBookHoldingLibrary.ResponseData.LibraryWrapper?
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+    ) {
+        Text(
+            text = libraryInfo?.lib?.libName?:"",
+            style = TextStyle(
+                color = colorResource(R.color.color_191F28),
+                fontSize = dpToSp(20.dp),
+                lineHeight = dpToSp(24.dp),
+                fontFamily = NotoSansKR,
+                fontWeight = FontWeight.Medium
+            ),
+            textAlign = TextAlign.Start
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        libraryInfo?.lib?.address?.let { address ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.Top
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.ic_point_marker_grey_12x15),
+                    contentDescription = "",
+                    modifier = Modifier
+                        .padding(top = 3.dp)
+                )
+
+                Spacer(modifier = Modifier.width(5.dp))
+
+                Text(
+                    text = address,
+                    style = TextStyle(
+                        color = colorResource(R.color.color_6B7684),
+                        fontSize = dpToSp(14.dp),
+                        lineHeight = dpToSp(22.dp),
+                        fontFamily = NotoSansKR,
+                        fontWeight = FontWeight.Medium
+                    ),
+                    textAlign = TextAlign.Start
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
+        libraryInfo?.lib?.operatingTime?.let { operatingTime ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.Top
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.ic_clock_grey_15x15),
+                    contentDescription = "",
+                    modifier = Modifier
+                        .padding(top = 3.dp)
+                )
+
+                Spacer(modifier = Modifier.width(5.dp))
+
+                Text(
+                    text = operatingTime,
+                    style = TextStyle(
+                        color = colorResource(R.color.color_6B7684),
+                        fontSize = dpToSp(14.dp),
+                        lineHeight = dpToSp(22.dp),
+                        fontFamily = NotoSansKR,
+                        fontWeight = FontWeight.Medium
+                    ),
+                    textAlign = TextAlign.Start
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
+        libraryInfo?.lib?.closed?.let { closed ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.Top
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.ic_calendar_grey_14x15),
+                    contentDescription = "",
+                    modifier = Modifier
+                        .padding(top = 3.dp)
+                )
+
+                Spacer(modifier = Modifier.width(5.dp))
+
+                Text(
+                    text = closed,
+                    style = TextStyle(
+                        color = colorResource(R.color.color_6B7684),
+                        fontSize = dpToSp(14.dp),
+                        lineHeight = dpToSp(22.dp),
+                        fontFamily = NotoSansKR,
+                        fontWeight = FontWeight.Medium
+                    ),
+                    textAlign = TextAlign.Start
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // 전화 버튼 + 홈페이지 버튼
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            OutlinedButton(
+                onClick = {
+                    val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${libraryInfo?.lib?.tel}"))
+                    localContext.startActivity(intent)
+                }
+            ) {
+                Text(text = stringResource(R.string.library_map_call))
+            }
+            Button(
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    val uri = Uri.parse(libraryInfo?.lib?.homepage)
+                    val intent = Intent(Intent.ACTION_VIEW, uri)
+                    localContext.startActivity(intent)
+                }
+            ) {
+                Text(text = stringResource(R.string.library_map_homepage))
+            }
+        }
+    }
+}
+
+@Composable
+fun BookAvailabilityView(
+    resCheckBookAvailability: ResCheckBookAvailability? = null,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.library_map_book_availability_title),
+            style = TextStyle(
+                color = colorResource(R.color.color_191F28),
+                fontSize = dpToSp(20.dp),
+                lineHeight = dpToSp(24.dp),
+                fontFamily = NotoSansKR,
+                fontWeight = FontWeight.Medium
+            ),
+            textAlign = TextAlign.Start
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(
+                    width = 1.dp,
+                    color = colorResource(R.color.color_F2F4F6),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .background(
+                    color = colorResource(R.color.color_FFFFFFFF),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxHeight(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                FilledCircle(color = if(resCheckBookAvailability?.response?.result?.loanAvailable == "Y") {
+                    colorResource(R.color.color_03B26C)
+                } else if(resCheckBookAvailability?.response?.result?.loanAvailable == "N") {
+                    colorResource(R.color.color_FF0000)
+                } else {
+                    colorResource(R.color.color_8B95A1)
+                })
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = if(resCheckBookAvailability?.response?.result?.loanAvailable == "Y") {
+                        stringResource(R.string.library_map_book_availability_available)
+                    } else if(resCheckBookAvailability?.response?.result?.loanAvailable == "N") {
+                        stringResource(R.string.library_map_book_availability_on_loan)
+                    } else {
+                        stringResource(R.string.library_map_book_availability_check_homepage)
+                    },
+                    style = TextStyle(
+                        color = colorResource(R.color.color_191F28),
+                        fontSize = dpToSp(16.dp),
+                        lineHeight = dpToSp(24.dp),
+                        fontFamily = NotoSansKR,
+                        fontWeight = FontWeight.Medium
+                    ),
+                    textAlign = TextAlign.Start
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = stringResource(R.string.library_map_book_availability_notice),
+                style = TextStyle(
+                    color = colorResource(R.color.color_6B7684),
+                    fontSize = dpToSp(12.dp),
+                    lineHeight = dpToSp(18.dp),
+                    fontFamily = NotoSansKR,
+                    fontWeight = FontWeight.Medium
+                ),
+                textAlign = TextAlign.Start
+            )
+        }
+    }
+}
+
+@Composable
+private fun FilledCircle(color: Color) {
+    Box(
+        modifier = Modifier
+            .size(10.dp)
+            .background(color = color, shape = CircleShape)
+    )
 }
 
 @Composable
