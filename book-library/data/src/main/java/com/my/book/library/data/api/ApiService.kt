@@ -3,6 +3,7 @@ package com.my.book.library.data.api
 import com.my.book.library.core.common.Constant
 import com.my.book.library.core.model.res.ResBookDetail
 import com.my.book.library.core.model.res.ResCheckBookAvailability
+import com.my.book.library.core.model.res.ResLibraryBookData
 import com.my.book.library.core.model.res.ResSearchBook
 import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
 import com.my.book.library.core.model.res.ResSearchBookLibrary
@@ -146,4 +147,23 @@ interface ApiService {
         @Query("isbn13") isbn13: String,
         @Query("format") format: String = Constant.JSON
     ): Response<ResCheckBookAvailability>
+
+    /**
+     * 장서/대출 데이터 조회
+     *
+     * @param authKey
+     * @param libCode
+     * @param isbn13
+     * @param type
+     * @param format
+     * @return
+     */
+    @GET("${Constant.URL_PATH_API}/itemSrch")
+    suspend fun getLibraryBookData(
+        @Query("authKey") authKey: String,
+        @Query("libCode") libCode: Int,
+        @Query("isbn13") isbn13: String,
+        @Query("type") type: String,
+        @Query("format") format: String = Constant.JSON
+    ): Response<ResLibraryBookData>
 }

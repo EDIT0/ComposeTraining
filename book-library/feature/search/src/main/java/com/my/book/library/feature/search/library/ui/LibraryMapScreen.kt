@@ -101,6 +101,7 @@ import com.my.book.library.core.model.res.ResSearchBook
 import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
 import com.my.book.library.core.common.noRippleClickable
 import com.my.book.library.core.model.res.ResCheckBookAvailability
+import com.my.book.library.core.model.res.ResLibraryBookData
 import com.my.book.library.core.resource.LibraryData
 import com.my.book.library.core.resource.NotoSansKR
 import com.my.book.library.core.resource.R
@@ -386,7 +387,7 @@ fun LibraryMapContent(
                             override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
                                 val delta = available.y
                                 if (delta > 0 && detailSheetAnim.value < detailCollapsedOffsetPx) {
-                                    val newOffset = (detailSheetAnim.value + delta).coerceIn(detailExpandOffsetPx, screenHeightPx)
+                                    val newOffset = (detailSheetAnim.value + delta).coerceIn(detailExpandOffsetPx, detailCollapsedOffsetPx)
                                     val consumed2 = newOffset - detailSheetAnim.value
                                     coroutineScope.launch { detailSheetAnim.snapTo(newOffset) }
                                     return Offset(0f, consumed2)
@@ -551,11 +552,13 @@ fun LibraryMapContent(
                         userLatitude = userLatitude,
                         userLongitude = userLongitude,
                         resCheckBookAvailability = resCheckBookAvailability,
+                        resLibraryBookData = libraryMapUiState.value.resLibraryBookData,
+                        isLibraryBookDataLoading = libraryMapUiState.value.isLibraryBookDataLoading,
                         nestedScrollConnection = detailNestedScrollConnection,
                         onDrag = { delta ->
                             val newOffset = (detailSheetAnim.value + delta)
-                                .coerceIn(detailExpandOffsetPx, detailCollapsedOffsetPx)
-                            detailSheetAnim.snapTo(newOffset)
+                                .coerceIn(detailExpandOffsetPx, screenHeightPx)
+                            coroutineScope.launch { detailSheetAnim.snapTo(newOffset) }
                         },
                         onDragStopped = { velocity ->
                             val snapPoints = listOf(detailExpandOffsetPx, detailHalfOffsetPx, detailCollapsedOffsetPx)
@@ -1043,8 +1046,10 @@ private fun LibraryDetailSheet(
     userLatitude: Double? = null,
     userLongitude: Double? = null,
     resCheckBookAvailability: ResCheckBookAvailability? = null,
+    resLibraryBookData: ResLibraryBookData? = null,
+    isLibraryBookDataLoading: Boolean = false,
     nestedScrollConnection: NestedScrollConnection,
-    onDrag: suspend (Float) -> Unit,
+    onDrag: (Float) -> Unit,
     onDragStopped: suspend (Float) -> Unit,
     navigationBarHeight: Dp,
 ) {
@@ -1068,7 +1073,7 @@ private fun LibraryDetailSheet(
                     .draggable(
                         orientation = Orientation.Vertical,
                         state = rememberDraggableState { delta ->
-                            coroutineScope.launch { onDrag(delta) }
+                            onDrag(delta)
                         },
                         onDragStopped = { velocity ->
                             coroutineScope.launch { onDragStopped(velocity) }
@@ -1108,7 +1113,9 @@ private fun LibraryDetailSheet(
                 // 도서 대출 현황
                 item {
                     BookAvailabilityView(
-                        resCheckBookAvailability = resCheckBookAvailability
+                        resCheckBookAvailability = resCheckBookAvailability,
+                        resLibraryBookData = resLibraryBookData,
+                        isLibraryBookDataLoading = isLibraryBookDataLoading
                     )
                 }
             }
@@ -1263,7 +1270,26 @@ fun LibraryInfoView(
 @Composable
 fun BookAvailabilityView(
     resCheckBookAvailability: ResCheckBookAvailability? = null,
+    resLibraryBookData: ResLibraryBookData? = null,
+    isLibraryBookDataLoading: Boolean = false,
 ) {
+    val callNumberText = remember(resLibraryBookData) {
+        resLibraryBookData?.response?.docs
+            ?.mapNotNull {
+                it.doc
+            }
+            ?.firstOrNull { doc ->
+                !doc.classNo.isNullOrBlank() &&
+                doc.callNumbers?.any { wrapper -> !wrapper.callNumber?.bookCode.isNullOrBlank() } == true
+            }
+            ?.let { doc ->
+                val bookCode = doc.callNumbers
+                    ?.firstOrNull { !it.callNumber?.bookCode.isNullOrBlank() }
+                    ?.callNumber?.bookCode
+                "${doc.classNo} - $bookCode"
+            }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -1342,6 +1368,58 @@ fun BookAvailabilityView(
                 ),
                 textAlign = TextAlign.Start
             )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Text(
+                text = stringResource(R.string.library_map_book_availability_call_number_title),
+                style = TextStyle(
+                    color = colorResource(R.color.color_4E5968),
+                    fontSize = dpToSp(13.dp),
+                    lineHeight = dpToSp(20.dp),
+                    fontFamily = NotoSansKR,
+                    fontWeight = FontWeight.Medium
+                ),
+                textAlign = TextAlign.Start
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        width = 1.dp,
+                        color = colorResource(R.color.color_4DC1C6D6),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .background(
+                        color = colorResource(R.color.color_F2F3FD),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .padding(12.dp)
+            ) {
+                Text(
+                    text = if (isLibraryBookDataLoading) {
+                        stringResource(R.string.library_map_book_availability_call_number_loading)
+                    } else {
+                        callNumberText ?: stringResource(R.string.library_map_book_availability_call_number_no_info)
+                    },
+                    style = TextStyle(
+                        color = colorResource(R.color.color_191F28),
+                        fontSize = dpToSp(14.dp),
+                        lineHeight = dpToSp(22.dp),
+                        fontFamily = NotoSansKR,
+                        fontWeight = FontWeight.Normal
+                    ),
+                    textAlign = TextAlign.Start
+                )
+            }
         }
     }
 }
