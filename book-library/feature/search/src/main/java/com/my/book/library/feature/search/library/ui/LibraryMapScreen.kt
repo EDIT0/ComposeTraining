@@ -69,6 +69,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
@@ -97,6 +98,7 @@ import com.my.book.library.core.common.component.LifecycleResult
 import com.my.book.library.core.common.dpToSp
 import com.my.book.library.core.common.util.SystemBarConfig
 import com.my.book.library.core.common.util.SystemBarController
+import coil3.compose.AsyncImage
 import com.my.book.library.core.model.res.ResSearchBook
 import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
 import com.my.book.library.core.common.noRippleClickable
@@ -200,6 +202,7 @@ fun LibraryMapScreen(
         onBackPressed = onBackPressed,
         modifier = Modifier,
         bookTitle = book.doc.bookName ?: "",
+        book = book,
         libraryMapViewModelEvent = {
             libraryMapViewModel.intentAction(it)
         },
@@ -225,6 +228,7 @@ fun LibraryMapContent(
     onBackPressed: () -> Unit,
     modifier: Modifier,
     bookTitle: String = "",
+    book: ResSearchBook.ResponseData.BookWrapper? = null,
     libraryMapViewModelEvent: (LibraryMapViewModelEvent) -> Unit,
     libraryMapUiState: State<LibraryMapUiState>,
     holdingLibraryListPaging: LazyPagingItems<ResSearchBookHoldingLibrary.ResponseData.LibraryWrapper>?,
@@ -549,6 +553,7 @@ fun LibraryMapContent(
                         localContext = localContext,
                         modifier = Modifier.offset { IntOffset(x = 0, y = detailSheetAnim.value.roundToInt()) },
                         item = selectedItem,
+                        book = book,
                         userLatitude = userLatitude,
                         userLongitude = userLongitude,
                         resCheckBookAvailability = resCheckBookAvailability,
@@ -576,6 +581,7 @@ fun LibraryMapContent(
                             }
                         },
                         navigationBarHeight = state.navigationBarHeight,
+                        extraBottomPadding = with(density) { titleBarBottomPx.toDp() },
                     )
 
                     // 바텀시트가 타이틀 바에 닿을 때 하얀 배경 오버레이
@@ -1043,6 +1049,7 @@ private fun LibraryDetailSheet(
     localContext: Context,
     modifier: Modifier = Modifier,
     item: ResSearchBookHoldingLibrary.ResponseData.LibraryWrapper? = null,
+    book: ResSearchBook.ResponseData.BookWrapper? = null,
     userLatitude: Double? = null,
     userLongitude: Double? = null,
     resCheckBookAvailability: ResCheckBookAvailability? = null,
@@ -1052,6 +1059,7 @@ private fun LibraryDetailSheet(
     onDrag: (Float) -> Unit,
     onDragStopped: suspend (Float) -> Unit,
     navigationBarHeight: Dp,
+    extraBottomPadding: Dp = 0.dp,
 ) {
     val coroutineScope = rememberCoroutineScope()
     Box(
@@ -1096,7 +1104,7 @@ private fun LibraryDetailSheet(
             // Detail 콘텐츠
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = navigationBarHeight)
+                contentPadding = PaddingValues(bottom = navigationBarHeight + extraBottomPadding)
             ) {
                 // 도서관 기본 정보
                 item {
@@ -1116,6 +1124,17 @@ private fun LibraryDetailSheet(
                         resCheckBookAvailability = resCheckBookAvailability,
                         resLibraryBookData = resLibraryBookData,
                         isLibraryBookDataLoading = isLibraryBookDataLoading
+                    )
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(40.dp))
+                }
+
+                // 검색한 도서 정보
+                item {
+                    BookInfoView(
+                        book = book
                     )
                 }
             }
@@ -1425,6 +1444,128 @@ fun BookAvailabilityView(
 }
 
 @Composable
+fun BookInfoView(
+    book: ResSearchBook.ResponseData.BookWrapper? = null,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+    ) {
+        Text(
+            text = "검색한 도서 정보",
+            style = TextStyle(
+                color = colorResource(R.color.color_191F28),
+                fontSize = dpToSp(20.dp),
+                lineHeight = dpToSp(24.dp),
+                fontFamily = NotoSansKR,
+                fontWeight = FontWeight.Medium
+            ),
+            textAlign = TextAlign.Start
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(
+                    width = 1.dp,
+                    color = colorResource(R.color.color_F2F4F6),
+                    shape = RoundedCornerShape(24.dp)
+                )
+                .background(
+                    color = colorResource(R.color.color_0D000000),
+                    shape = RoundedCornerShape(24.dp)
+                )
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // 이미지
+            var bookImageContentScale by remember { mutableStateOf<ContentScale>(ContentScale.Crop) }
+            AsyncImage(
+                model = book?.doc?.bookImageUrl,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(width = 128.dp, height = 192.dp)
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = bookImageContentScale,
+                placeholder = painterResource(R.drawable.ic_book_grey_21x18),
+                error = painterResource(R.drawable.ic_book_grey_21x18),
+                onError = {
+                    bookImageContentScale = ContentScale.Inside
+                },
+                onSuccess = {
+                    bookImageContentScale = ContentScale.Crop
+                }
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // 제목
+            Text(
+                text = book?.doc?.bookName ?: "",
+                modifier = Modifier.fillMaxWidth(),
+                style = TextStyle(
+                    color = colorResource(R.color.color_191F28),
+                    fontSize = dpToSp(16.dp),
+                    lineHeight = dpToSp(36.dp),
+                    fontFamily = NotoSansKR,
+                    fontWeight = FontWeight.Medium
+                ),
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 지은이 · 출판사
+            Text(
+                text = listOfNotNull(
+                    book?.doc?.authors?.replace(Regex("지은이\\s*:\\s*"), "")?.takeIf { it.isNotBlank() },
+                    book?.doc?.publisher?.takeIf { it.isNotBlank() }
+                ).joinToString(" · "),
+                modifier = Modifier.fillMaxWidth(),
+                style = TextStyle(
+                    color = colorResource(R.color.color_6B7684),
+                    fontSize = dpToSp(16.dp),
+                    lineHeight = dpToSp(24.dp),
+                    fontFamily = NotoSansKR,
+                    fontWeight = FontWeight.Normal
+                ),
+                textAlign = TextAlign.Center
+            )
+
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // 디바이더
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(colorResource(R.color.color_E5E8EB))
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // TODO 줄거리 (bookDtlUrl 대신 classNm으로 대체 - ResSearchBook에 description 없음)
+            Text(
+                text = book?.doc?.classNm ?: "",
+                modifier = Modifier.fillMaxWidth(),
+                style = TextStyle(
+                    color = colorResource(R.color.color_4E5968),
+                    fontSize = dpToSp(14.dp),
+                    lineHeight = dpToSp(25.dp),
+                    fontFamily = NotoSansKR,
+                    fontWeight = FontWeight.Normal
+                ),
+                textAlign = TextAlign.Start
+            )
+        }
+    }
+}
+
+@Composable
 private fun FilledCircle(color: Color) {
     Box(
         modifier = Modifier
@@ -1626,9 +1767,26 @@ private fun LibraryDetailSheetPreview() {
             operatingTime = "09:00~22:00"
         )
     )
+    val mockBook = ResSearchBook.ResponseData.BookWrapper(
+        doc = ResSearchBook.ResponseData.BookWrapper.BookInfo(
+            bookName = "미움받을 용기 - 자유롭고 행복한 삶을 위한 아들러의 가르침",
+            authors = "기시미 이치로, 고가 후미타케 지음",
+            publisher = "인플루엔셜",
+            publicationYear = "2014",
+            isbn13 = "9788996991342",
+            additionSymbol = null,
+            vol = null,
+            classNo = "189",
+            classNm = "철학 > 심리학 > 응용심리학 일반",
+            bookImageUrl = null,
+            bookDtlUrl = null,
+            loanCount = null
+        )
+    )
     LibraryDetailSheet(
         localContext = LocalContext.current,
         item = mockItem,
+        book = mockBook,
         userLatitude = 37.5665,
         userLongitude = 126.9780,
         nestedScrollConnection = object : NestedScrollConnection {},
