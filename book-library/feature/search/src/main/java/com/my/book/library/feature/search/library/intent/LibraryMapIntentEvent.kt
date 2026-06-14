@@ -1,6 +1,7 @@
 package com.my.book.library.feature.search.library.intent
 
 import androidx.paging.PagingData
+import com.my.book.library.core.model.res.ResBookDetail
 import com.my.book.library.core.model.res.ResCheckBookAvailability
 import com.my.book.library.core.model.res.ResLibraryBookData
 import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
@@ -25,4 +26,5 @@ sealed interface LibraryMapUiEvent {
     data class UpdateCheckBookAvailability(val resCheckBookAvailability: ResCheckBookAvailability?): LibraryMapUiEvent
     data class UpdateLibraryBookData(val resLibraryBookData: ResLibraryBookData?): LibraryMapUiEvent
     data class UpdateLibraryBookDataLoading(val isLoading: Boolean): LibraryMapUiEvent
+    data class UpdateBookDetail(val resBookDetail: ResBookDetail?): LibraryMapUiEvent
 }

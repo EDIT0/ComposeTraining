@@ -43,6 +43,7 @@
     <string name="library_map_book_availability_call_number_title">도서 청구기호</string>
     <string name="library_map_book_availability_call_number_no_info">No information</string>
     <string name="library_map_book_availability_call_number_loading">Loading…</string>
+    <string name="library_map_book_info_title">검색한 도서 정보</string>
 
 <string name="search_library_info">Search for library information</string>
     <string name="search_library_action_bar_title">Search Library Information</string>

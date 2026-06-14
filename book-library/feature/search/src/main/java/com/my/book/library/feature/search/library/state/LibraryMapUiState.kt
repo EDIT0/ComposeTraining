@@ -1,6 +1,7 @@
 package com.my.book.library.feature.search.library.state
 
 import androidx.paging.PagingData
+import com.my.book.library.core.model.res.ResBookDetail
 import com.my.book.library.core.model.res.ResCheckBookAvailability
 import com.my.book.library.core.model.res.ResLibraryBookData
 import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
@@ -18,5 +19,6 @@ data class LibraryMapUiState(
     val sheetOffsetRatio: Float = -1f,
     val resCheckBookAvailability: ResCheckBookAvailability? = null,
     val resLibraryBookData: ResLibraryBookData? = null,
-    val isLibraryBookDataLoading: Boolean = false
+    val isLibraryBookDataLoading: Boolean = false,
+    val resBookDetail: ResBookDetail? = null
 )

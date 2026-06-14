@@ -7,10 +7,12 @@ import androidx.paging.cachedIn
 import androidx.paging.map
 import com.my.book.library.core.common.util.LogUtil
 import com.my.book.library.core.model.network.RequestResult
+import com.my.book.library.core.model.req.ReqBookDetail
 import com.my.book.library.core.model.req.ReqCheckBookAvailability
 import com.my.book.library.core.model.req.ReqLibraryBookData
 import com.my.book.library.core.model.req.ReqSearchBookHoldingLibrary
 import com.my.book.library.core.common.util.LocationUtil
+import com.my.book.library.domain.usecase.GetBookDetailUseCase
 import com.my.book.library.domain.usecase.GetCheckBookAvailabilityUseCase
 import com.my.book.library.domain.usecase.GetLibraryBookDataUseCase
 import com.my.book.library.domain.usecase.GetSearchBookHoldingLibraryUseCase
@@ -41,6 +43,7 @@ class LibraryMapViewModel @Inject constructor(
     private val getSearchBookHoldingLibraryUseCase: GetSearchBookHoldingLibraryUseCase,
     private val getCheckBookAvailabilityUseCase: GetCheckBookAvailabilityUseCase,
     private val getLibraryBookDataUseCase: GetLibraryBookDataUseCase,
+    private val getBookDetailUseCase: GetBookDetailUseCase,
     private val getMyLibraryInfoUseCase: GetMyLibraryInfoUseCase,
     private val locationUtil: LocationUtil
 ): AndroidViewModel(application = app) {
@@ -84,6 +87,9 @@ class LibraryMapViewModel @Inject constructor(
                     is LibraryMapUiEvent.UpdateLibraryBookDataLoading -> {
                         state.copy(isLibraryBookDataLoading = event.isLoading)
                     }
+                    is LibraryMapUiEvent.UpdateBookDetail -> {
+                        state.copy(resBookDetail = event.resBookDetail)
+                    }
                 }
             }
         )
@@ -120,6 +126,7 @@ class LibraryMapViewModel @Inject constructor(
                     if (libCode != null) {
                         requestCheckBookAvailability(libCode = libCode)
                         requestLibraryBookData(libCode = libCode, isbn13 = currentIsbn, type = "ALL")
+                        requestBookDetail(isbn13 = currentIsbn)
                     } else {
                         _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateCheckBookAvailability(resCheckBookAvailability = null))
                         _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateLibraryBookData(resLibraryBookData = null))
@@ -215,6 +222,24 @@ class LibraryMapViewModel @Inject constructor(
             when (result) {
                 is RequestResult.Success -> {
                     _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateCheckBookAvailability(result.resultData))
+                }
+                is RequestResult.Error -> {
+                    _sideEffectEvent.send(SideEffectEvent.ShowToast(message = result.message ?: ""))
+                }
+                else -> {}
+            }
+        }
+    }
+
+    private suspend fun requestBookDetail(isbn13: String) {
+        getBookDetailUseCase.invoke(
+            reqBookDetail = ReqBookDetail(isbn13 = isbn13)
+        ).catch { e ->
+            _sideEffectEvent.send(SideEffectEvent.ShowToast(message = e.message ?: ""))
+        }.collect { result ->
+            when (result) {
+                is RequestResult.Success -> {
+                    _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateBookDetail(result.resultData))
                 }
                 is RequestResult.Error -> {
                     _sideEffectEvent.send(SideEffectEvent.ShowToast(message = result.message ?: ""))

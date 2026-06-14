@@ -99,6 +99,7 @@ import com.my.book.library.core.common.dpToSp
 import com.my.book.library.core.common.util.SystemBarConfig
 import com.my.book.library.core.common.util.SystemBarController
 import coil3.compose.AsyncImage
+import com.my.book.library.core.model.res.ResBookDetail
 import com.my.book.library.core.model.res.ResSearchBook
 import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
 import com.my.book.library.core.common.noRippleClickable
@@ -514,7 +515,7 @@ fun LibraryMapContent(
                     ) {
                         Image(
                             painter = painterResource(R.drawable.ic_my_location_24x24),
-                            contentDescription = "내 위치로 이동"
+                            contentDescription = ""
                         )
                     }
 
@@ -554,6 +555,7 @@ fun LibraryMapContent(
                         modifier = Modifier.offset { IntOffset(x = 0, y = detailSheetAnim.value.roundToInt()) },
                         item = selectedItem,
                         book = book,
+                        resBookDetail = libraryMapUiState.value.resBookDetail,
                         userLatitude = userLatitude,
                         userLongitude = userLongitude,
                         resCheckBookAvailability = resCheckBookAvailability,
@@ -624,7 +626,7 @@ fun LibraryMapContent(
                     ) {
                         Image(
                             painter = painterResource(R.drawable.ic_arrow_left_black_40x40),
-                            contentDescription = "뒤로가기",
+                            contentDescription = "",
                             modifier = Modifier.clickable { handleBack() }
                         )
                         Text(
@@ -1050,6 +1052,7 @@ private fun LibraryDetailSheet(
     modifier: Modifier = Modifier,
     item: ResSearchBookHoldingLibrary.ResponseData.LibraryWrapper? = null,
     book: ResSearchBook.ResponseData.BookWrapper? = null,
+    resBookDetail: ResBookDetail? = null,
     userLatitude: Double? = null,
     userLongitude: Double? = null,
     resCheckBookAvailability: ResCheckBookAvailability? = null,
@@ -1134,7 +1137,8 @@ private fun LibraryDetailSheet(
                 // 검색한 도서 정보
                 item {
                     BookInfoView(
-                        book = book
+                        book = book,
+                        resBookDetail = resBookDetail
                     )
                 }
             }
@@ -1446,6 +1450,7 @@ fun BookAvailabilityView(
 @Composable
 fun BookInfoView(
     book: ResSearchBook.ResponseData.BookWrapper? = null,
+    resBookDetail: ResBookDetail? = null,
 ) {
     Column(
         modifier = Modifier
@@ -1453,7 +1458,7 @@ fun BookInfoView(
             .padding(horizontal = 20.dp)
     ) {
         Text(
-            text = "검색한 도서 정보",
+            text = stringResource(R.string.library_map_book_info_title),
             style = TextStyle(
                 color = colorResource(R.color.color_191F28),
                 fontSize = dpToSp(20.dp),
@@ -1548,9 +1553,9 @@ fun BookInfoView(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // TODO 줄거리 (bookDtlUrl 대신 classNm으로 대체 - ResSearchBook에 description 없음)
+            // 줄거리
             Text(
-                text = book?.doc?.classNm ?: "",
+                text = resBookDetail?.response?.detail?.firstOrNull()?.book?.description ?: "",
                 modifier = Modifier.fillMaxWidth(),
                 style = TextStyle(
                     color = colorResource(R.color.color_4E5968),

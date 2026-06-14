@@ -18,6 +18,7 @@ import com.my.book.library.core.model.res.ResSearchBook
 import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
 import com.my.book.library.core.model.res.ResSearchBookLibrary
 import com.my.book.library.data.BuildConfig
+import com.my.book.library.data.repository.local.LocalDataSource
 import com.my.book.library.data.repository.remote.RemoteDataSource
 import com.my.book.library.domain.repository.Repository
 import kotlinx.coroutines.flow.Flow
@@ -25,7 +26,8 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 class RepositoryImpl @Inject constructor(
-    val remoteDataSource: RemoteDataSource
+    val remoteDataSource: RemoteDataSource,
+    val localDataSource: LocalDataSource
 ): Repository {
     
     override suspend fun getSearchRegionBookLibrary(reqSearchRegionBookLibrary: ReqSearchRegionBookLibrary): Flow<RequestResult<ResSearchBookLibrary>> {
@@ -110,6 +112,12 @@ class RepositoryImpl @Inject constructor(
 
     override suspend fun getBookDetail(reqBookDetail: ReqBookDetail): Flow<RequestResult<ResBookDetail>> {
         return flow {
+            val cached = localDataSource.getBookDetail(isbn13 = reqBookDetail.isbn13)
+            if (cached != null) {
+                emit(RequestResult.Success(data = cached))
+                return@flow
+            }
+
             val response = remoteDataSource.getBookDetail(
                 authToken = BuildConfig.BOOK_LIBRARY_API_KEY,
                 format = Constant.JSON,
@@ -119,6 +127,7 @@ class RepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 val body = response.body()
                 if (body != null && body.response != null && body.response.detail.isNotEmpty()) {
+                    localDataSource.saveBookDetail(isbn13 = reqBookDetail.isbn13, resBookDetail = body)
                     emit(RequestResult.Success(data = body))
                 } else {
                     emit(RequestResult.DataEmpty())
