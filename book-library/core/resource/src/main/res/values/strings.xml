@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="common_next">다음</string>
+    <string name="common_next">Next</string>
     <string name="common_network_status_connected">Network connected</string>
     <string name="common_network_status_disconnected">Network disconnected</string>
 
-    <string name="select_region_guide_title">어느 지역에서\n책을 찾을까요?</string>
-    <string name="select_region_guide_subtitle">시·군·구를 선택하면\n해당 지역의 도서관 소장 정보를 보여드려요.</string>
-    <string name="select_region_guide_next_button_title">지역 선택 시작</string>
-    <string name="select_region_selection_title">지역 선택</string>
-    <string name="select_region_selection_subtitle">도서관을 찾을 지역을\n선택해주세요</string>
-    <string name="select_region_selection_city_not_selected_notice">지역을\n선택해주세요</string>
-    <string name="select_region_complete_title">설정 완료</string>
-    <string name="select_region_complete_set_region_title">지역이 설정됐어요</string>
-    <string name="select_region_complete_set_region_notice">이 지역의 도서관에서 책을 찾기 시작합니다.\n홈에서 언제든 변경할 수 있어요.</string>
-    <string name="select_region_complete_go_to_main_title">책 찾으러 가기</string>
-    
-    <string name="main_home_fake_search_hint">책 제목, 저자 검색</string>
+    <string name="select_region_guide_title">Where would you like\nto find a book?</string>
+    <string name="select_region_guide_subtitle">Select a city/county/district\nto see library holdings in that area.</string>
+    <string name="select_region_guide_next_button_title">Start Region Selection</string>
+    <string name="select_region_selection_title">Select Region</string>
+    <string name="select_region_selection_subtitle">Please select a region\nto find a library</string>
+    <string name="select_region_selection_city_not_selected_notice">Please select\na region</string>
+    <string name="select_region_complete_title">Setup Complete</string>
+    <string name="select_region_complete_set_region_title">Your region has been set</string>
+    <string name="select_region_complete_set_region_notice">We will start finding books at libraries in this region.\nYou can change it anytime from the home screen.</string>
+    <string name="select_region_complete_go_to_main_title">Find a Book</string>
+
+    <string name="main_home_fake_search_hint">Search by title or author</string>
 
     <string name="search_book_no_result_title">No results found</string>
     <string name="search_book_no_result_subtitle">Please check your search term</string>
@@ -24,17 +24,26 @@
     <string name="search_book_authors">written by %s</string>
     <string name="search_book_publisher_year">%s ∙ %s</string>
     <string name="search_book_result_count">\"%s\" results %s found</string>
-    <string name="search_book_letter_count_warning_notice">2~50 글자를 입력해주세요</string>
+    <string name="search_book_letter_count_warning_notice">Please enter 2 to 50 characters</string>
 
-    <string name="library_map_preview_placeholder">지도 영역</string>
-    <string name="library_map_library_count">%d곳 소장</string>
-    <string name="library_map_no_library">소장 도서관 없음</string>
-    <string name="library_map_no_library_main">이 지역에 소장 도서관이 없습니다.</string>
-    <string name="library_map_no_library_sub">다른 지역을 선택해주세요.</string>
-    <string name="library_map_region_select_hint">시/도를 먼저 선택해주세요</string>
-    <string name="library_map_apply">적용</string>
-    <string name="library_map_call">전화</string>
-    <string name="library_map_homepage">홈페이지 바로가기</string>
+    <string name="library_map_preview_placeholder">Map Area</string>
+    <string name="library_map_library_count">%d libraries</string>
+    <string name="library_map_no_library">No holding libraries</string>
+    <string name="library_map_no_library_main">No libraries hold this book in this area.</string>
+    <string name="library_map_no_library_sub">Please select a different region.</string>
+    <string name="library_map_region_select_hint">Please select a city/province first</string>
+    <string name="library_map_apply">Apply</string>
+    <string name="library_map_call">Call</string>
+    <string name="library_map_homepage">Visit Homepage</string>
+    <string name="library_map_book_availability_title">Book Loan Status</string>
+    <string name="library_map_book_availability_available">Available</string>
+    <string name="library_map_book_availability_on_loan">On Loan</string>
+    <string name="library_map_book_availability_check_homepage">Please check the homepage.</string>
+    <string name="library_map_book_availability_notice">Based on information from 1 day ago. Actual availability may differ.</string>
+    <string name="library_map_book_availability_call_number_title">도서 청구기호</string>
+    <string name="library_map_book_availability_call_number_no_info">No information</string>
+    <string name="library_map_book_availability_call_number_loading">Loading…</string>
+    <string name="library_map_book_info_title">검색한 도서 정보</string>
 
 <string name="search_library_info">Search for library information</string>
     <string name="search_library_action_bar_title">Search Library Information</string>

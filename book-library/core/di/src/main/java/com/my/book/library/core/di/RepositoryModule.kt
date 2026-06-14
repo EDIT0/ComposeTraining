@@ -3,6 +3,7 @@ package com.my.book.library.core.di
 import com.my.book.library.core.common.util.DataStoreUtil
 import com.my.book.library.data.repository.DataStoreRepositoryImpl
 import com.my.book.library.data.repository.RepositoryImpl
+import com.my.book.library.data.repository.local.LocalDataSource
 import com.my.book.library.data.repository.remote.RemoteDataSource
 import com.my.book.library.domain.repository.DataStoreRepository
 import com.my.book.library.domain.repository.Repository
@@ -19,9 +20,10 @@ object RepositoryModule {
     @Singleton
     @Provides
     fun providesRepository(
-        remoteDataSource: RemoteDataSource
+        remoteDataSource: RemoteDataSource,
+        localDataSource: LocalDataSource
     ): Repository {
-        return RepositoryImpl(remoteDataSource = remoteDataSource)
+        return RepositoryImpl(remoteDataSource = remoteDataSource, localDataSource = localDataSource)
     }
 
     @Singleton
