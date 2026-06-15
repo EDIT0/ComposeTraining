@@ -8,7 +8,7 @@ import com.my.book.library.data.repository.local.entity.BookDetailEntity
 @Database(
     entities = [BookDetailEntity::class],
     version = 1,
-    exportSchema = false
+    exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun bookDetailDao(): BookDetailDao

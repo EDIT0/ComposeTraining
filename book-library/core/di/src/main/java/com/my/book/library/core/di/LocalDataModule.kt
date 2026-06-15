@@ -27,7 +27,9 @@ object LocalDataModule {
             context,
             AppDatabase::class.java,
             "book_library.db"
-        ).build()
+        )
+            .fallbackToDestructiveMigration(dropAllTables = true)
+            .build()
     }
 
     @Singleton
