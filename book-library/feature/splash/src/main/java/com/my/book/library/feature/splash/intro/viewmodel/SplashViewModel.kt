@@ -11,6 +11,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -37,7 +38,7 @@ class SplashViewModel @Inject constructor(
     fun intentAction(splashViewModelEvent: SplashViewModelEvent) {
         when(splashViewModelEvent) {
             is SplashViewModelEvent.CheckMyLibraryInfo -> {
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.IO) {
                     isCheckMyLibraryInfoExist()
                 }
             }

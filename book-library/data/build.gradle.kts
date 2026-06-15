@@ -77,6 +77,9 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
+    // Gson
+    implementation(libs.gson)
+
     // Retrofit
     implementation(libs.retrofit)
 
@@ -86,4 +89,9 @@ dependencies {
 
     // Paging3
     implementation(libs.androidx.paging.runtime)
+
+    // Room
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 }

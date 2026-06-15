@@ -9,6 +9,7 @@ import com.my.book.library.feature.select_region.guide.intent.RegionSelectGuideV
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -29,7 +30,7 @@ class RegionSelectGuideViewModel @Inject constructor(
     fun intentAction(regionSelectGuideViewModelEvent: RegionSelectGuideViewModelEvent) {
         when(regionSelectGuideViewModelEvent) {
             is RegionSelectGuideViewModelEvent.CheckRegionAndBack -> {
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.IO) {
                     getMyLibraryInfoUseCase.invoke().collect { result ->
                         when (result) {
                             is RequestResult.Success -> {

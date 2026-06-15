@@ -7,8 +7,14 @@ import androidx.paging.cachedIn
 import androidx.paging.map
 import com.my.book.library.core.common.util.LogUtil
 import com.my.book.library.core.model.network.RequestResult
+import com.my.book.library.core.model.req.ReqBookDetail
+import com.my.book.library.core.model.req.ReqCheckBookAvailability
+import com.my.book.library.core.model.req.ReqLibraryBookData
 import com.my.book.library.core.model.req.ReqSearchBookHoldingLibrary
 import com.my.book.library.core.common.util.LocationUtil
+import com.my.book.library.domain.usecase.GetBookDetailUseCase
+import com.my.book.library.domain.usecase.GetCheckBookAvailabilityUseCase
+import com.my.book.library.domain.usecase.GetLibraryBookDataUseCase
 import com.my.book.library.domain.usecase.GetSearchBookHoldingLibraryUseCase
 import com.my.book.library.domain.usecase.data_store.GetMyLibraryInfoUseCase
 import com.my.book.library.feature.search.library.intent.LibraryMapUiEvent
@@ -23,9 +29,12 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -33,6 +42,9 @@ import javax.inject.Inject
 class LibraryMapViewModel @Inject constructor(
     private val app: Application,
     private val getSearchBookHoldingLibraryUseCase: GetSearchBookHoldingLibraryUseCase,
+    private val getCheckBookAvailabilityUseCase: GetCheckBookAvailabilityUseCase,
+    private val getLibraryBookDataUseCase: GetLibraryBookDataUseCase,
+    private val getBookDetailUseCase: GetBookDetailUseCase,
     private val getMyLibraryInfoUseCase: GetMyLibraryInfoUseCase,
     private val locationUtil: LocationUtil
 ): AndroidViewModel(application = app) {
@@ -67,6 +79,18 @@ class LibraryMapViewModel @Inject constructor(
                     is LibraryMapUiEvent.UpdateSheetOffsetRatio -> {
                         state.copy(sheetOffsetRatio = event.ratio)
                     }
+                    is LibraryMapUiEvent.UpdateCheckBookAvailability -> {
+                        state.copy(resCheckBookAvailability = event.resCheckBookAvailability)
+                    }
+                    is LibraryMapUiEvent.UpdateLibraryBookData -> {
+                        state.copy(resLibraryBookData = event.resLibraryBookData)
+                    }
+                    is LibraryMapUiEvent.UpdateLibraryBookDataLoading -> {
+                        state.copy(isLibraryBookDataLoading = event.isLoading)
+                    }
+                    is LibraryMapUiEvent.UpdateBookDetail -> {
+                        state.copy(resBookDetail = event.resBookDetail)
+                    }
                 }
             }
         )
@@ -79,12 +103,12 @@ class LibraryMapViewModel @Inject constructor(
         when(libraryMapViewModelEvent) {
             is LibraryMapViewModelEvent.RequestInit -> {
                 currentIsbn = libraryMapViewModelEvent.isbn
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.IO) {
                     requestInit(isbn = libraryMapViewModelEvent.isbn)
                 }
             }
             is LibraryMapViewModelEvent.UpdateRegion -> {
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.IO) {
                     val detailRegion = libraryMapViewModelEvent.detailRegion
                     _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateDetailRegion(detailRegion))
                     requestHoldingLibrary(
@@ -95,12 +119,23 @@ class LibraryMapViewModel @Inject constructor(
                 }
             }
             is LibraryMapViewModelEvent.SelectMarker -> {
-                viewModelScope.launch {
-                    _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateSelectedLibCode(libraryMapViewModelEvent.libCode))
+                viewModelScope.launch(Dispatchers.IO) {
+                    val libCode = libraryMapViewModelEvent.libCode
+                    _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateSelectedLibCode(libCode))
+                    _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateCheckBookAvailability(resCheckBookAvailability = null))
+                    _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateLibraryBookData(resLibraryBookData = null))
+                    if (libCode != null) {
+                        requestCheckBookAvailability(libCode = libCode)
+                        requestLibraryBookData(libCode = libCode, isbn13 = currentIsbn, type = "ALL")
+                        requestBookDetail(isbn13 = currentIsbn)
+                    } else {
+                        _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateCheckBookAvailability(resCheckBookAvailability = null))
+                        _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateLibraryBookData(resLibraryBookData = null))
+                    }
                 }
             }
             is LibraryMapViewModelEvent.UpdateSheetOffsetRatio -> {
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.Main) {
                     _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateSheetOffsetRatio(libraryMapViewModelEvent.ratio))
                 }
             }
@@ -108,7 +143,7 @@ class LibraryMapViewModel @Inject constructor(
                 startLocationUpdates()
             }
             is LibraryMapViewModelEvent.RequestMoveToMyLocation -> {
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.Main) {
                     if (locationUtil.isLocationPermissionGranted()) {
                         _sideEffectEvent.send(SideEffectEvent.MoveToMyLocation)
                     } else {
@@ -116,12 +151,21 @@ class LibraryMapViewModel @Inject constructor(
                     }
                 }
             }
+            is LibraryMapViewModelEvent.RequestLibraryBookData -> {
+                viewModelScope.launch(Dispatchers.IO) {
+                    requestLibraryBookData(
+                        libCode = libraryMapViewModelEvent.libCode,
+                        isbn13 = libraryMapViewModelEvent.isbn13,
+                        type = libraryMapViewModelEvent.type
+                    )
+                }
+            }
         }
     }
 
     private fun startLocationUpdates() {
         locationUpdatesJob?.cancel()
-        locationUpdatesJob = viewModelScope.launch {
+        locationUpdatesJob = viewModelScope.launch(Dispatchers.IO) {
             try {
                 locationUtil.getLocationUpdates().collect { location ->
                     _libraryMapUiEvent.send(
@@ -158,6 +202,75 @@ class LibraryMapViewModel @Inject constructor(
                         region = detailRegion.regionCode,
                         dtlRegion = detailRegion.code
                     )
+                }
+                is RequestResult.Error -> {
+                    _sideEffectEvent.send(SideEffectEvent.ShowToast(message = result.message ?: ""))
+                }
+                else -> {}
+            }
+        }
+    }
+
+    private suspend fun requestCheckBookAvailability(libCode: Int) {
+        getCheckBookAvailabilityUseCase.invoke(
+            reqCheckBookAvailability = ReqCheckBookAvailability(
+                libCode = libCode,
+                isbn13 = currentIsbn
+            )
+        ).catch { e ->
+            _sideEffectEvent.send(SideEffectEvent.ShowToast(message = e.message ?: ""))
+        }.collect { result ->
+            when (result) {
+                is RequestResult.Success -> {
+                    _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateCheckBookAvailability(result.resultData))
+                }
+                is RequestResult.Error -> {
+                    _sideEffectEvent.send(SideEffectEvent.ShowToast(message = result.message ?: ""))
+                }
+                else -> {}
+            }
+        }
+    }
+
+    private suspend fun requestBookDetail(isbn13: String) {
+        getBookDetailUseCase.invoke(
+            reqBookDetail = ReqBookDetail(isbn13 = isbn13)
+        ).catch { e ->
+            _sideEffectEvent.send(SideEffectEvent.ShowToast(message = e.message ?: ""))
+        }.collect { result ->
+            when (result) {
+                is RequestResult.Success -> {
+                    _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateBookDetail(result.resultData))
+                }
+                is RequestResult.Error -> {
+                    _sideEffectEvent.send(SideEffectEvent.ShowToast(message = result.message ?: ""))
+                }
+                else -> {}
+            }
+        }
+    }
+
+    private suspend fun requestLibraryBookData(libCode: Int, isbn13: String, type: String) {
+        getLibraryBookDataUseCase.invoke(
+            reqLibraryBookData = ReqLibraryBookData(
+                libCode = libCode,
+                isbn13 = isbn13,
+                type = type
+            )
+        )
+        .onStart {
+            _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateLibraryBookDataLoading(isLoading = true))
+        }
+        .onCompletion {
+            _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateLibraryBookDataLoading(isLoading = false))
+        }
+        .catch { e ->
+            _sideEffectEvent.send(SideEffectEvent.ShowToast(message = e.message ?: ""))
+        }
+        .collect { result ->
+            when (result) {
+                is RequestResult.Success -> {
+                    _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateLibraryBookData(result.resultData))
                 }
                 is RequestResult.Error -> {
                     _sideEffectEvent.send(SideEffectEvent.ShowToast(message = result.message ?: ""))

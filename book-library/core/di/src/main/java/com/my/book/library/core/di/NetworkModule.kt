@@ -1,5 +1,6 @@
 package com.my.book.library.core.di
 
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.my.book.library.core.common.Constant
 import com.my.book.library.core.common.util.LogUtil
@@ -24,6 +25,15 @@ object NetworkModule {
     @Provides
     fun providesApiService(retrofit: Retrofit): ApiService {
         return retrofit.create(ApiService::class.java)
+    }
+
+    @Singleton
+    @Provides
+    fun providesGson(): Gson {
+        return GsonBuilder()
+            .disableHtmlEscaping()
+            .setLenient()
+            .create()
     }
 
     // Interceptor
@@ -62,18 +72,13 @@ object NetworkModule {
     @Singleton
     @Provides
     fun providesRetrofit(
-        okHttpClient: OkHttpClient
+        okHttpClient: OkHttpClient,
+        gson: Gson
     ): Retrofit {
-        val gson = GsonBuilder()
-            .disableHtmlEscaping()
-            .setLenient()
-            .create()
-
-        val builder = Retrofit.Builder()
+        return Retrofit.Builder()
             .addConverterFactory(GsonConverterFactory.create(gson))
             .baseUrl(Constant.BASE_URL)
             .client(okHttpClient)
-
-        return builder.build()
+            .build()
     }
 }
