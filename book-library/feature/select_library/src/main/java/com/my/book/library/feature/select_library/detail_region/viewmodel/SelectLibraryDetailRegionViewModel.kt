@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -31,7 +32,7 @@ class SelectLibraryDetailRegionViewModel @Inject constructor(
     fun intentAction(selectLibraryDetailRegionViewModelEvent: SelectLibraryDetailRegionViewModelEvent) {
         when(selectLibraryDetailRegionViewModelEvent) {
             is SelectLibraryDetailRegionViewModelEvent.UpdateRegion -> {
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.Main) {
                     _selectLibraryDetailRegionUiEvent.send(SelectLibraryDetailRegionUiEvent.UpdateRegion(region = selectLibraryDetailRegionViewModelEvent.region))
                 }
             }

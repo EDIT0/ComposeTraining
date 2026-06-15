@@ -15,7 +15,7 @@ data class LibraryMapUiState(
     val userLongitude: Double? = null,
     val libraryList: MutableStateFlow<PagingData<ResSearchBookLibrary.ResponseData.LibraryWrapper>>? = null,
     val holdingLibraryList: MutableStateFlow<PagingData<ResSearchBookHoldingLibrary.ResponseData.LibraryWrapper>>? = null,
-    val selectedLibCode: String? = null,
+    val selectedLibCode: Int? = null,
     val sheetOffsetRatio: Float = -1f,
     val resCheckBookAvailability: ResCheckBookAvailability? = null,
     val resLibraryBookData: ResLibraryBookData? = null,

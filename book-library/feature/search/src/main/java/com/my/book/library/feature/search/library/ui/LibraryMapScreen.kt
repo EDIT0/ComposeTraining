@@ -474,7 +474,7 @@ fun LibraryMapContent(
                                 val lat = item.lib.latitude?.toDoubleOrNull()
                                 val lon = item.lib.longitude?.toDoubleOrNull()
                                 if (lat != null && lon != null) {
-                                    val isSelected = selectedLibCode == item.lib.libCode
+                                    val isSelected = selectedLibCode == item.lib.libCode?.toIntOrNull()
                                     Marker(
                                         state = rememberUpdatedMarkerState(
                                             position = LatLng(lat, lon)
@@ -485,7 +485,7 @@ fun LibraryMapContent(
                                         ),
                                         captionText = item.lib.libName ?: "",
                                         onClick = {
-                                            libraryMapViewModelEvent.invoke(LibraryMapViewModelEvent.SelectMarker(item.lib.libCode))
+                                            libraryMapViewModelEvent.invoke(LibraryMapViewModelEvent.SelectMarker(item.lib.libCode?.toIntOrNull()))
                                             true
                                         }
                                     )
@@ -533,7 +533,7 @@ fun LibraryMapContent(
                         holdingLibraryListPaging = holdingLibraryListPaging,
                         onRegionHeaderClick = { showRegionSheet = true },
                         onLibraryItemClick = { item ->
-                            libraryMapViewModelEvent(LibraryMapViewModelEvent.SelectMarker(item.lib.libCode))
+                            libraryMapViewModelEvent(LibraryMapViewModelEvent.SelectMarker(item.lib.libCode?.toIntOrNull()))
                             val lat = item.lib.latitude?.toDoubleOrNull()
                             val lon = item.lib.longitude?.toDoubleOrNull()
                             if (lat != null && lon != null) {
@@ -549,7 +549,7 @@ fun LibraryMapContent(
 
                     // 마커 선택 시 detail 바텀시트
                     val selectedItem = holdingLibraryListPaging?.itemSnapshotList?.items
-                        ?.firstOrNull { it.lib.libCode == selectedLibCode }
+                        ?.firstOrNull { it.lib.libCode?.toIntOrNull() == selectedLibCode }
                     LibraryDetailSheet(
                         localContext = localContext,
                         modifier = Modifier.offset { IntOffset(x = 0, y = detailSheetAnim.value.roundToInt()) },

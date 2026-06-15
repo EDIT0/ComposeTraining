@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -41,12 +42,12 @@ class SearchViewModel @Inject constructor(
     fun intentAction(searchViewModelEvent: SearchViewModelEvent) {
         when(searchViewModelEvent) {
             is SearchViewModelEvent.RequestUpdateTitle -> {
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.Main) {
                     _searchUiEvent.send(SearchUiEvent.UpdateTitle(searchViewModelEvent.title))
                 }
             }
             is SearchViewModelEvent.RequestSearchBook -> {
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.IO) {
                     requestSearchBook(title = searchViewModelEvent.title)
                 }
             }
@@ -86,7 +87,7 @@ class SearchViewModel @Inject constructor(
                 title = title
             ),
             onResponseData = {
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.Main) {
                     _searchUiEvent.send(SearchUiEvent.UpdateSearchInfo(searchInfo = it))
                 }
             }

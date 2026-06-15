@@ -191,7 +191,7 @@ class RemoteDataSourceImpl @Inject constructor(
     ): Response<ResLibraryBookData> {
         return apiService.getLibraryBookData(
             authKey = authToken,
-            libCode = reqLibraryBookData.libCode.toIntOrNull() ?: 0,
+            libCode = reqLibraryBookData.libCode,
             isbn13 = reqLibraryBookData.isbn13,
             type = reqLibraryBookData.type,
             format = format

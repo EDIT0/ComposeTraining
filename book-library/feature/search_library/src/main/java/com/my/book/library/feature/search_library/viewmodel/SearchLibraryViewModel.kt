@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -59,12 +60,12 @@ class SearchLibraryViewModel @Inject constructor(
                 )
             }
             is SearchLibraryViewModelEvent.SetIsFilterOpen -> {
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.Main) {
                     _searchLibraryUiEvent.send(SearchLibraryUiEvent.UpdateIsFilterOpen(isFilterOpen = searchLibraryViewModelEvent.isFilterOpen))
                 }
             }
             is SearchLibraryViewModelEvent.SetSelectionRegion -> {
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.Main) {
                     _searchLibraryUiEvent.send(SearchLibraryUiEvent.UpdateSelectionRegion(selectionRegion = searchLibraryViewModelEvent.selectionRegion))
                 }
             }
@@ -72,7 +73,7 @@ class SearchLibraryViewModel @Inject constructor(
     }
 
     private fun requestGtSearchRegionBookLibrary(region: Int, pageNo: Int, pageSize: Int) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             getSearchRegionBookLibraryUseCase.invoke(
                 reqSearchRegionBookLibrary = ReqSearchRegionBookLibrary(
                     pageNo = pageNo,

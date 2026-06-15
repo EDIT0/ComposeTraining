@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -102,12 +103,12 @@ class LibraryMapViewModel @Inject constructor(
         when(libraryMapViewModelEvent) {
             is LibraryMapViewModelEvent.RequestInit -> {
                 currentIsbn = libraryMapViewModelEvent.isbn
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.IO) {
                     requestInit(isbn = libraryMapViewModelEvent.isbn)
                 }
             }
             is LibraryMapViewModelEvent.UpdateRegion -> {
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.IO) {
                     val detailRegion = libraryMapViewModelEvent.detailRegion
                     _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateDetailRegion(detailRegion))
                     requestHoldingLibrary(
@@ -118,7 +119,7 @@ class LibraryMapViewModel @Inject constructor(
                 }
             }
             is LibraryMapViewModelEvent.SelectMarker -> {
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.IO) {
                     val libCode = libraryMapViewModelEvent.libCode
                     _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateSelectedLibCode(libCode))
                     _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateCheckBookAvailability(resCheckBookAvailability = null))
@@ -134,7 +135,7 @@ class LibraryMapViewModel @Inject constructor(
                 }
             }
             is LibraryMapViewModelEvent.UpdateSheetOffsetRatio -> {
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.Main) {
                     _libraryMapUiEvent.send(LibraryMapUiEvent.UpdateSheetOffsetRatio(libraryMapViewModelEvent.ratio))
                 }
             }
@@ -142,7 +143,7 @@ class LibraryMapViewModel @Inject constructor(
                 startLocationUpdates()
             }
             is LibraryMapViewModelEvent.RequestMoveToMyLocation -> {
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.Main) {
                     if (locationUtil.isLocationPermissionGranted()) {
                         _sideEffectEvent.send(SideEffectEvent.MoveToMyLocation)
                     } else {
@@ -151,7 +152,7 @@ class LibraryMapViewModel @Inject constructor(
                 }
             }
             is LibraryMapViewModelEvent.RequestLibraryBookData -> {
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.IO) {
                     requestLibraryBookData(
                         libCode = libraryMapViewModelEvent.libCode,
                         isbn13 = libraryMapViewModelEvent.isbn13,
@@ -164,7 +165,7 @@ class LibraryMapViewModel @Inject constructor(
 
     private fun startLocationUpdates() {
         locationUpdatesJob?.cancel()
-        locationUpdatesJob = viewModelScope.launch {
+        locationUpdatesJob = viewModelScope.launch(Dispatchers.IO) {
             try {
                 locationUtil.getLocationUpdates().collect { location ->
                     _libraryMapUiEvent.send(
@@ -210,10 +211,10 @@ class LibraryMapViewModel @Inject constructor(
         }
     }
 
-    private suspend fun requestCheckBookAvailability(libCode: String) {
+    private suspend fun requestCheckBookAvailability(libCode: Int) {
         getCheckBookAvailabilityUseCase.invoke(
             reqCheckBookAvailability = ReqCheckBookAvailability(
-                libCode = libCode.toIntOrNull() ?: return,
+                libCode = libCode,
                 isbn13 = currentIsbn
             )
         ).catch { e ->
@@ -249,7 +250,7 @@ class LibraryMapViewModel @Inject constructor(
         }
     }
 
-    private suspend fun requestLibraryBookData(libCode: String, isbn13: String, type: String) {
+    private suspend fun requestLibraryBookData(libCode: Int, isbn13: String, type: String) {
         getLibraryBookDataUseCase.invoke(
             reqLibraryBookData = ReqLibraryBookData(
                 libCode = libCode,
