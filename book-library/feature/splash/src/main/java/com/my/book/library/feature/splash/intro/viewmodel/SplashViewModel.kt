@@ -5,12 +5,18 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.my.book.library.core.model.network.RequestResult
 import com.my.book.library.domain.usecase.data_store.GetMyLibraryInfoUseCase
+import com.my.book.library.feature.splash.intro.intent.SplashUiEvent
 import com.my.book.library.feature.splash.intro.intent.SplashViewModelEvent
+import com.my.book.library.feature.splash.intro.state.SplashUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.runningFold
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,6 +35,15 @@ class SplashViewModel @Inject constructor(
 
     private val _sideEffectEvent = Channel<SideEffectEvent>()
     val sideEffectEvent = _sideEffectEvent.receiveAsFlow()
+
+    private val _splashUiEvent = Channel<SplashUiEvent>()
+    val splashUiState: StateFlow<SplashUiState> = _splashUiEvent.receiveAsFlow()
+        .runningFold(initial = SplashUiState()) { state, event ->
+            when (event) {
+                is SplashUiEvent.LoadingFinished -> state.copy(isLoading = false)
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, SplashUiState())
 
     /**
      * ViewModel로 요청하는 Event
@@ -55,6 +70,7 @@ class SplashViewModel @Inject constructor(
                 if (it is RequestResult.Error) {
                     // 도서관 정보 없음
                     _sideEffectEvent.send(SideEffectEvent.OnMoveToSelectLibrary())
+                    _splashUiEvent.send(SplashUiEvent.LoadingFinished())
                 }
 
                 return@filter it is RequestResult.Success
@@ -62,10 +78,12 @@ class SplashViewModel @Inject constructor(
             .catch {
                 // 오류 처리
                 _sideEffectEvent.send(SideEffectEvent.ShowToast(message = it.message.toString()))
+                _splashUiEvent.send(SplashUiEvent.LoadingFinished())
             }
             .collect {
                 // 도서관 정보 있음
                 _sideEffectEvent.send(SideEffectEvent.OnMoveToMain())
+                _splashUiEvent.send(SplashUiEvent.LoadingFinished())
             }
     }
 }
