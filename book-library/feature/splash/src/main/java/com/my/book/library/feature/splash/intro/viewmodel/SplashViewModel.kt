@@ -67,7 +67,12 @@ class SplashViewModel @Inject constructor(
     private suspend fun isCheckMyLibraryInfoExist() {
         getMyLibraryInfoUseCase.invoke()
             .filter {
-                if (it is RequestResult.Error) {
+                if (
+                    it is RequestResult.Error ||
+                    it is RequestResult.AuthError ||
+                    it is RequestResult.ConnectionError ||
+                    it is RequestResult.DataEmpty
+                    ) {
                     // 도서관 정보 없음
                     _sideEffectEvent.send(SideEffectEvent.OnMoveToSelectLibrary())
                     _splashUiEvent.send(SplashUiEvent.LoadingFinished())
