@@ -16,6 +16,8 @@
     <string name="select_region_complete_go_to_main_title">Find a Book</string>
 
     <string name="main_home_fake_search_hint">Search by title or author</string>
+    <string name="main_home_hot_issue_books_title">Trending Books</string>
+    <string name="main_home_hot_issue_books_subtitle">Loans are rising fast this week</string>
 
     <string name="search_book_no_result_title">No results found</string>
     <string name="search_book_no_result_subtitle">Please check your search term</string>

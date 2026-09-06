@@ -16,6 +16,8 @@
     <string name="select_region_complete_go_to_main_title">책 찾으러 가기</string>
 
     <string name="main_home_fake_search_hint">책 제목, 저자 검색</string>
+    <string name="main_home_hot_issue_books_title">지금 뜨는 책</string>
+    <string name="main_home_hot_issue_books_subtitle">이번 주 대출이 빠르게 늘고 있어요</string>
 
     <string name="search_book_no_result_title">검색 결과가 없습니다</string>
     <string name="search_book_no_result_subtitle">검색어를 확인해보세요</string>

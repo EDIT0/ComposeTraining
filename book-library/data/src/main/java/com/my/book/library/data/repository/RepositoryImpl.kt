@@ -196,6 +196,12 @@ class RepositoryImpl @Inject constructor(
 
     override suspend fun getHotTrend(reqHotTrend: ReqHotTrend): Flow<RequestResult<ResHotTrend>> {
         return flow {
+            val cached = localDataSource.getHotTrend(searchDt = reqHotTrend.searchDt)
+            if (cached != null) {
+                emit(RequestResult.Success(data = cached))
+                return@flow
+            }
+
             val response = remoteDataSource.getHotTrend(
                 authToken = BuildConfig.BOOK_LIBRARY_API_KEY,
                 format = Constant.JSON,
@@ -206,6 +212,7 @@ class RepositoryImpl @Inject constructor(
                 val body = response.body()
                 val results = body?.response?.results
                 if (results != null && results.isNotEmpty()) {
+                    localDataSource.saveHotTrend(searchDt = reqHotTrend.searchDt, resHotTrend = body)
                     emit(RequestResult.Success(data = body))
                 } else {
                     emit(RequestResult.DataEmpty())

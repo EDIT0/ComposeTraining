@@ -4,6 +4,8 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.my.book.library.core.model.network.RequestResult
+import com.my.book.library.core.model.req.ReqHotTrend
+import com.my.book.library.domain.usecase.GetHotTrendUseCase
 import com.my.book.library.domain.usecase.data_store.GetMyLibraryInfoUseCase
 import com.my.book.library.feature.main.intent.home.HomeUiEvent
 import com.my.book.library.feature.main.intent.home.HomeViewModelEvent
@@ -17,12 +19,14 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     app: Application,
-    private val getMyLibraryInfoUseCase: GetMyLibraryInfoUseCase
+    private val getMyLibraryInfoUseCase: GetMyLibraryInfoUseCase,
+    private val getHotTrendUseCase: GetHotTrendUseCase
 ): AndroidViewModel(application = app) {
 
     private val _homeUiEvent = Channel<HomeUiEvent>(capacity = Channel.UNLIMITED)
@@ -34,6 +38,9 @@ class HomeViewModel @Inject constructor(
                     is HomeUiEvent.UpdateMyLibraryInfo -> {
                         state.copy(myLibraryInfo = event.myLibraryInfo)
                     }
+                    is HomeUiEvent.UpdateHotTrendBooks -> {
+                        state.copy(hotTrendBooks = event.hotTrendBooks)
+                    }
                 }
             }
         )
@@ -41,6 +48,7 @@ class HomeViewModel @Inject constructor(
 
     init {
         intentAction(HomeViewModelEvent.GetMyLibraryInfo)
+//        intentAction(HomeViewModelEvent.GetHotTrend)
     }
 
     fun intentAction(event: HomeViewModelEvent) {
@@ -55,6 +63,22 @@ class HomeViewModel @Inject constructor(
                                 }
                                 else -> {
                                     _homeUiEvent.send(HomeUiEvent.UpdateMyLibraryInfo(null))
+                                }
+                            }
+                        }
+                }
+            }
+            is HomeViewModelEvent.GetHotTrend -> {
+                viewModelScope.launch(Dispatchers.IO) {
+                    getHotTrendUseCase.invoke(reqHotTrend = ReqHotTrend(searchDt = LocalDate.now().toString()))
+                        .collect { result ->
+                            when (result) {
+                                is RequestResult.Success -> {
+                                    // 홈 캐러셀은 페이징 없이 최대 10권만 고정으로 보여준다
+                                    _homeUiEvent.send(HomeUiEvent.UpdateHotTrendBooks((result.resultData ?: emptyList()).take(10)))
+                                }
+                                else -> {
+                                    _homeUiEvent.send(HomeUiEvent.UpdateHotTrendBooks(emptyList()))
                                 }
                             }
                         }
