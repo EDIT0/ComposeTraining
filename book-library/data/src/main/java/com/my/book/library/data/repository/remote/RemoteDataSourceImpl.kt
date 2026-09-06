@@ -5,7 +5,10 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.my.book.library.core.model.req.ReqBookDetail
 import com.my.book.library.core.model.req.ReqCheckBookAvailability
+import com.my.book.library.core.model.req.ReqHotTrend
 import com.my.book.library.core.model.req.ReqLibraryBookData
+import com.my.book.library.core.model.req.ReqLoanItemSrchByLib
+import com.my.book.library.core.model.req.ReqRecommandList
 import com.my.book.library.core.model.req.ReqSearchBookHoldingLibrary
 import com.my.book.library.core.model.req.ReqSearchBookWithTitle
 import com.my.book.library.core.model.req.ReqSearchDetailRegionBookLibrary
@@ -13,11 +16,15 @@ import com.my.book.library.core.model.req.ReqSearchLibCodeBookLibrary
 import com.my.book.library.core.model.req.ReqSearchRegionBookLibrary
 import com.my.book.library.core.model.res.ResBookDetail
 import com.my.book.library.core.model.res.ResCheckBookAvailability
+import com.my.book.library.core.model.res.ResHotTrend
 import com.my.book.library.core.model.res.ResLibraryBookData
+import com.my.book.library.core.model.res.ResLoanItemSrchByLib
+import com.my.book.library.core.model.res.ResRecommandList
 import com.my.book.library.core.model.res.ResSearchBook
 import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
 import com.my.book.library.core.model.res.ResSearchBookLibrary
 import com.my.book.library.data.api.ApiService
+import com.my.book.library.data.repository.remote.paging.GetLoanItemSrchByLibPagingSource
 import com.my.book.library.data.repository.remote.paging.GetSearchBookHoldingLibraryPagingSource
 import com.my.book.library.data.repository.remote.paging.GetSearchBookWithTitlePagingSource
 import com.my.book.library.data.repository.remote.paging.GetSearchDetailRegionBookLibraryPagingSource
@@ -194,6 +201,72 @@ class RemoteDataSourceImpl @Inject constructor(
             libCode = reqLibraryBookData.libCode,
             isbn13 = reqLibraryBookData.isbn13,
             type = reqLibraryBookData.type,
+            format = format
+        )
+    }
+
+    override suspend fun getHotTrend(
+        authToken: String,
+        format: String,
+        reqHotTrend: ReqHotTrend
+    ): Response<ResHotTrend> {
+        return apiService.getHotTrend(
+            authKey = authToken,
+            searchDt = reqHotTrend.searchDt,
+            format = format
+        )
+    }
+
+    override suspend fun getLoanItemSrchByLib(
+        authToken: String,
+        format: String,
+        reqLoanItemSrchByLib: ReqLoanItemSrchByLib
+    ): Response<ResLoanItemSrchByLib> {
+        return apiService.getLoanItemSrchByLib(
+            authKey = authToken,
+            region = reqLoanItemSrchByLib.region,
+            dtlRegion = reqLoanItemSrchByLib.dtlRegion,
+            pageNo = reqLoanItemSrchByLib.pageNo,
+            pageSize = reqLoanItemSrchByLib.pageSize,
+            format = format
+        )
+    }
+
+    override suspend fun getLoanItemSrchByLibPaging(
+        authToken: String,
+        format: String,
+        reqLoanItemSrchByLib: ReqLoanItemSrchByLib
+    ): Flow<PagingData<ResLoanItemSrchByLib.ResponseData.DocWrapper>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 10,
+                prefetchDistance = 5,
+                enablePlaceholders = false,
+                initialLoadSize = 20,
+                maxSize = 10000,
+            ),
+            pagingSourceFactory = {
+                GetLoanItemSrchByLibPagingSource(
+                    apiService = apiService,
+                    authToken = authToken,
+                    format = format,
+                    reqLoanItemSrchByLib = reqLoanItemSrchByLib
+                )
+            }
+        ).flow.catch {
+            throw Exception(it)
+        }
+    }
+
+    override suspend fun getRecommandList(
+        authToken: String,
+        format: String,
+        reqRecommandList: ReqRecommandList
+    ): Response<ResRecommandList> {
+        return apiService.getRecommandList(
+            authKey = authToken,
+            isbn13 = reqRecommandList.isbn13,
+            type = reqRecommandList.type,
             format = format
         )
     }

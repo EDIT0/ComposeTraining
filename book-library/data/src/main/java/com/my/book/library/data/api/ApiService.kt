@@ -3,7 +3,10 @@ package com.my.book.library.data.api
 import com.my.book.library.core.common.Constant
 import com.my.book.library.core.model.res.ResBookDetail
 import com.my.book.library.core.model.res.ResCheckBookAvailability
+import com.my.book.library.core.model.res.ResHotTrend
 import com.my.book.library.core.model.res.ResLibraryBookData
+import com.my.book.library.core.model.res.ResLoanItemSrchByLib
+import com.my.book.library.core.model.res.ResRecommandList
 import com.my.book.library.core.model.res.ResSearchBook
 import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
 import com.my.book.library.core.model.res.ResSearchBookLibrary
@@ -166,4 +169,57 @@ interface ApiService {
         @Query("type") type: String,
         @Query("format") format: String = Constant.JSON
     ): Response<ResLibraryBookData>
+
+    /**
+     * 대출 급상승 도서
+     *
+     * @param authKey
+     * @param searchDt 검색일자 (yyyy-MM-dd)
+     * @param format
+     * @return
+     */
+    @GET("${Constant.URL_PATH_API}/hotTrend")
+    suspend fun getHotTrend(
+        @Query("authKey") authKey: String,
+        @Query("searchDt") searchDt: String,
+        @Query("format") format: String = Constant.JSON
+    ): Response<ResHotTrend>
+
+    /**
+     * 도서관/지역별 인기대출도서 조회 (지역 코드 기반)
+     *
+     * @param authKey
+     * @param region 지역 코드
+     * @param dtlRegion 세부지역 코드
+     * @param pageNo 페이지번호
+     * @param pageSize 페이지크기
+     * @param format
+     * @return
+     */
+    @GET("${Constant.URL_PATH_API}/loanItemSrchByLib")
+    suspend fun getLoanItemSrchByLib(
+        @Query("authKey") authKey: String,
+        @Query("region") region: Int,
+        @Query("dtl_region") dtlRegion: Int,
+        @Query("pageNo") pageNo: Int,
+        @Query("pageSize") pageSize: Int,
+        @Query("format") format: String = Constant.JSON
+    ): Response<ResLoanItemSrchByLib>
+
+    /**
+     * 마니아를 위한 추천도서 조회
+     *
+     * @param authKey
+     * @param isbn13
+     * @param type mania | reader
+     * @param format
+     * @return
+     */
+    @GET("${Constant.URL_PATH_API}/recommandList")
+    suspend fun getRecommandList(
+        @Query("authKey") authKey: String,
+        @Query("isbn13") isbn13: String,
+        @Query("type") type: String = "mania",
+        @Query("format") format: String = Constant.JSON
+    ): Response<ResRecommandList>
 }

@@ -5,7 +5,10 @@ import com.my.book.library.core.common.Constant
 import com.my.book.library.core.model.network.RequestResult
 import com.my.book.library.core.model.req.ReqBookDetail
 import com.my.book.library.core.model.req.ReqCheckBookAvailability
+import com.my.book.library.core.model.req.ReqHotTrend
 import com.my.book.library.core.model.req.ReqLibraryBookData
+import com.my.book.library.core.model.req.ReqLoanItemSrchByLib
+import com.my.book.library.core.model.req.ReqRecommandList
 import com.my.book.library.core.model.req.ReqSearchBookHoldingLibrary
 import com.my.book.library.core.model.req.ReqSearchBookWithTitle
 import com.my.book.library.core.model.req.ReqSearchDetailRegionBookLibrary
@@ -13,7 +16,10 @@ import com.my.book.library.core.model.req.ReqSearchLibCodeBookLibrary
 import com.my.book.library.core.model.req.ReqSearchRegionBookLibrary
 import com.my.book.library.core.model.res.ResBookDetail
 import com.my.book.library.core.model.res.ResCheckBookAvailability
+import com.my.book.library.core.model.res.ResHotTrend
 import com.my.book.library.core.model.res.ResLibraryBookData
+import com.my.book.library.core.model.res.ResLoanItemSrchByLib
+import com.my.book.library.core.model.res.ResRecommandList
 import com.my.book.library.core.model.res.ResSearchBook
 import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
 import com.my.book.library.core.model.res.ResSearchBookLibrary
@@ -178,6 +184,80 @@ class RepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 val body = response.body()
                 if (body != null) {
+                    emit(RequestResult.Success(data = body))
+                } else {
+                    emit(RequestResult.DataEmpty())
+                }
+            } else {
+                emit(RequestResult.Error(code = response.code(), message = response.message()))
+            }
+        }
+    }
+
+    override suspend fun getHotTrend(reqHotTrend: ReqHotTrend): Flow<RequestResult<ResHotTrend>> {
+        return flow {
+            val response = remoteDataSource.getHotTrend(
+                authToken = BuildConfig.BOOK_LIBRARY_API_KEY,
+                format = Constant.JSON,
+                reqHotTrend = reqHotTrend
+            )
+
+            if (response.isSuccessful) {
+                val body = response.body()
+                val results = body?.response?.results
+                if (results != null && results.isNotEmpty()) {
+                    emit(RequestResult.Success(data = body))
+                } else {
+                    emit(RequestResult.DataEmpty())
+                }
+            } else {
+                emit(RequestResult.Error(code = response.code(), message = response.message()))
+            }
+        }
+    }
+
+    override suspend fun getLoanItemSrchByLib(reqLoanItemSrchByLib: ReqLoanItemSrchByLib): Flow<RequestResult<ResLoanItemSrchByLib>> {
+        return flow {
+            val response = remoteDataSource.getLoanItemSrchByLib(
+                authToken = BuildConfig.BOOK_LIBRARY_API_KEY,
+                format = Constant.JSON,
+                reqLoanItemSrchByLib = reqLoanItemSrchByLib
+            )
+
+            if (response.isSuccessful) {
+                val body = response.body()
+                val docs = body?.response?.docs
+                if (docs != null && docs.isNotEmpty()) {
+                    emit(RequestResult.Success(data = body))
+                } else {
+                    emit(RequestResult.DataEmpty())
+                }
+            } else {
+                emit(RequestResult.Error(code = response.code(), message = response.message()))
+            }
+        }
+    }
+
+    override suspend fun getLoanItemSrchByLibPaging(reqLoanItemSrchByLib: ReqLoanItemSrchByLib): Flow<PagingData<ResLoanItemSrchByLib.ResponseData.DocWrapper>> {
+        return remoteDataSource.getLoanItemSrchByLibPaging(
+            authToken = BuildConfig.BOOK_LIBRARY_API_KEY,
+            format = Constant.JSON,
+            reqLoanItemSrchByLib = reqLoanItemSrchByLib
+        )
+    }
+
+    override suspend fun getRecommandList(reqRecommandList: ReqRecommandList): Flow<RequestResult<ResRecommandList>> {
+        return flow {
+            val response = remoteDataSource.getRecommandList(
+                authToken = BuildConfig.BOOK_LIBRARY_API_KEY,
+                format = Constant.JSON,
+                reqRecommandList = reqRecommandList
+            )
+
+            if (response.isSuccessful) {
+                val body = response.body()
+                val docs = body?.response?.docs
+                if (docs != null && docs.isNotEmpty()) {
                     emit(RequestResult.Success(data = body))
                 } else {
                     emit(RequestResult.DataEmpty())

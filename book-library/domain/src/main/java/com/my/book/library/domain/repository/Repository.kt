@@ -4,7 +4,10 @@ import androidx.paging.PagingData
 import com.my.book.library.core.model.network.RequestResult
 import com.my.book.library.core.model.req.ReqBookDetail
 import com.my.book.library.core.model.req.ReqCheckBookAvailability
+import com.my.book.library.core.model.req.ReqHotTrend
 import com.my.book.library.core.model.req.ReqLibraryBookData
+import com.my.book.library.core.model.req.ReqLoanItemSrchByLib
+import com.my.book.library.core.model.req.ReqRecommandList
 import com.my.book.library.core.model.req.ReqSearchBookHoldingLibrary
 import com.my.book.library.core.model.req.ReqSearchBookWithTitle
 import com.my.book.library.core.model.req.ReqSearchDetailRegionBookLibrary
@@ -12,7 +15,10 @@ import com.my.book.library.core.model.req.ReqSearchLibCodeBookLibrary
 import com.my.book.library.core.model.req.ReqSearchRegionBookLibrary
 import com.my.book.library.core.model.res.ResBookDetail
 import com.my.book.library.core.model.res.ResCheckBookAvailability
+import com.my.book.library.core.model.res.ResHotTrend
 import com.my.book.library.core.model.res.ResLibraryBookData
+import com.my.book.library.core.model.res.ResLoanItemSrchByLib
+import com.my.book.library.core.model.res.ResRecommandList
 import com.my.book.library.core.model.res.ResSearchBook
 import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
 import com.my.book.library.core.model.res.ResSearchBookLibrary
@@ -29,4 +35,8 @@ interface Repository {
     suspend fun getSearchBookHoldingLibraryPaging(reqSearchBookHoldingLibrary: ReqSearchBookHoldingLibrary): Flow<PagingData<ResSearchBookHoldingLibrary.ResponseData.LibraryWrapper>>
     suspend fun getCheckBookAvailability(reqCheckBookAvailability: ReqCheckBookAvailability): Flow<RequestResult<ResCheckBookAvailability>>
     suspend fun getLibraryBookData(reqLibraryBookData: ReqLibraryBookData): Flow<RequestResult<ResLibraryBookData>>
+    suspend fun getHotTrend(reqHotTrend: ReqHotTrend): Flow<RequestResult<ResHotTrend>>
+    suspend fun getLoanItemSrchByLib(reqLoanItemSrchByLib: ReqLoanItemSrchByLib): Flow<RequestResult<ResLoanItemSrchByLib>>
+    suspend fun getLoanItemSrchByLibPaging(reqLoanItemSrchByLib: ReqLoanItemSrchByLib): Flow<PagingData<ResLoanItemSrchByLib.ResponseData.DocWrapper>>
+    suspend fun getRecommandList(reqRecommandList: ReqRecommandList): Flow<RequestResult<ResRecommandList>>
 }
