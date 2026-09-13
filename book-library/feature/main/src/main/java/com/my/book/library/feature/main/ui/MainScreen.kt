@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -157,7 +158,8 @@ fun MainContent(
         ) { innerPadding ->
             NavHost(
                 modifier = Modifier
-                    .background(color = colorResource(R.color.color_FFFFFFFF)),
+                    .background(color = colorResource(R.color.color_FFFFFFFF))
+                    .padding(bottom = innerPadding.calculateBottomPadding()),
                 navController = navController,
                 startDestination = MainDestination.HOME.route,
             ) {

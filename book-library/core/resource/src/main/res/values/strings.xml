@@ -18,6 +18,8 @@
     <string name="main_home_fake_search_hint">Search by title or author</string>
     <string name="main_home_hot_issue_books_title">Trending Books</string>
     <string name="main_home_hot_issue_books_subtitle">Loans are rising fast this week</string>
+    <string name="main_home_popular_loan_books_title">Popular in Your Neighborhood</string>
+    <string name="main_home_popular_loan_books_subtitle">Most borrowed at %1$s libraries</string>
 
     <string name="search_book_no_result_title">No results found</string>
     <string name="search_book_no_result_subtitle">Please check your search term</string>
