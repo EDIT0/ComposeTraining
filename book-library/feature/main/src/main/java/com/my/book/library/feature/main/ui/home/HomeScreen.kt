@@ -37,9 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -49,21 +47,19 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImage
 import com.my.book.library.core.common.CommonViewModel
 import com.my.book.library.core.common.component.CommonSearchBar
 import com.my.book.library.core.common.component.LifecycleListener
 import com.my.book.library.core.common.component.LifecycleResult
 import com.my.book.library.core.common.dpToSp
 import com.my.book.library.core.common.noRippleClickable
-import com.my.book.library.core.common.util.LogUtil
 import com.my.book.library.core.common.util.SystemBarConfig
 import com.my.book.library.core.common.util.SystemBarController
+import com.my.book.library.core.model.local.BookRankType
 import com.my.book.library.core.model.local.MyRegionAndLibrary
 import com.my.book.library.core.model.res.ResHotTrend
 import com.my.book.library.core.model.res.ResLoanItemSrchByLib
@@ -72,6 +68,7 @@ import com.my.book.library.core.resource.NotoSansKR
 import com.my.book.library.core.resource.R
 import com.my.book.library.feature.main.intent.home.HomeViewModelEvent
 import com.my.book.library.feature.main.state.home.HomeUiState
+import com.my.book.library.feature.main.ui.common.BookCoverImage
 import com.my.book.library.feature.main.viewmodel.MainViewModel
 import com.my.book.library.feature.main.viewmodel.home.HomeViewModel
 
@@ -83,6 +80,7 @@ import com.my.book.library.feature.main.viewmodel.home.HomeViewModel
 fun HomeScreen(
     onMoveToSearchLibrary: () -> Unit,
     onMoveToSelectLibraryRegion: () -> Unit,
+    onMoveToBookRank: (BookRankType) -> Unit,
     commonViewModel: CommonViewModel,
     mainViewModel: MainViewModel
 ) {
@@ -115,6 +113,7 @@ fun HomeScreen(
         localContext = localContext,
         onMoveToSearchLibrary = onMoveToSearchLibrary,
         onMoveToSelectLibraryRegion = onMoveToSelectLibraryRegion,
+        onMoveToBookRank = onMoveToBookRank,
         homeUiState = homeUiState
     )
 
@@ -136,6 +135,7 @@ fun HomeContent(
     localContext: Context,
     onMoveToSearchLibrary: () -> Unit,
     onMoveToSelectLibraryRegion: () -> Unit,
+    onMoveToBookRank: (BookRankType) -> Unit,
     homeUiState: State<HomeUiState>
 ) {
     val scrollState = rememberScrollState()
@@ -179,13 +179,19 @@ fun HomeContent(
                     )
 
                     HotTrendSection(
-                        hotTrendBooks = homeUiState.value.hotTrendBooks
+                        hotTrendBooks = homeUiState.value.hotTrendBooks,
+                        onClick = {
+                            onMoveToBookRank(BookRankType.HOT_TREND)
+                        }
                     )
 
                     PopularLoanBooksSection(
                         popularLoanBooks = homeUiState.value.popularLoanBooks,
                         districtName = homeUiState.value.myLibraryInfo?.detailRegion?.let {
                             stringResource(it.districtNameRes)
+                        },
+                        onClick = {
+                            onMoveToBookRank(BookRankType.POPULAR_LOAN)
                         }
                     )
                 }
@@ -276,7 +282,8 @@ private fun HomeSearchBar(
  */
 @Composable
 private fun HotTrendSection(
-    hotTrendBooks: List<ResHotTrend.ResponseData.ResultWrapper.ResultData.DocWrapper.DocData>
+    hotTrendBooks: List<ResHotTrend.ResponseData.ResultWrapper.ResultData.DocWrapper.DocData>,
+    onClick: () -> Unit
 ) {
     if (hotTrendBooks.isEmpty()) {
         return
@@ -296,6 +303,7 @@ private fun HotTrendSection(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .noRippleClickable { onClick() }
             ) {
                 Text(
                     text = stringResource(R.string.main_home_hot_issue_books_title),
@@ -359,39 +367,6 @@ private fun HotTrendSection(
 }
 
 /**
- * 도서 표지 비동기 이미지 — 로드 실패 시 Inside, 성공 시 Crop으로 표시 방식을 전환한다.
- * [HotTrendBookItem]/[PopularLoanBookRow]에서 공통으로 사용한다.
- */
-@Composable
-private fun BookCoverImage(
-    imageUrl: String?,
-    modifier: Modifier,
-    cornerRadius: Dp
-) {
-    var contentScale by remember {
-        mutableStateOf<ContentScale>(ContentScale.Inside)
-    }
-
-    AsyncImage(
-        modifier = modifier.clip(RoundedCornerShape(cornerRadius)),
-        model = imageUrl,
-        contentDescription = null,
-        alignment = Alignment.Center,
-        contentScale = contentScale,
-        placeholder = painterResource(R.drawable.ic_book_grey_57x64),
-        error = painterResource(R.drawable.ic_book_grey_57x64),
-        onError = { error ->
-            contentScale = ContentScale.Inside
-            LogUtil.e_dev("book image load error: ${error.result.throwable}")
-        },
-        onSuccess = {
-            contentScale = ContentScale.Crop
-            LogUtil.d_dev("book image success, url: $imageUrl")
-        }
-    )
-}
-
-/**
  * 핫트랜드 목록의 도서 1권 카드 — 표지 이미지 + 제목 + 저자.
  */
 @Composable
@@ -401,6 +376,9 @@ private fun HotTrendBookItem(
     Column(
         modifier = Modifier
             .width(186.dp)
+            .noRippleClickable {
+
+            }
     ) {
         Box(
             modifier = Modifier
@@ -472,7 +450,8 @@ private val POPULAR_LOAN_BOOKS_GRID_HEIGHT = POPULAR_LOAN_BOOKS_ROW_HEIGHT * POP
 @Composable
 private fun PopularLoanBooksSection(
     popularLoanBooks: List<ResLoanItemSrchByLib.ResponseData.DocWrapper.DocData>,
-    districtName: String?
+    districtName: String?,
+    onClick: () -> Unit
 ) {
     if (popularLoanBooks.isEmpty()) {
         return
@@ -492,6 +471,7 @@ private fun PopularLoanBooksSection(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .noRippleClickable { onClick() }
             ) {
                 Text(
                     text = stringResource(R.string.main_home_popular_loan_books_title),
@@ -757,6 +737,7 @@ fun HomeUIPreview() {
         localContext = LocalContext.current,
         onMoveToSearchLibrary = {},
         onMoveToSelectLibraryRegion = {},
+        onMoveToBookRank = {},
         homeUiState = remember {
             mutableStateOf(
                 HomeUiState(
@@ -779,6 +760,7 @@ fun HomeUIPreviewEmptyHotTrend() {
         localContext = LocalContext.current,
         onMoveToSearchLibrary = {},
         onMoveToSelectLibraryRegion = {},
+        onMoveToBookRank = {},
         homeUiState = remember { mutableStateOf(HomeUiState()) },
     )
 }
@@ -790,6 +772,7 @@ fun HomeUIPreviewEmptyPopularLoanBooks() {
         localContext = LocalContext.current,
         onMoveToSearchLibrary = {},
         onMoveToSelectLibraryRegion = {},
+        onMoveToBookRank = {},
         homeUiState = remember {
             mutableStateOf(HomeUiState(hotTrendBooks = previewHotTrendBooks))
         },

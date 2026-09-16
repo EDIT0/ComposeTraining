@@ -34,6 +34,7 @@ import androidx.navigation.compose.rememberNavController
 import com.my.book.library.core.common.CommonViewModel
 import com.my.book.library.core.common.component.LifecycleListener
 import com.my.book.library.core.common.component.LifecycleResult
+import com.my.book.library.core.model.local.BookRankType
 import com.my.book.library.core.resource.R
 import com.my.book.library.feature.main.ui.home.HomeScreen
 import com.my.book.library.feature.main.ui.save.SaveScreen
@@ -44,6 +45,7 @@ fun MainScreen(
     commonViewModel: CommonViewModel,
     onMoveToSearchLibrary: () -> Unit,
     onMoveToSelectLibraryRegion: () -> Unit,
+    onMoveToBookRank: (BookRankType) -> Unit,
     modifier: Modifier
 ) {
 
@@ -68,6 +70,7 @@ fun MainScreen(
         localContext = localContext,
         onMoveToSearchLibrary = onMoveToSearchLibrary,
         onMoveToSelectLibraryRegion = onMoveToSelectLibraryRegion,
+        onMoveToBookRank = onMoveToBookRank,
         modifier = modifier,
         commonViewModel = commonViewModel,
         mainViewModel = mainViewModel
@@ -85,6 +88,7 @@ fun MainContent(
     localContext: Context,
     onMoveToSearchLibrary: () -> Unit,
     onMoveToSelectLibraryRegion: () -> Unit,
+    onMoveToBookRank: (BookRankType) -> Unit,
     modifier: Modifier,
     commonViewModel: CommonViewModel,
     mainViewModel: MainViewModel
@@ -167,6 +171,7 @@ fun MainContent(
                     HomeScreen(
                         onMoveToSearchLibrary = onMoveToSearchLibrary,
                         onMoveToSelectLibraryRegion = onMoveToSelectLibraryRegion,
+                        onMoveToBookRank = onMoveToBookRank,
                         commonViewModel = commonViewModel,
                         mainViewModel = mainViewModel
                     )
