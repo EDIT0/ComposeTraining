@@ -81,6 +81,7 @@ fun HomeScreen(
     onMoveToSearchLibrary: () -> Unit,
     onMoveToSelectLibraryRegion: () -> Unit,
     onMoveToBookRank: (BookRankType) -> Unit,
+    onMoveToBookRankDetail: (String) -> Unit,
     commonViewModel: CommonViewModel,
     mainViewModel: MainViewModel
 ) {
@@ -114,6 +115,7 @@ fun HomeScreen(
         onMoveToSearchLibrary = onMoveToSearchLibrary,
         onMoveToSelectLibraryRegion = onMoveToSelectLibraryRegion,
         onMoveToBookRank = onMoveToBookRank,
+        onMoveToBookRankDetail = onMoveToBookRankDetail,
         homeUiState = homeUiState
     )
 
@@ -136,6 +138,7 @@ fun HomeContent(
     onMoveToSearchLibrary: () -> Unit,
     onMoveToSelectLibraryRegion: () -> Unit,
     onMoveToBookRank: (BookRankType) -> Unit,
+    onMoveToBookRankDetail: (String) -> Unit,
     homeUiState: State<HomeUiState>
 ) {
     val scrollState = rememberScrollState()
@@ -182,7 +185,8 @@ fun HomeContent(
                         hotTrendBooks = homeUiState.value.hotTrendBooks,
                         onClick = {
                             onMoveToBookRank(BookRankType.HOT_TREND)
-                        }
+                        },
+                        onItemClick = onMoveToBookRankDetail
                     )
 
                     PopularLoanBooksSection(
@@ -192,7 +196,8 @@ fun HomeContent(
                         },
                         onClick = {
                             onMoveToBookRank(BookRankType.POPULAR_LOAN)
-                        }
+                        },
+                        onItemClick = onMoveToBookRankDetail
                     )
                 }
             }
@@ -283,7 +288,8 @@ private fun HomeSearchBar(
 @Composable
 private fun HotTrendSection(
     hotTrendBooks: List<ResHotTrend.ResponseData.ResultWrapper.ResultData.DocWrapper.DocData>,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onItemClick: (String) -> Unit
 ) {
     if (hotTrendBooks.isEmpty()) {
         return
@@ -352,7 +358,7 @@ private fun HotTrendSection(
                 items = hotTrendBooks,
                 key = { it.isbn13 ?: it.bookname.orEmpty() }
             ) { book ->
-                HotTrendBookItem(book = book)
+                HotTrendBookItem(book = book, onClick = onItemClick)
             }
         }
 
@@ -371,13 +377,14 @@ private fun HotTrendSection(
  */
 @Composable
 private fun HotTrendBookItem(
-    book: ResHotTrend.ResponseData.ResultWrapper.ResultData.DocWrapper.DocData
+    book: ResHotTrend.ResponseData.ResultWrapper.ResultData.DocWrapper.DocData,
+    onClick: (String) -> Unit
 ) {
     Column(
         modifier = Modifier
             .width(186.dp)
             .noRippleClickable {
-
+                book.isbn13?.let(onClick)
             }
     ) {
         Box(
@@ -451,7 +458,8 @@ private val POPULAR_LOAN_BOOKS_GRID_HEIGHT = POPULAR_LOAN_BOOKS_ROW_HEIGHT * POP
 private fun PopularLoanBooksSection(
     popularLoanBooks: List<ResLoanItemSrchByLib.ResponseData.DocWrapper.DocData>,
     districtName: String?,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onItemClick: (String) -> Unit
 ) {
     if (popularLoanBooks.isEmpty()) {
         return
@@ -531,6 +539,7 @@ private fun PopularLoanBooksSection(
                 PopularLoanBookRow(
                     rank = index + 1,
                     book = book,
+                    onClick = onItemClick,
                     modifier = Modifier
                         .width(POPULAR_LOAN_BOOKS_ITEM_WIDTH)
                         .height(POPULAR_LOAN_BOOKS_ROW_HEIGHT)
@@ -550,10 +559,15 @@ private fun PopularLoanBooksSection(
 private fun PopularLoanBookRow(
     rank: Int,
     book: ResLoanItemSrchByLib.ResponseData.DocWrapper.DocData,
+    onClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier.padding(POPULAR_LOAN_BOOKS_ROW_PADDING),
+        modifier = modifier
+            .padding(POPULAR_LOAN_BOOKS_ROW_PADDING)
+            .noRippleClickable {
+                book.isbn13?.let(onClick)
+            },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -738,6 +752,7 @@ fun HomeUIPreview() {
         onMoveToSearchLibrary = {},
         onMoveToSelectLibraryRegion = {},
         onMoveToBookRank = {},
+        onMoveToBookRankDetail = {},
         homeUiState = remember {
             mutableStateOf(
                 HomeUiState(
@@ -761,6 +776,7 @@ fun HomeUIPreviewEmptyHotTrend() {
         onMoveToSearchLibrary = {},
         onMoveToSelectLibraryRegion = {},
         onMoveToBookRank = {},
+        onMoveToBookRankDetail = {},
         homeUiState = remember { mutableStateOf(HomeUiState()) },
     )
 }
@@ -773,6 +789,7 @@ fun HomeUIPreviewEmptyPopularLoanBooks() {
         onMoveToSearchLibrary = {},
         onMoveToSelectLibraryRegion = {},
         onMoveToBookRank = {},
+        onMoveToBookRankDetail = {},
         homeUiState = remember {
             mutableStateOf(HomeUiState(hotTrendBooks = previewHotTrendBooks))
         },

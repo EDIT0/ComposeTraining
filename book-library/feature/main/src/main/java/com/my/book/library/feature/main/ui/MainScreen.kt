@@ -46,6 +46,7 @@ fun MainScreen(
     onMoveToSearchLibrary: () -> Unit,
     onMoveToSelectLibraryRegion: () -> Unit,
     onMoveToBookRank: (BookRankType) -> Unit,
+    onMoveToBookRankDetail: (String) -> Unit,
     modifier: Modifier
 ) {
 
@@ -71,6 +72,7 @@ fun MainScreen(
         onMoveToSearchLibrary = onMoveToSearchLibrary,
         onMoveToSelectLibraryRegion = onMoveToSelectLibraryRegion,
         onMoveToBookRank = onMoveToBookRank,
+        onMoveToBookRankDetail = onMoveToBookRankDetail,
         modifier = modifier,
         commonViewModel = commonViewModel,
         mainViewModel = mainViewModel
@@ -89,6 +91,7 @@ fun MainContent(
     onMoveToSearchLibrary: () -> Unit,
     onMoveToSelectLibraryRegion: () -> Unit,
     onMoveToBookRank: (BookRankType) -> Unit,
+    onMoveToBookRankDetail: (String) -> Unit,
     modifier: Modifier,
     commonViewModel: CommonViewModel,
     mainViewModel: MainViewModel
@@ -172,6 +175,7 @@ fun MainContent(
                         onMoveToSearchLibrary = onMoveToSearchLibrary,
                         onMoveToSelectLibraryRegion = onMoveToSelectLibraryRegion,
                         onMoveToBookRank = onMoveToBookRank,
+                        onMoveToBookRankDetail = onMoveToBookRankDetail,
                         commonViewModel = commonViewModel,
                         mainViewModel = mainViewModel
                     )

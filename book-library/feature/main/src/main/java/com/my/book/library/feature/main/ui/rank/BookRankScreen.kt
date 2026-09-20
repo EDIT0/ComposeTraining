@@ -50,6 +50,7 @@ import com.my.book.library.core.common.component.CommonActionBar
 import com.my.book.library.core.common.component.ListLoadingView
 import com.my.book.library.core.common.component.RetryView
 import com.my.book.library.core.common.dpToSp
+import com.my.book.library.core.common.noRippleClickable
 import com.my.book.library.core.common.util.SystemBarConfig
 import com.my.book.library.core.common.util.SystemBarController
 import com.my.book.library.core.model.local.BookRankType
@@ -68,6 +69,7 @@ fun BookRankScreen(
     bookRankType: BookRankType,
     commonViewModel: CommonViewModel,
     onBackPressed: () -> Unit,
+    onMoveToBookRankDetail: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val localContext = LocalContext.current
@@ -88,6 +90,7 @@ fun BookRankScreen(
         bookRankUiState = bookRankUiState,
         popularLoanBooksPaging = popularLoanBooksPaging,
         onBackPressed = onBackPressed,
+        onMoveToBookRankDetail = onMoveToBookRankDetail,
         modifier = modifier
     )
 }
@@ -99,6 +102,7 @@ private fun BookRankContent(
     bookRankUiState: State<BookRankUiState>,
     popularLoanBooksPaging: LazyPagingItems<ResLoanItemSrchByLib.ResponseData.DocWrapper>?,
     onBackPressed: () -> Unit,
+    onMoveToBookRankDetail: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val useStatusBarSpace = true
@@ -159,7 +163,10 @@ private fun BookRankContent(
                                 bookname = book.bookname,
                                 authors = book.authors,
                                 publisher = book.publisher,
-                                bookImageURL = book.bookImageURL
+                                bookImageURL = book.bookImageURL,
+                                onClick = {
+                                    book.isbn13?.let(onMoveToBookRankDetail)
+                                }
                             )
                         }
 
@@ -177,7 +184,10 @@ private fun BookRankContent(
                                         bookname = book.bookname,
                                         authors = book.authors,
                                         publisher = book.publisher,
-                                        bookImageURL = book.bookImageURL
+                                        bookImageURL = book.bookImageURL,
+                                        onClick = {
+                                            book.isbn13?.let(onMoveToBookRankDetail)
+                                        }
                                     )
                                 }
                             }
@@ -238,12 +248,14 @@ private fun BookRankRow(
     bookname: String?,
     authors: String?,
     publisher: String?,
-    bookImageURL: String?
+    bookImageURL: String?,
+    onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 4.dp)
+            .noRippleClickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -470,7 +482,8 @@ fun BookRankContentPreviewHotTrend() {
             mutableStateOf(BookRankUiState(hotTrendBooks = previewHotTrendBooks))
         },
         popularLoanBooksPaging = null,
-        onBackPressed = {}
+        onBackPressed = {},
+        onMoveToBookRankDetail = {}
     )
 }
 
@@ -485,7 +498,8 @@ fun BookRankContentPreviewPopularLoan() {
         bookRankType = BookRankType.POPULAR_LOAN,
         bookRankUiState = remember { mutableStateOf(BookRankUiState()) },
         popularLoanBooksPaging = flow.collectAsLazyPagingItems(),
-        onBackPressed = {}
+        onBackPressed = {},
+        onMoveToBookRankDetail = {}
     )
 }
 
@@ -497,6 +511,7 @@ fun BookRankContentPreviewEmpty() {
         bookRankType = BookRankType.HOT_TREND,
         bookRankUiState = remember { mutableStateOf(BookRankUiState()) },
         popularLoanBooksPaging = null,
-        onBackPressed = {}
+        onBackPressed = {},
+        onMoveToBookRankDetail = {}
     )
 }

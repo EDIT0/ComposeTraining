@@ -20,6 +20,7 @@ import com.my.book.library.core.resource.LibraryData
 import com.my.book.library.feature.splash.intro.ui.SplashScreen
 import com.my.book.library.feature.main.ui.MainScreen
 import com.my.book.library.feature.main.ui.rank.BookRankScreen
+import com.my.book.library.feature.main.ui.rank_detail.BookRankDetailScreen
 import com.my.book.library.feature.search.book.ui.SearchScreen
 import com.my.book.library.feature.search.library.ui.LibraryMapScreen
 import com.my.book.library.feature.select_library.detail_region.ui.SelectLibraryDetailRegionScreen
@@ -191,6 +192,11 @@ fun AppNavHost(
 
                         navHostController.navigate(route = Screen.BookRank.name + "/${bookRankTypeString}")
                     },
+                    onMoveToBookRankDetail = { isbn13: String ->
+                        val isbn13String = URLEncoder.encode(isbn13, StandardCharsets.UTF_8.name())
+
+                        navHostController.navigate(route = Screen.BookRankDetail.name + "/${isbn13String}")
+                    },
                     modifier = modifier
                 )
             }
@@ -246,6 +252,40 @@ fun AppNavHost(
                 BookRankScreen(
                     commonViewModel = commonViewModel,
                     bookRankType = bookRankType,
+                    onBackPressed = {
+                        onBackPressed(navHostController = navHostController, onAppOff = onAppOff)
+                    },
+                    onMoveToBookRankDetail = { isbn13: String ->
+                        val isbn13String = URLEncoder.encode(isbn13, StandardCharsets.UTF_8.name())
+
+                        navHostController.navigate(route = Screen.BookRankDetail.name + "/${isbn13String}")
+                    },
+                    modifier = modifier
+                )
+            }
+        )
+
+        // BookRankDetail
+        composable(
+            route = Screen.BookRankDetail.name + "/{${Data.Isbn13.name}}",
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None },
+            content = {
+                val isbn13String = it.arguments?.getString(Data.Isbn13.name)
+                val isbn13 = isbn13String?.let { encoded ->
+                    URLDecoder.decode(encoded, StandardCharsets.UTF_8.name())
+                }
+
+                if (isbn13.isNullOrBlank()) {
+                    onBackPressed(navHostController = navHostController, onAppOff = onAppOff)
+                    return@composable
+                }
+
+                BookRankDetailScreen(
+                    isbn13 = isbn13,
+                    commonViewModel = commonViewModel,
                     onBackPressed = {
                         onBackPressed(navHostController = navHostController, onAppOff = onAppOff)
                     },

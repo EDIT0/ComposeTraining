@@ -5,5 +5,6 @@ enum class Data {
     DetailRegion,
     LibraryInfo,
     Book,
-    BookRankType
+    BookRankType,
+    Isbn13
 }

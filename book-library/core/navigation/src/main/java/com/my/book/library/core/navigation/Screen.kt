@@ -14,5 +14,6 @@ enum class Screen {
     SelectLibraryDetailRegion,
     SelectLibraryList,
     SelectLibraryListDetail,
-    BookRank
+    BookRank,
+    BookRankDetail
 }
