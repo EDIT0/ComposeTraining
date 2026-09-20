@@ -102,7 +102,7 @@ private fun BookRankContent(
     modifier: Modifier = Modifier
 ) {
     val useStatusBarSpace = true
-    val useNavigationBarSpace = false
+    val useNavigationBarSpace = true
 
     SystemBarController.Setup(
         config = SystemBarConfig(
