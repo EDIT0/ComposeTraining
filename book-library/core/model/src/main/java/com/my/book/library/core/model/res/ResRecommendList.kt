@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName
 /**
  * 마니아를 위한 추천도서 조회 응답
  */
-data class ResRecommandList(
+data class ResRecommendList(
     @SerializedName("response")
     val response: ResponseData?
 ) {

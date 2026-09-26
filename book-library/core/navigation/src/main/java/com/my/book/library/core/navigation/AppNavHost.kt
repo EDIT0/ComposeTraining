@@ -289,6 +289,18 @@ fun AppNavHost(
                     onBackPressed = {
                         onBackPressed(navHostController = navHostController, onAppOff = onAppOff)
                     },
+                    onMoveToBookRankDetail = { targetIsbn13: String ->
+                        val encoded = URLEncoder.encode(targetIsbn13, StandardCharsets.UTF_8.name())
+                        navHostController.navigate(route = Screen.BookRankDetail.name + "/${encoded}")
+                    },
+                    onMoveToLibraryMap = { book: ResSearchBook.ResponseData.BookWrapper ->
+                        val bookString = URLEncoder.encode(
+                            Gson().toJson(book),
+                            StandardCharsets.UTF_8.name()
+                        )
+
+                        navHostController.navigate(route = Screen.LibraryMap.name + "/${bookString}")
+                    },
                     modifier = modifier
                 )
             }

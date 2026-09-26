@@ -6,7 +6,7 @@ package com.my.book.library.core.model.req
  * @param isbn13 10자리 또는 13자리 ISBN
  * @param type 추천유형 (mania: 마니아를 위한 추천도서)
  */
-data class ReqRecommandList(
+data class ReqRecommendList(
     val isbn13: String,
     val type: String = "mania"
 )

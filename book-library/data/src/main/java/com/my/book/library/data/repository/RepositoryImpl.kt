@@ -8,7 +8,7 @@ import com.my.book.library.core.model.req.ReqCheckBookAvailability
 import com.my.book.library.core.model.req.ReqHotTrend
 import com.my.book.library.core.model.req.ReqLibraryBookData
 import com.my.book.library.core.model.req.ReqLoanItemSrchByLib
-import com.my.book.library.core.model.req.ReqRecommandList
+import com.my.book.library.core.model.req.ReqRecommendList
 import com.my.book.library.core.model.req.ReqSearchBookHoldingLibrary
 import com.my.book.library.core.model.req.ReqSearchBookWithTitle
 import com.my.book.library.core.model.req.ReqSearchDetailRegionBookLibrary
@@ -19,7 +19,7 @@ import com.my.book.library.core.model.res.ResCheckBookAvailability
 import com.my.book.library.core.model.res.ResHotTrend
 import com.my.book.library.core.model.res.ResLibraryBookData
 import com.my.book.library.core.model.res.ResLoanItemSrchByLib
-import com.my.book.library.core.model.res.ResRecommandList
+import com.my.book.library.core.model.res.ResRecommendList
 import com.my.book.library.core.model.res.ResSearchBook
 import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
 import com.my.book.library.core.model.res.ResSearchBookLibrary
@@ -253,12 +253,12 @@ class RepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun getRecommandList(reqRecommandList: ReqRecommandList): Flow<RequestResult<ResRecommandList>> {
+    override suspend fun getRecommendList(reqRecommendList: ReqRecommendList): Flow<RequestResult<ResRecommendList>> {
         return flow {
-            val response = remoteDataSource.getRecommandList(
+            val response = remoteDataSource.getRecommendList(
                 authToken = BuildConfig.BOOK_LIBRARY_API_KEY,
                 format = Constant.JSON,
-                reqRecommandList = reqRecommandList
+                reqRecommendList = reqRecommendList
             )
 
             if (response.isSuccessful) {

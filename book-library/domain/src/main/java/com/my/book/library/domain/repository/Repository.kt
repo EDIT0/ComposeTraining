@@ -7,7 +7,7 @@ import com.my.book.library.core.model.req.ReqCheckBookAvailability
 import com.my.book.library.core.model.req.ReqHotTrend
 import com.my.book.library.core.model.req.ReqLibraryBookData
 import com.my.book.library.core.model.req.ReqLoanItemSrchByLib
-import com.my.book.library.core.model.req.ReqRecommandList
+import com.my.book.library.core.model.req.ReqRecommendList
 import com.my.book.library.core.model.req.ReqSearchBookHoldingLibrary
 import com.my.book.library.core.model.req.ReqSearchBookWithTitle
 import com.my.book.library.core.model.req.ReqSearchDetailRegionBookLibrary
@@ -18,7 +18,7 @@ import com.my.book.library.core.model.res.ResCheckBookAvailability
 import com.my.book.library.core.model.res.ResHotTrend
 import com.my.book.library.core.model.res.ResLibraryBookData
 import com.my.book.library.core.model.res.ResLoanItemSrchByLib
-import com.my.book.library.core.model.res.ResRecommandList
+import com.my.book.library.core.model.res.ResRecommendList
 import com.my.book.library.core.model.res.ResSearchBook
 import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
 import com.my.book.library.core.model.res.ResSearchBookLibrary
@@ -38,5 +38,5 @@ interface Repository {
     suspend fun getHotTrend(reqHotTrend: ReqHotTrend): Flow<RequestResult<ResHotTrend>>
     suspend fun getLoanItemSrchByLib(reqLoanItemSrchByLib: ReqLoanItemSrchByLib): Flow<RequestResult<ResLoanItemSrchByLib>>
     suspend fun getLoanItemSrchByLibPaging(reqLoanItemSrchByLib: ReqLoanItemSrchByLib): Flow<PagingData<ResLoanItemSrchByLib.ResponseData.DocWrapper>>
-    suspend fun getRecommandList(reqRecommandList: ReqRecommandList): Flow<RequestResult<ResRecommandList>>
+    suspend fun getRecommendList(reqRecommendList: ReqRecommendList): Flow<RequestResult<ResRecommendList>>
 }

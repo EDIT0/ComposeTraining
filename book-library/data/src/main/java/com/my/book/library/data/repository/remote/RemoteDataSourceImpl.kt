@@ -8,7 +8,7 @@ import com.my.book.library.core.model.req.ReqCheckBookAvailability
 import com.my.book.library.core.model.req.ReqHotTrend
 import com.my.book.library.core.model.req.ReqLibraryBookData
 import com.my.book.library.core.model.req.ReqLoanItemSrchByLib
-import com.my.book.library.core.model.req.ReqRecommandList
+import com.my.book.library.core.model.req.ReqRecommendList
 import com.my.book.library.core.model.req.ReqSearchBookHoldingLibrary
 import com.my.book.library.core.model.req.ReqSearchBookWithTitle
 import com.my.book.library.core.model.req.ReqSearchDetailRegionBookLibrary
@@ -19,7 +19,7 @@ import com.my.book.library.core.model.res.ResCheckBookAvailability
 import com.my.book.library.core.model.res.ResHotTrend
 import com.my.book.library.core.model.res.ResLibraryBookData
 import com.my.book.library.core.model.res.ResLoanItemSrchByLib
-import com.my.book.library.core.model.res.ResRecommandList
+import com.my.book.library.core.model.res.ResRecommendList
 import com.my.book.library.core.model.res.ResSearchBook
 import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
 import com.my.book.library.core.model.res.ResSearchBookLibrary
@@ -258,15 +258,15 @@ class RemoteDataSourceImpl @Inject constructor(
         }
     }
 
-    override suspend fun getRecommandList(
+    override suspend fun getRecommendList(
         authToken: String,
         format: String,
-        reqRecommandList: ReqRecommandList
-    ): Response<ResRecommandList> {
-        return apiService.getRecommandList(
+        reqRecommendList: ReqRecommendList
+    ): Response<ResRecommendList> {
+        return apiService.getRecommendList(
             authKey = authToken,
-            isbn13 = reqRecommandList.isbn13,
-            type = reqRecommandList.type,
+            isbn13 = reqRecommendList.isbn13,
+            type = reqRecommendList.type,
             format = format
         )
     }

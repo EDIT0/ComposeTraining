@@ -21,6 +21,14 @@
     <string name="main_home_popular_loan_books_title">Popular in Your Neighborhood</string>
     <string name="main_home_popular_loan_books_subtitle">Most borrowed at %1$s libraries</string>
 
+    <string name="main_rank_detail_recommend_title">Books That Go Well With This One</string>
+    <string name="main_rank_detail_recommend_subtitle">Keep discovering books you\'ll love</string>
+    <string name="main_rank_detail_error_title">Unable to load information</string>
+    <string name="main_rank_detail_error_subtitle">A temporary error occurred.\nPlease try again in a moment.</string>
+    <string name="main_rank_detail_retry_button">Retry</string>
+    <string name="main_rank_detail_description_title">Book Introduction</string>
+    <string name="main_rank_detail_find_library_button">Find Libraries With This Book</string>
+
     <string name="search_book_no_result_title">No results found</string>
     <string name="search_book_no_result_subtitle">Please check your search term</string>
     <string name="search_book_empty_title">Enter a search term</string>

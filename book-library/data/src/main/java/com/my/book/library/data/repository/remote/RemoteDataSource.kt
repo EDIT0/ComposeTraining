@@ -6,7 +6,7 @@ import com.my.book.library.core.model.req.ReqCheckBookAvailability
 import com.my.book.library.core.model.req.ReqHotTrend
 import com.my.book.library.core.model.req.ReqLibraryBookData
 import com.my.book.library.core.model.req.ReqLoanItemSrchByLib
-import com.my.book.library.core.model.req.ReqRecommandList
+import com.my.book.library.core.model.req.ReqRecommendList
 import com.my.book.library.core.model.req.ReqSearchBookHoldingLibrary
 import com.my.book.library.core.model.req.ReqSearchBookWithTitle
 import com.my.book.library.core.model.req.ReqSearchDetailRegionBookLibrary
@@ -17,7 +17,7 @@ import com.my.book.library.core.model.res.ResCheckBookAvailability
 import com.my.book.library.core.model.res.ResHotTrend
 import com.my.book.library.core.model.res.ResLibraryBookData
 import com.my.book.library.core.model.res.ResLoanItemSrchByLib
-import com.my.book.library.core.model.res.ResRecommandList
+import com.my.book.library.core.model.res.ResRecommendList
 import com.my.book.library.core.model.res.ResSearchBook
 import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
 import com.my.book.library.core.model.res.ResSearchBookLibrary
@@ -38,5 +38,5 @@ interface RemoteDataSource {
     suspend fun getHotTrend(authToken: String, format: String, reqHotTrend: ReqHotTrend): Response<ResHotTrend>
     suspend fun getLoanItemSrchByLib(authToken: String, format: String, reqLoanItemSrchByLib: ReqLoanItemSrchByLib): Response<ResLoanItemSrchByLib>
     suspend fun getLoanItemSrchByLibPaging(authToken: String, format: String, reqLoanItemSrchByLib: ReqLoanItemSrchByLib): Flow<PagingData<ResLoanItemSrchByLib.ResponseData.DocWrapper>>
-    suspend fun getRecommandList(authToken: String, format: String, reqRecommandList: ReqRecommandList): Response<ResRecommandList>
+    suspend fun getRecommendList(authToken: String, format: String, reqRecommendList: ReqRecommendList): Response<ResRecommendList>
 }

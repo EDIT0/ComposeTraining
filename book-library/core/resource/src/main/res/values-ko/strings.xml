@@ -21,6 +21,14 @@
     <string name="main_home_popular_loan_books_title">우리 동네 인기 대출도서</string>
     <string name="main_home_popular_loan_books_subtitle">%1$s 도서관에서 많이 빌린 책</string>
 
+    <string name="main_rank_detail_recommend_title">이 책과 함께 보면 좋은 책</string>
+    <string name="main_rank_detail_recommend_subtitle">취향을 이어서 발견해 보세요</string>
+    <string name="main_rank_detail_error_title">정보를 불러올 수 없습니다</string>
+    <string name="main_rank_detail_error_subtitle">일시적인 오류가 발생했습니다.\n잠시 후에 다시 시도해주세요.</string>
+    <string name="main_rank_detail_retry_button">다시 시도</string>
+    <string name="main_rank_detail_description_title">책소개</string>
+    <string name="main_rank_detail_find_library_button">소장 도서관 찾기</string>
+
     <string name="search_book_no_result_title">검색 결과가 없습니다</string>
     <string name="search_book_no_result_subtitle">검색어를 확인해보세요</string>
     <string name="search_book_empty_title">검색어를 입력해보세요</string>

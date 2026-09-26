@@ -6,7 +6,7 @@ import com.my.book.library.core.model.res.ResCheckBookAvailability
 import com.my.book.library.core.model.res.ResHotTrend
 import com.my.book.library.core.model.res.ResLibraryBookData
 import com.my.book.library.core.model.res.ResLoanItemSrchByLib
-import com.my.book.library.core.model.res.ResRecommandList
+import com.my.book.library.core.model.res.ResRecommendList
 import com.my.book.library.core.model.res.ResSearchBook
 import com.my.book.library.core.model.res.ResSearchBookHoldingLibrary
 import com.my.book.library.core.model.res.ResSearchBookLibrary
@@ -216,10 +216,10 @@ interface ApiService {
      * @return
      */
     @GET("${Constant.URL_PATH_API}/recommandList")
-    suspend fun getRecommandList(
+    suspend fun getRecommendList(
         @Query("authKey") authKey: String,
         @Query("isbn13") isbn13: String,
         @Query("type") type: String = "mania",
         @Query("format") format: String = Constant.JSON
-    ): Response<ResRecommandList>
+    ): Response<ResRecommendList>
 }
