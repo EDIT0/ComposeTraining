@@ -7,6 +7,7 @@ import com.my.book.library.data.repository.local.AppDatabase
 import com.my.book.library.data.repository.local.LocalDataSource
 import com.my.book.library.data.repository.local.LocalDataSourceImpl
 import com.my.book.library.data.repository.local.dao.BookDetailDao
+import com.my.book.library.data.repository.local.dao.HotTrendDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -40,10 +41,17 @@ object LocalDataModule {
 
     @Singleton
     @Provides
+    fun providesHotTrendDao(appDatabase: AppDatabase): HotTrendDao {
+        return appDatabase.hotTrendDao()
+    }
+
+    @Singleton
+    @Provides
     fun providesLocalDataSource(
         bookDetailDao: BookDetailDao,
+        hotTrendDao: HotTrendDao,
         gson: Gson
     ): LocalDataSource {
-        return LocalDataSourceImpl(bookDetailDao = bookDetailDao, gson = gson)
+        return LocalDataSourceImpl(bookDetailDao = bookDetailDao, hotTrendDao = hotTrendDao, gson = gson)
     }
 }

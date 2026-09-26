@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -33,6 +34,7 @@ import androidx.navigation.compose.rememberNavController
 import com.my.book.library.core.common.CommonViewModel
 import com.my.book.library.core.common.component.LifecycleListener
 import com.my.book.library.core.common.component.LifecycleResult
+import com.my.book.library.core.model.local.BookRankType
 import com.my.book.library.core.resource.R
 import com.my.book.library.feature.main.ui.home.HomeScreen
 import com.my.book.library.feature.main.ui.save.SaveScreen
@@ -43,6 +45,8 @@ fun MainScreen(
     commonViewModel: CommonViewModel,
     onMoveToSearchLibrary: () -> Unit,
     onMoveToSelectLibraryRegion: () -> Unit,
+    onMoveToBookRank: (BookRankType) -> Unit,
+    onMoveToBookRankDetail: (String) -> Unit,
     modifier: Modifier
 ) {
 
@@ -67,6 +71,8 @@ fun MainScreen(
         localContext = localContext,
         onMoveToSearchLibrary = onMoveToSearchLibrary,
         onMoveToSelectLibraryRegion = onMoveToSelectLibraryRegion,
+        onMoveToBookRank = onMoveToBookRank,
+        onMoveToBookRankDetail = onMoveToBookRankDetail,
         modifier = modifier,
         commonViewModel = commonViewModel,
         mainViewModel = mainViewModel
@@ -84,6 +90,8 @@ fun MainContent(
     localContext: Context,
     onMoveToSearchLibrary: () -> Unit,
     onMoveToSelectLibraryRegion: () -> Unit,
+    onMoveToBookRank: (BookRankType) -> Unit,
+    onMoveToBookRankDetail: (String) -> Unit,
     modifier: Modifier,
     commonViewModel: CommonViewModel,
     mainViewModel: MainViewModel
@@ -157,7 +165,8 @@ fun MainContent(
         ) { innerPadding ->
             NavHost(
                 modifier = Modifier
-                    .background(color = colorResource(R.color.color_FFFFFFFF)),
+                    .background(color = colorResource(R.color.color_FFFFFFFF))
+                    .padding(bottom = innerPadding.calculateBottomPadding()),
                 navController = navController,
                 startDestination = MainDestination.HOME.route,
             ) {
@@ -165,6 +174,8 @@ fun MainContent(
                     HomeScreen(
                         onMoveToSearchLibrary = onMoveToSearchLibrary,
                         onMoveToSelectLibraryRegion = onMoveToSelectLibraryRegion,
+                        onMoveToBookRank = onMoveToBookRank,
+                        onMoveToBookRankDetail = onMoveToBookRankDetail,
                         commonViewModel = commonViewModel,
                         mainViewModel = mainViewModel
                     )

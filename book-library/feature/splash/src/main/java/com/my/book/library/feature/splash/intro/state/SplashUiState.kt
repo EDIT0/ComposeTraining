@@ -1,1 +1,5 @@
 package com.my.book.library.feature.splash.intro.state
+
+data class SplashUiState(
+    val isLoading: Boolean = true
+)

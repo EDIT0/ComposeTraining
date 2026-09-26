@@ -34,6 +34,7 @@ fun CommonActionBar(
     context: Context,
     modifier: Modifier = Modifier,
     actionBarTitle: String,
+    titleTextAlign: TextAlign = TextAlign.Center,
     isShowBackButton: Boolean,
     onBackClick: () -> Unit
 ) {
@@ -84,7 +85,7 @@ fun CommonActionBar(
                         lineHeight = dpToSp(24.dp),
                         fontFamily = NotoSansKR,
                         fontWeight = FontWeight.Medium,
-                        textAlign = TextAlign.Center
+                        textAlign = titleTextAlign
                     )
                 )
             }

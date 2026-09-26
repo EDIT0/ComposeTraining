@@ -5,5 +5,5 @@ sealed interface SplashViewModelEvent {
 }
 
 sealed interface SplashUiEvent {
-
+    class LoadingFinished(): SplashUiEvent
 }

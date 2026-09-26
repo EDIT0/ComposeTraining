@@ -13,11 +13,14 @@ import androidx.navigation.compose.composable
 import com.google.gson.Gson
 import com.my.book.library.feature.search_library.ui.SearchLibraryScreen
 import com.my.book.library.core.common.CommonViewModel
+import com.my.book.library.core.model.local.BookRankType
 import com.my.book.library.core.model.res.ResSearchBook
 import com.my.book.library.core.model.res.ResSearchBookLibrary
 import com.my.book.library.core.resource.LibraryData
 import com.my.book.library.feature.splash.intro.ui.SplashScreen
 import com.my.book.library.feature.main.ui.MainScreen
+import com.my.book.library.feature.main.ui.rank.BookRankScreen
+import com.my.book.library.feature.main.ui.rank_detail.BookRankDetailScreen
 import com.my.book.library.feature.search.book.ui.SearchScreen
 import com.my.book.library.feature.search.library.ui.LibraryMapScreen
 import com.my.book.library.feature.select_library.detail_region.ui.SelectLibraryDetailRegionScreen
@@ -180,6 +183,123 @@ fun AppNavHost(
                     },
                     onMoveToSelectLibraryRegion = {
                         navHostController.navigate(route = Screen.RegionSelectGuide.name)
+                    },
+                    onMoveToBookRank = { bookRankType: BookRankType ->
+                        val bookRankTypeString = URLEncoder.encode(
+                            Gson().toJson(bookRankType),
+                            StandardCharsets.UTF_8.name()
+                        )
+
+                        navHostController.navigate(route = Screen.BookRank.name + "/${bookRankTypeString}")
+                    },
+                    onMoveToBookRankDetail = { isbn13: String ->
+                        val isbn13String = URLEncoder.encode(isbn13, StandardCharsets.UTF_8.name())
+
+                        navHostController.navigate(route = Screen.BookRankDetail.name + "/${isbn13String}")
+                    },
+                    modifier = modifier
+                )
+            }
+        )
+
+        // BookRank
+        composable(
+            route = Screen.BookRank.name + "/{${Data.BookRankType.name}}",
+            enterTransition = {
+                // 새 스크린이 들어올 때
+//                slideInHorizontally(
+//                    initialOffsetX = { fullWidth -> fullWidth },
+//                    animationSpec = tween(durationMillis = animSpeed)
+//                )
+                EnterTransition.None
+            },
+            exitTransition = {
+                // 현재 스크린이 나갈 때
+//                slideOutHorizontally(
+//                    targetOffsetX = { fullWidth -> -fullWidth },
+//                    animationSpec = tween(durationMillis = animSpeed)
+//                )
+                ExitTransition.None
+            },
+            popEnterTransition = {
+                // 뒤로가기 시 이전 스크린이 들어올 때
+//                slideInHorizontally(
+//                    initialOffsetX = { fullWidth -> -fullWidth },
+//                    animationSpec = tween(durationMillis = animSpeed)
+//                )
+                EnterTransition.None
+            },
+            popExitTransition = {
+                // 뒤로가기 시 현재 스크린이 나갈 때
+//                slideOutHorizontally(
+//                    targetOffsetX = { fullWidth -> fullWidth },
+//                    animationSpec = tween(durationMillis = animSpeed)
+//                )
+                ExitTransition.None
+            },
+            content = {
+                val bookRankTypeString = it.arguments?.getString(Data.BookRankType.name)
+                val bookRankType = Gson().fromJson(
+                    URLDecoder.decode(bookRankTypeString, StandardCharsets.UTF_8.name()),
+                    BookRankType::class.java
+                )
+
+                if (bookRankType == null) {
+                    onBackPressed(navHostController = navHostController, onAppOff = onAppOff)
+                    return@composable
+                }
+
+                BookRankScreen(
+                    commonViewModel = commonViewModel,
+                    bookRankType = bookRankType,
+                    onBackPressed = {
+                        onBackPressed(navHostController = navHostController, onAppOff = onAppOff)
+                    },
+                    onMoveToBookRankDetail = { isbn13: String ->
+                        val isbn13String = URLEncoder.encode(isbn13, StandardCharsets.UTF_8.name())
+
+                        navHostController.navigate(route = Screen.BookRankDetail.name + "/${isbn13String}")
+                    },
+                    modifier = modifier
+                )
+            }
+        )
+
+        // BookRankDetail
+        composable(
+            route = Screen.BookRankDetail.name + "/{${Data.Isbn13.name}}",
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None },
+            content = {
+                val isbn13String = it.arguments?.getString(Data.Isbn13.name)
+                val isbn13 = isbn13String?.let { encoded ->
+                    URLDecoder.decode(encoded, StandardCharsets.UTF_8.name())
+                }
+
+                if (isbn13.isNullOrBlank()) {
+                    onBackPressed(navHostController = navHostController, onAppOff = onAppOff)
+                    return@composable
+                }
+
+                BookRankDetailScreen(
+                    isbn13 = isbn13,
+                    commonViewModel = commonViewModel,
+                    onBackPressed = {
+                        onBackPressed(navHostController = navHostController, onAppOff = onAppOff)
+                    },
+                    onMoveToBookRankDetail = { targetIsbn13: String ->
+                        val encoded = URLEncoder.encode(targetIsbn13, StandardCharsets.UTF_8.name())
+                        navHostController.navigate(route = Screen.BookRankDetail.name + "/${encoded}")
+                    },
+                    onMoveToLibraryMap = { book: ResSearchBook.ResponseData.BookWrapper ->
+                        val bookString = URLEncoder.encode(
+                            Gson().toJson(book),
+                            StandardCharsets.UTF_8.name()
+                        )
+
+                        navHostController.navigate(route = Screen.LibraryMap.name + "/${bookString}")
                     },
                     modifier = modifier
                 )
