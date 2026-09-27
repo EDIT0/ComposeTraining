@@ -201,11 +201,11 @@ private fun BookRankContent(
                             when (val appendState = popularLoanBooksPaging.loadState.source.append) {
                                 is LoadState.Error -> {
                                     item {
-                                        RetryView(
-                                            localContext = localContext,
-                                            retry = { popularLoanBooksPaging.retry() },
-                                            message = appendState.error.localizedMessage ?: ""
-                                        )
+//                                        RetryView(
+//                                            localContext = localContext,
+//                                            retry = { popularLoanBooksPaging.retry() },
+//                                            message = appendState.error.localizedMessage ?: ""
+//                                        )
                                     }
                                 }
                                 is LoadState.Loading -> {

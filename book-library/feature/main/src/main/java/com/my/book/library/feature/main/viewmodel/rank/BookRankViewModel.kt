@@ -61,6 +61,10 @@ class BookRankViewModel @Inject constructor(
     fun intentAction(event: BookRankViewModelEvent) {
         when (event) {
             is BookRankViewModelEvent.LoadBookRank -> {
+                if (bookRankUiState.value.bookRankType == event.bookRankType) {
+                    return
+                }
+
                 viewModelScope.launch(Dispatchers.Main) {
                     _bookRankUiEvent.send(BookRankUiEvent.UpdateBookRankType(event.bookRankType))
                 }

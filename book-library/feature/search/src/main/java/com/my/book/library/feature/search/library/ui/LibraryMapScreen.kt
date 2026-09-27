@@ -125,6 +125,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
+// 마커가 1개일 때 fitBounds 대신 사용하는 고정 줌 레벨(동네 수준 컨텍스트가 보이는 정도)
+private const val SINGLE_MARKER_ZOOM = 15.0
+
 @OptIn(ExperimentalNaverMapApi::class)
 @Composable
 fun LibraryMapScreen(
@@ -418,7 +421,12 @@ fun LibraryMapContent(
                                     val lon = item.lib.longitude?.toDoubleOrNull()
                                     if (lat != null && lon != null) LatLng(lat, lon) else null
                                 }
-                                if (validCoords.isNotEmpty()) {
+                                if (validCoords.size == 1) {
+                                    cameraPositionState?.animate(
+                                        update = CameraUpdate.scrollAndZoomTo(validCoords.first(), SINGLE_MARKER_ZOOM),
+                                        durationMs = 500
+                                    )
+                                } else if (validCoords.isNotEmpty()) {
                                     val bounds = LatLngBounds.Builder().apply {
                                         validCoords.forEach { include(it) }
                                     }.build()
